@@ -6,18 +6,16 @@ def load_blueprints(app):
 
     import factoryos.modules
 
-    package = factoryos.modules
+    def walk_packages(package):
 
-    for _, module_name, _ in pkgutil.iter_modules(package.__path__):
+        for loader, name, is_pkg in pkgutil.walk_packages(package.__path__, package.__name__ + "."):
 
-        module_path = f"factoryos.modules.{module_name}"
+            if name.endswith(".routes"):
 
-        try:
+                module = importlib.import_module(name)
 
-            routes_module = importlib.import_module(f"{module_path}.routes")
+                if hasattr(module, "bp"):
 
-            if hasattr(routes_module, "bp"):
-                app.register_blueprint(routes_module.bp)
+                    app.register_blueprint(module.bp)
 
-        except ModuleNotFoundError:
-            pass
+    walk_packages(factoryos.modules)
