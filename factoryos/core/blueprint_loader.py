@@ -2,29 +2,22 @@ import importlib
 import pkgutil
 
 
-def register_blueprints(app):
+def load_blueprints(app):
 
-    package = "factoryos.modules"
+    import factoryos.modules
 
-    for importer, module_name, is_pkg in pkgutil.walk_packages(
-        path=__import__(package).__path__,
-        prefix=package + ".",
-        onerror=lambda x: None,
-    ):
+    package = factoryos.modules
 
-        if module_name.endswith(".routes"):
+    for _, module_name, _ in pkgutil.iter_modules(package.__path__):
 
-            module = importlib.import_module(module_name)
+        module_path = f"factoryos.modules.{module_name}"
 
-            for attr in dir(module):
+        try:
 
-                obj = getattr(module, attr)
+            routes_module = importlib.import_module(f"{module_path}.routes")
 
-                try:
-                    from flask import Blueprint
+            if hasattr(routes_module, "bp"):
+                app.register_blueprint(routes_module.bp)
 
-                    if isinstance(obj, Blueprint):
-                        app.register_blueprint(obj)
-
-                except:
-                    pass
+        except ModuleNotFoundError:
+            pass
