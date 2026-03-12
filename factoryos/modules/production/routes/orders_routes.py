@@ -1,17 +1,17 @@
-from datetime import datetime
-from openpyxl import load_workbook
-
-from factoryos.modules.production.models import TimeBooking
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required
-from sqlalchemy import func, or_
 
-from factoryos.extensions import db
-from factoryos.modules.production.models import Order, QuantityReport
 from factoryos.models.tools import ToolMasterdata
-from factoryos.models.user import User
 from factoryos.core.permissions import role_required
 
+from factoryos.modules.production.services.order_service import (
+    get_orders_overview,
+    create_production_order,
+    update_order,
+    delete_order,
+    get_order_detail_data,
+    import_orders_from_excel
+)
 
 bp = Blueprint(
     "production_orders",
@@ -26,55 +26,9 @@ bp = Blueprint(
 def orders_home():
 
     q = request.args.get("q", "").strip()
+    status_filter = request.args.get("status")
 
-    status_filter = request.args.get("status", None)
-
-    if status_filter is None:
-        status_filter = "offen"
-
-    query = (
-        db.session.query(
-            Order,
-            func.coalesce(func.sum(QuantityReport.good_qty), 0).label("good_sum")
-        )
-        .outerjoin(QuantityReport)
-        .group_by(Order.id)
-    )
-
-    if q:
-        like = f"%{q}%"
-        query = query.filter(
-            or_(
-                Order.order_no.ilike(like),
-                Order.article.ilike(like),
-                Order.description.ilike(like),
-                Order.tool_no.ilike(like),
-            )
-        )
-
-    if status_filter in ["offen", "in_arbeit", "fertig", "gesperrt"]:
-        query = query.filter(Order.status == status_filter)
-
-    query = query.order_by(Order.order_no.asc())
-
-    rows = query.all()
-
-    orders = []
-
-    for order, good_sum in rows:
-
-        target = order.target_qty or 0
-        good = good_sum or 0
-
-        rest = max(0, target - good)
-
-        orders.append({
-            "order": order,
-            "good": int(good),
-            "rest": int(rest)
-        })
-
-    order_count = len(orders)
+    orders, order_count = get_orders_overview(q, status_filter)
 
     return render_template(
         "orders_home.html",
@@ -83,7 +37,8 @@ def orders_home():
         status_filter=status_filter,
         order_count=order_count
     )
-    
+
+
 @bp.route("/create")
 @login_required
 @role_required("admin", "schichtleiter")
@@ -95,194 +50,64 @@ def orders_create():
 @login_required
 @role_required("admin")
 def orders_create_prod():
+
     tools = ToolMasterdata.query.order_by(ToolMasterdata.tool_no.asc()).all()
 
     if request.method == "POST":
-        order_no = request.form.get("order_no", "").strip()
 
-        article = request.form.get("article", "").strip()  # Artikelnummer
-        article_name = request.form.get("article_name", "").strip()
-        location = request.form.get("location", "").strip()
+        success, message = create_production_order(request.form)
 
-        tool_no = request.form.get("tool_no", "").strip()
-        description = request.form.get("description", "").strip()
-        target_qty = request.form.get("target_qty", "0").strip()
-        status = request.form.get("status", "offen")
+        flash(message, "success" if success else "danger")
 
-        if not order_no:
-            flash("Bitte Auftragsnummer angeben.", "danger")
-            return redirect(url_for("production_orders.orders_create_prod"))
+        if success:
+            return redirect(url_for("production_orders.orders_home"))
 
-        if Order.query.filter_by(order_no=order_no).first():
-            flash("Auftrag existiert bereits.", "danger")
-            return redirect(url_for("production_orders.orders_create_prod"))
+        return redirect(url_for("production_orders.orders_create_prod"))
 
-        try:
-            target_qty_int = int(target_qty)
-        except:
-            target_qty_int = 0
-
-        if target_qty_int <= 0:
-            flash("Sollmenge muss größer 0 sein.", "danger")
-            return redirect(url_for("production_orders.orders_create_prod"))
-
-        o = Order(
-            order_no=order_no,
-            article=article if article else None,
-            article_name=article_name if article_name else None,
-            location=location if location else None,
-            tool_no=tool_no if tool_no else None,
-            description=description if description else None,
-            target_qty=target_qty_int,
-            status=status,
-            is_project=False
-        )
-        db.session.add(o)
-        db.session.commit()
-
-        flash("Fertigungsauftrag angelegt.", "success")
-        return redirect(url_for("production_orders.orders_home"))
-
-    return render_template(
-        "orders_create_prod.html",
-        tools=tools
-    )
+    return render_template("orders_create_prod.html", tools=tools)
 
 
 @bp.route("/edit/<int:order_id>", methods=["GET", "POST"])
 @login_required
 @role_required("admin")
 def orders_edit(order_id):
-    o = Order.query.get_or_404(order_id)
+
+    from factoryos.modules.production.models import Order
+
+    order = Order.query.get_or_404(order_id)
 
     if request.method == "POST":
-        order_no = request.form.get("order_no", "").strip()
-        article = request.form.get("article", "").strip()
-        tool_no = request.form.get("tool_no", "").strip()
-        description = request.form.get("description", "").strip()
-        target_qty = request.form.get("target_qty", "0").strip()
-        status = request.form.get("status", "offen")
 
-        if not order_no:
-            flash("Bitte Auftragsnummer angeben.", "danger")
-            return redirect(url_for("production_orders.orders_edit", order_id=order_id))
+        success, message = update_order(order_id, request.form)
 
-        existing = Order.query.filter(Order.order_no == order_no, Order.id != o.id).first()
-        if existing:
-            flash("Auftragsnummer existiert bereits.", "danger")
-            return redirect(url_for("production_orders.orders_edit", order_id=order_id))
+        flash(message, "success" if success else "danger")
 
-        try:
-            target_qty_int = int(target_qty)
-        except:
-            target_qty_int = 0
+        if success:
+            return redirect(url_for("production_orders.orders_home"))
 
-        o.order_no = order_no
-        o.article = article if article else None
-        o.tool_no = tool_no if tool_no else None
-        o.description = description if description else None
-        o.target_qty = target_qty_int
-        o.status = status
+        return redirect(url_for("production_orders.orders_edit", order_id=order_id))
 
-        db.session.commit()
-        flash("Auftrag gespeichert.", "success")
-        return redirect(url_for("production_orders.orders_home"))
+    return render_template("orders_edit.html", order=order)
 
-    return render_template(
-        "orders_edit.html",
-        order=o
-    )
 
 @bp.route("/<order_no>")
 @login_required
 def order_detail(order_no):
-    # Auftrag holen
-    o = Order.query.filter_by(order_no=order_no).first_or_404()
 
-    # ToolMasterdata holen (über tool_no)
-    tool = None
-    if o.tool_no:
-        tool = ToolMasterdata.query.filter_by(tool_no=o.tool_no).first()
+    data = get_order_detail_data(order_no)
 
-    # Ist-Menge / Ausschuss summieren
-    sums = (
-        db.session.query(
-            func.coalesce(func.sum(QuantityReport.good_qty), 0).label("good_sum"),
-            func.coalesce(func.sum(QuantityReport.scrap_qty), 0).label("scrap_sum"),
-        )
-        .filter(QuantityReport.order_id == o.id)
-        .first()
-    )
+    return render_template("order_detail.html", **data)
 
-    good = int(sums.good_sum or 0)
-    scrap = int(sums.scrap_sum or 0)
-
-    target = int(o.target_qty or 0)
-    rest = target - good
-    if rest < 0:
-        rest = 0
-
-    # ----------------------------
-    # Berechnungen aus Stammdaten
-    # ----------------------------
-    shot_weight_g = None
-    cycle_time_s = None
-
-    material_need_kg = None
-    kg_per_hour = None
-    parts_per_hour = None
-
-    if tool:
-        # ACHTUNG: Feldnamen müssen zu deinem Model passen!
-        # (ich gehe von shot_weight_g und cycle_time_s aus)
-        shot_weight_g = tool.shot_weight_g
-        cycle_time_s = tool.cycle_time_s
-
-        if shot_weight_g and target > 0:
-            material_need_kg = (target * float(shot_weight_g)) / 1000.0
-
-        if shot_weight_g and cycle_time_s and cycle_time_s > 0:
-            parts_per_hour = 3600.0 / float(cycle_time_s)
-            kg_per_hour = (parts_per_hour * float(shot_weight_g)) / 1000.0
-
-    return render_template(
-        "order_detail.html",
-        o=o,
-        tool=tool,
-        good=good,
-        scrap=scrap,
-        rest=rest,
-        material_need_kg=material_need_kg,
-        kg_per_hour=kg_per_hour,
-        parts_per_hour=parts_per_hour
-    )
 
 @bp.route("/delete/<int:order_id>", methods=["POST"])
 @login_required
 @role_required("admin")
 def orders_delete(order_id):
-    o = Order.query.get_or_404(order_id)
 
-    # Prüfen ob Auftrag aktiv läuft
-    running = (
-        TimeBooking.query
-        .filter_by(order_id=o.id)
-        .filter(TimeBooking.end_time.is_(None))
-        .first()
-    )
+    success, message = delete_order(order_id)
 
-    if running:
-        flash("Auftrag kann nicht gelöscht werden: Es läuft noch eine aktive Buchung.", "danger")
-        return redirect(url_for("production_orders.orders_home"))
+    flash(message, "success" if success else "danger")
 
-    # abhängige Daten löschen
-    TimeBooking.query.filter_by(order_id=o.id).delete(synchronize_session=False)
-    QuantityReport.query.filter_by(order_id=o.id).delete(synchronize_session=False)
-
-    db.session.delete(o)
-    db.session.commit()
-
-    flash("Auftrag wurde gelöscht.", "success")
     return redirect(url_for("production_orders.orders_home"))
 
 
@@ -290,70 +115,15 @@ def orders_delete(order_id):
 @login_required
 @role_required("admin")
 def orders_import():
+
     if request.method == "POST":
+
         file = request.files.get("file")
 
-        if not file or file.filename == "":
-            flash("Bitte Excel-Datei auswählen.", "danger")
-            return redirect(url_for("production_orders.orders_import"))
+        success, message = import_orders_from_excel(file)
 
-        wb = load_workbook(file, data_only=True)
-        ws = wb.active
+        flash(message, "success" if success else "danger")
 
-        # Header lesen
-        header = []
-        for cell in ws[1]:
-            header.append(str(cell.value).strip() if cell.value else "")
-
-        required = ["order_no", "article", "description", "tool_no", "target_qty", "status"]
-        for r in required:
-            if r not in header:
-                flash(f"Spalte fehlt: {r}", "danger")
-                return redirect(url_for("production_orders.orders_import"))
-
-        idx = {name: header.index(name) for name in required}
-
-        created = 0
-        skipped = 0
-
-        for row in ws.iter_rows(min_row=2, values_only=True):
-            order_no = str(row[idx["order_no"]]).strip() if row[idx["order_no"]] else ""
-            if not order_no:
-                continue
-
-            # schon vorhanden?
-            existing = Order.query.filter_by(order_no=order_no).first()
-            if existing:
-                skipped += 1
-                continue
-
-            article = str(row[idx["article"]]).strip() if row[idx["article"]] else None
-            description = str(row[idx["description"]]).strip() if row[idx["description"]] else None
-            tool_no = str(row[idx["tool_no"]]).strip() if row[idx["tool_no"]] else None
-
-            try:
-                target_qty = int(row[idx["target_qty"]] or 0)
-            except:
-                target_qty = 0
-
-            status = str(row[idx["status"]]).strip() if row[idx["status"]] else "offen"
-            if status not in ["offen", "in_arbeit", "fertig", "gesperrt"]:
-                status = "offen"
-
-            o = Order(
-                order_no=order_no,
-                article=article,
-                description=description,
-                tool_no=tool_no,
-                target_qty=target_qty,
-                status=status
-            )
-            db.session.add(o)
-            created += 1
-
-        db.session.commit()
-
-        flash(f"Import fertig: {created} neu, {skipped} übersprungen.", "success")
         return redirect(url_for("production_orders.orders_home"))
 
     return render_template("orders_import.html")
