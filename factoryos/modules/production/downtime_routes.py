@@ -1,3 +1,9 @@
+bp = Blueprint(
+    "production_downtime",
+    __name__,
+    url_prefix="/production/downtime"
+)
+
 @app.route("/admin/reasons")
 @login_required
 @role_required("admin", "schichtleiter")
