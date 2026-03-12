@@ -3,7 +3,7 @@ from flask_login import login_required
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-from extensions import db
+from factoryos.extensions import db
 from factoryos.modules.quality.gauges.models import Gauge, GaugeCalibration
 from factoryos.modules.quality.gauges.calibration_service import (
     calibration_status,
