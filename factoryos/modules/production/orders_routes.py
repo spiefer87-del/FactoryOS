@@ -1,4 +1,9 @@
-@app.route("/admin/orders")
+bp = Blueprint(
+    "production_orders",
+    __name__,
+    url_prefix="/production/orders"
+)@app.route("/admin/orders")
+
 @login_required
 @role_required("admin", "schichtleiter")
 def admin_orders():
