@@ -1,3 +1,9 @@
+bp = Blueprint(
+    "projects",
+    __name__,
+    url_prefix="/projects"
+)
+
 @app.route("/projects")
 @login_required
 def projects_dashboard():
