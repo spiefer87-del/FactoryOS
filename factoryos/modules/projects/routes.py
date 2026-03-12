@@ -47,8 +47,10 @@ def projects_home():
             )
         )
 
-    projects = base.order_by(Order.tool_no.asc(), Order.order_no.asc()).all()
-    project_count = base.count()
+    projects_query = base.order_by(Order.tool_no.asc(), Order.order_no.asc())
+    
+    projects = projects_query.all()
+    project_count = projects_query.count()
 
     # Eigene laufende Projektzeiten
     active = (
