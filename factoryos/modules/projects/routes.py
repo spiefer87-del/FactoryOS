@@ -48,16 +48,15 @@ def projects_home():
         )
 
     projects_query = base.order_by(Order.tool_no.asc(), Order.order_no.asc())
-    
+
     projects = projects_query.all()
-    project_count = projects_query.count()
+    project_count = len(projects)
 
     # Eigene laufende Projektzeiten
     active = (
         TimeBooking.query
-        .filter_by(user_id=current_user.id)
+        .filter_by(user_id=current_user.id, process="PROJEKT")
         .filter(TimeBooking.end_time.is_(None))
-        .filter(TimeBooking.process == "PROJEKT")
         .order_by(TimeBooking.start_time.desc())
         .all()
     )
@@ -161,6 +160,21 @@ def projects_start(order_id):
     if not order.is_project:
         flash("Dieser Auftrag ist kein Projekt.", "danger")
         return redirect(url_for("projects.projects_home"))
+    
+    existing = (
+        TimeBooking.query
+        .filter_by(
+            user_id=current_user.id,
+            order_id=order.id,
+            process="PROJEKT"
+        )
+        .filter(TimeBooking.end_time.is_(None))
+        .first()
+    )
+
+    if existing:
+        flash("Projekt läuft bereits.", "warning")
+        return redirect(url_for("projects.projects_home"))
 
     # Hinweis wenn bereits Projekte laufen
     running = (
@@ -205,13 +219,11 @@ def projects_close(order_id):
     # Laufende Projekt-Buchungen zu diesem Projekt beenden
     running = (
         TimeBooking.query
-        .filter_by(order_id=order.id)
-        .filter(TimeBooking.process == "PROJEKT")
+        .filter_by(order_id=order.id, process="PROJEKT")
         .filter(TimeBooking.end_time.is_(None))
-        .all()
     )
 
-    for b in running:
+    for b in running.all():
         b.end_time = datetime.utcnow()
 
     order.status = "fertig"
