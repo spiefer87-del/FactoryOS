@@ -1,20 +1,33 @@
+from datetime import datetime
+
+from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask_login import login_required, current_user
+
+from factoryos.extensions import db
+from factoryos.models.user import User
+from factoryos.models.tools import ToolMasterdata
+from factoryos.modules.production.models import Order, TimeBooking
+
+from sqlalchemy import or_
+
+from factoryos.core.permissions import role_required
+
 bp = Blueprint(
     "projects",
     __name__,
     url_prefix="/projects"
 )
 
-@app.route("/projects")
+@bp.route("/")
 @login_required
-def projects_dashboard():
+def projects_home():
     q = request.args.get("q", "").strip()
     only_mine = request.args.get("only_mine", "0") == "1"
 
     base = (
         Order.query
         .filter_by(is_project=True)
-        .filter(Order.status != "fertig")
-        .filter(Order.status != "gesperrt")
+        .filter(~Order.status.in_(["fertig", "gesperrt"]))
     )
 
     # Nur meine Projekte (Projektleiter = current_user)
@@ -25,7 +38,7 @@ def projects_dashboard():
     if q:
         like = f"%{q}%"
         base = base.outerjoin(User, Order.project_leader_id == User.id).filter(
-            db.or_(
+            or_(
                 Order.order_no.ilike(like),
                 Order.tool_no.ilike(like),
                 Order.article.ilike(like),
@@ -35,7 +48,7 @@ def projects_dashboard():
         )
 
     projects = base.order_by(Order.tool_no.asc(), Order.order_no.asc()).all()
-    project_count = len(projects)
+    project_count = base.count()
 
     # Eigene laufende Projektzeiten
     active = (
@@ -59,7 +72,7 @@ def projects_dashboard():
     )
 
     return render_template(
-        "projects_dashboard.html",
+        "projects_home.html",
         projects=projects,
         active=active,
         history=history,
@@ -68,10 +81,10 @@ def projects_dashboard():
         project_count=project_count
     )
 
-@bp.route("/create/project", methods=["GET", "POST"])
+@bp.route("/create", methods=["GET", "POST"])
 @login_required
 @role_required("admin", "schichtleiter")
-def create_project():
+def projects_create():
     users = User.query.order_by(User.username.asc()).all()
     tools = ToolMasterdata.query.order_by(ToolMasterdata.tool_no.asc()).all()
 
@@ -91,7 +104,7 @@ def create_project():
         # Werkzeug Pflicht
         if not tool_no:
             flash("Werkzeug-Nr. ist Pflicht für Projekte.", "danger")
-            return redirect(url_for("production_orders.orders_create_project"))
+            return redirect(url_for("projects.projects_create"))
 
         # order_no optional -> generieren
         if not order_no:
@@ -99,7 +112,7 @@ def create_project():
 
         if Order.query.filter_by(order_no=order_no).first():
             flash("Projekt existiert bereits.", "danger")
-            return redirect(url_for("production_orders.orders_create_project"))
+            return redirect(url_for("projects.projects_create"))
 
         # Projektleiter optional
         leader_id_int = None
@@ -130,29 +143,28 @@ def create_project():
         db.session.commit()
 
         flash("Projekt angelegt.", "success")
-        return redirect(url_for("production_orders.projects_dashboard"))
+        return redirect(url_for("projects.projects_home"))
 
     return render_template(
-        "orders_create_project.html",
+        "projects_create.html",
         users=users,
         tools=tools
     )
 
-@app.route("/projects/start/<int:order_id>", methods=["POST"])
+@bp.route("/start/<int:order_id>", methods=["POST"])
 @login_required
 def projects_start(order_id):
     order = Order.query.get_or_404(order_id)
 
     if not order.is_project:
         flash("Dieser Auftrag ist kein Projekt.", "danger")
-        return redirect(url_for("projects_dashboard"))
+        return redirect(url_for("projects.projects_home"))
 
     # Hinweis wenn bereits Projekte laufen
     running = (
         TimeBooking.query
-        .filter_by(user_id=current_user.id)
+        .filter_by(user_id=current_user.id, process="PROJEKT")
         .filter(TimeBooking.end_time.is_(None))
-        .filter(TimeBooking.process == "PROJEKT")
         .count()
     )
 
@@ -172,21 +184,21 @@ def projects_start(order_id):
     db.session.commit()
 
     flash("Projekt gestartet.", "success")
-    return redirect(url_for("projects_dashboard"))
+    return redirect(url_for("projects.projects_home"))
 
-@app.route("/projects/close/<int:order_id>", methods=["POST"])
+@bp.route("/close/<int:order_id>", methods=["POST"])
 @login_required
 def projects_close(order_id):
     order = Order.query.get_or_404(order_id)
 
     if not order.is_project:
         flash("Dies ist kein Projekt.", "danger")
-        return redirect(url_for("projects_dashboard"))
+        return redirect(url_for("projects.projects_home"))
 
     # Nur Admin/Schichtleiter (oder Admin)
     if current_user.role not in ["admin", "schichtleiter"]:
         flash("Keine Berechtigung.", "danger")
-        return redirect(url_for("projects_dashboard"))
+        return redirect(url_for("projects.projects_home"))
 
     # Laufende Projekt-Buchungen zu diesem Projekt beenden
     running = (
@@ -204,26 +216,26 @@ def projects_close(order_id):
     db.session.commit()
 
     flash("Projekt geschlossen.", "success")
-    return redirect(url_for("projects_dashboard"))
+    return redirect(url_for("projects.projects_home"))
 
 
 
-@app.route("/projects/stop/<int:booking_id>", methods=["GET", "POST"])
+@bp.route("/stop/<int:booking_id>", methods=["GET", "POST"])
 @login_required
 def projects_stop(booking_id):
     b = TimeBooking.query.get_or_404(booking_id)
 
     if b.user_id != current_user.id:
         flash("Keine Berechtigung.", "danger")
-        return redirect(url_for("projects_dashboard"))
+        return redirect(url_for("projects.projects_home"))
 
     if b.end_time is not None:
         flash("Dieser Eintrag ist bereits beendet.", "warning")
-        return redirect(url_for("projects_dashboard"))
+        return redirect(url_for("projects.projects_home"))
 
     if b.process != "PROJEKT":
         flash("Dies ist keine Projektbuchung.", "warning")
-        return redirect(url_for("projects_dashboard"))
+        return redirect(url_for("projects.projects_home"))
 
     if request.method == "POST":
         comment = request.form.get("comment", "").strip()
@@ -232,6 +244,6 @@ def projects_stop(booking_id):
         db.session.commit()
 
         flash("Projektzeit beendet.", "success")
-        return redirect(url_for("projects_dashboard"))
+        return redirect(url_for("projects.projects_home"))
 
     return render_template("projects_stop.html", b=b)
