@@ -1,4 +1,4 @@
-from extensions import db
+from factoryos.extensions import db
 
 from factoryos.modules.quality.models import (
     QualityInspectionSection,
@@ -118,4 +118,5 @@ def delete_characteristic(char_id):
     version.is_dirty = True
 
     db.session.commit()
+
 
