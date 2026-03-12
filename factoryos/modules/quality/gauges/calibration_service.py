@@ -1,7 +1,7 @@
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-from extensions import db
+from factoryos.extensions import db
 from factoryos.modules.quality.models import Gauge, GaugeCalibration
 
 
@@ -130,5 +130,6 @@ def update_gauge_status(gauge_id, new_status):
     gauge.status = new_status
 
     db.session.commit()
+
 
     return gauge
