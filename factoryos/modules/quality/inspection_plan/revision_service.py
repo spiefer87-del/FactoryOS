@@ -1,4 +1,4 @@
-from extensions import db
+from factoryos.extensions import db
 
 from factoryos.modules.quality.models import (
     QualityInspectionPlanVersion,
@@ -146,5 +146,6 @@ def copy_snippets(old_section, new_section):
             description=snip.description
 
         )
+
 
         db.session.add(new_snip)
