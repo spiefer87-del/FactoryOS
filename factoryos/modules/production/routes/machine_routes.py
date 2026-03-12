@@ -1,10 +1,22 @@
+from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask_login import login_required, current_user
+
+from factoryos.models.machine import Machine
+from factoryos.modules.production.models import Order, DowntimeReason
+from factoryos.modules.production.services.machine_service import (
+    start_setup,
+    start_machine_event,
+    start_machine_downtime
+)
+
 bp = Blueprint(
     "production_machine",
     __name__,
     url_prefix="/production"
 )
 
-@production_bp.route("/machine/<int:machine_id>/setup", methods=["GET", "POST"])
+
+@bp.route("/machine/<int:machine_id>/setup", methods=["GET", "POST"])
 @login_required
 def machine_setup(machine_id):
 
@@ -19,49 +31,18 @@ def machine_setup(machine_id):
 
     if request.method == "POST":
 
-        mode = request.form.get("mode")
-        order_id_raw = request.form.get("order_id", "").strip()
-        tool_no = request.form.get("tool_no", "").strip()
-        comment = request.form.get("comment", "").strip()
-
-        if mode not in ["RUEST", "ABRUEST"]:
-            flash("Ungültiger Modus.", "danger")
-            return redirect(url_for("production.dashboard"))
-
-        selected_order = None
-
-        if order_id_raw:
-            try:
-                selected_order = Order.query.get(int(order_id_raw))
-            except:
-                selected_order = None
-
-        if selected_order and selected_order.tool_no:
-            tool_no = selected_order.tool_no
-
-        if not tool_no:
-            flash("Bitte Werkzeug-Nr. eingeben oder Auftrag auswählen.", "danger")
-            return redirect(url_for("production.machine_setup", machine_id=machine_id))
-
-        close_all_active_bookings(machine_id)
-
-        b = TimeBooking(
+        start_setup(
             user_id=current_user.id,
-            order_id=selected_order.id if selected_order else None,
             machine_id=machine_id,
-            type="START",
-            process=mode,
-            tool_no=tool_no,
-            comment=comment or None,
-            start_time=datetime.utcnow()
+            order_id=request.form.get("order_id"),
+            mode=request.form.get("mode"),
+            tool_no=request.form.get("tool_no"),
+            comment=request.form.get("comment")
         )
 
-        db.session.add(b)
-        db.session.commit()
+        flash("Setup gestartet.", "success")
 
-        flash(f"{mode} gestartet.", "success")
-
-        return redirect(url_for("production.dashboard"))
+        return redirect(url_for("production_dashboard.dashboard"))
 
     return render_template(
         "machine_setup.html",
@@ -70,11 +51,7 @@ def machine_setup(machine_id):
     )
 
 
-# --------------------------------------------------
-# MACHINE EVENT
-# --------------------------------------------------
-
-@production_bp.route("/machine/<int:machine_id>/event", methods=["GET", "POST"])
+@bp.route("/machine/<int:machine_id>/event", methods=["GET", "POST"])
 @login_required
 def machine_event(machine_id):
 
@@ -82,34 +59,14 @@ def machine_event(machine_id):
 
     if request.method == "POST":
 
-        event = request.form.get("event")
-        comment = request.form.get("comment", "").strip()
-
-        allowed = ["STOERUNG", "WARTUNG", "REPARATUR", "SCHULUNG"]
-
-        if event not in allowed:
-            flash("Ungültiger Status.", "danger")
-            return redirect(url_for("production.dashboard"))
-
-        close_all_active_bookings(machine_id)
-
-        b = TimeBooking(
+        start_machine_event(
             user_id=current_user.id,
-            order_id=None,
             machine_id=machine_id,
-            type="START",
-            process=event,
-            tool_no=None,
-            comment=comment or None,
-            start_time=datetime.utcnow()
+            event=request.form.get("event"),
+            comment=request.form.get("comment")
         )
 
-        db.session.add(b)
-        db.session.commit()
-
-        flash(f"{event} gestartet.", "success")
-
-        return redirect(url_for("production.dashboard"))
+        return redirect(url_for("production_dashboard.dashboard"))
 
     return render_template(
         "machine_event.html",
@@ -117,11 +74,7 @@ def machine_event(machine_id):
     )
 
 
-# --------------------------------------------------
-# DOWNTIME
-# --------------------------------------------------
-
-@production_bp.route("/machine/<int:machine_id>/downtime", methods=["GET", "POST"])
+@bp.route("/machine/<int:machine_id>/downtime", methods=["GET", "POST"])
 @login_required
 def machine_downtime(machine_id):
 
@@ -136,39 +89,14 @@ def machine_downtime(machine_id):
 
     if request.method == "POST":
 
-        reason_id = request.form.get("reason_id")
-        comment = request.form.get("comment", "").strip()
-
-        state = get_active_machine_state(machine_id)
-
-        prev_order_id = None
-        prev_tool_no = None
-
-        if state["booking"]:
-            prev_order_id = state["booking"].order_id
-            prev_tool_no = state["booking"].tool_no
-
-        close_all_active_bookings(machine_id)
-
-        b = TimeBooking(
+        start_machine_downtime(
             user_id=current_user.id,
-            order_id=None,
-            prev_order_id=prev_order_id,
             machine_id=machine_id,
-            type="START",
-            process="STOERUNG",
-            tool_no=prev_tool_no,
-            downtime_reason_id=int(reason_id) if reason_id else None,
-            comment=comment or None,
-            start_time=datetime.utcnow()
+            reason_id=request.form.get("reason_id"),
+            comment=request.form.get("comment")
         )
 
-        db.session.add(b)
-        db.session.commit()
-
-        flash("Störung gestartet.", "warning")
-
-        return redirect(url_for("production.dashboard"))
+        return redirect(url_for("production_dashboard.dashboard"))
 
     return render_template(
         "machine_downtime.html",
