@@ -12,7 +12,7 @@ def get_orders_overview(q, status_filter):
             Order,
             func.coalesce(func.sum(QuantityReport.good_qty), 0).label("good_sum")
         )
-        .outerjoin(QuantityReport)
+        .outerjoin(QuantityReport, QuantityReport.order_id == Order.id)
         .group_by(Order.id)
     )
 
