@@ -1,27 +1,36 @@
+from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask_login import login_required
+from sqlalchemy import func, or_
+
+from factoryos.extensions import db
+from factoryos.modules.production.models import Order, QuantityReport
+from factoryos.models.tools import ToolMasterdata
+from factoryos.models.user import User
+from factoryos.core.permissions import role_required
+
+
 bp = Blueprint(
     "production_orders",
     __name__,
     url_prefix="/production/orders"
-)@app.route("/admin/orders")
+)
 
+
+@bp.route("/")
 @login_required
 @role_required("admin", "schichtleiter")
-def admin_orders():
+def orders_home():
 
     q = request.args.get("q", "").strip()
 
-    # Wichtig: None erkennen, nicht "" !
     status_filter = request.args.get("status", None)
 
-    # Wenn status nicht gesetzt wurde -> default "offen"
     if status_filter is None:
         status_filter = "offen"
 
-    # Wenn User "(alle)" gewählt hat -> kommt status=""
     if status_filter == "":
         status_filter = ""
 
-    # Query
     query = (
         db.session.query(
             Order,
@@ -31,7 +40,6 @@ def admin_orders():
         .group_by(Order.id)
     )
 
-    # Suche
     if q:
         like = f"%{q}%"
         query = query.filter(
@@ -43,20 +51,22 @@ def admin_orders():
             )
         )
 
-    # Status Filter
     if status_filter in ["offen", "in_arbeit", "fertig", "gesperrt"]:
         query = query.filter(Order.status == status_filter)
 
-    # Wenn status_filter == "" => (alle) => kein Filter!
-
     query = query.order_by(Order.order_no.asc())
+
     rows = query.all()
 
     orders = []
+
     for order, good_sum in rows:
+
         target = order.target_qty or 0
         good = good_sum or 0
+
         rest = target - good
+
         if rest < 0:
             rest = 0
 
@@ -75,9 +85,7 @@ def admin_orders():
         status_filter=status_filter,
         order_count=order_count
     )
-
-
-
+    
 @app.route("/admin/orders/create", methods=["GET"])
 @login_required
 @role_required("admin", "schichtleiter")
