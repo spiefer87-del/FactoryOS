@@ -2,7 +2,7 @@ import os
 import uuid
 from werkzeug.utils import secure_filename
 from flask import current_app
-from extensions import db
+from factoryos.extensions import db
 
 from PIL import Image as PILImage
 from pdf2image import convert_from_path
@@ -94,5 +94,6 @@ def upload_snippet(section, file, description):
 def delete_snippet(snippet):
 
     db.session.delete(snippet)
+
 
     db.session.commit()
