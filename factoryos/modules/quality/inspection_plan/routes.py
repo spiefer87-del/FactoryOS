@@ -6,7 +6,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, jsonif
 from flask_login import login_required, current_user
 from sqlalchemy.orm import selectinload
 
-from extensions import db
+from factoryos.extensions import db
 from factoryos.modules.quality.inspection_plan.section_service import (
     add_section,
     delete_section,
