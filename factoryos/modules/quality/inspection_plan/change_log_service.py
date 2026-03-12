@@ -1,5 +1,5 @@
 from datetime import datetime
-from extensions import db
+from factoryos.extensions import db
 
 from factoryos.modules.quality.inspection_plan.models import QualityInspectionChangeLog
 
@@ -21,5 +21,6 @@ def log_change(version, action, message, user_id=None):
 
         created_at=datetime.utcnow()
     )
+
 
     db.session.add(log)
