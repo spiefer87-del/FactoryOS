@@ -86,16 +86,16 @@ def orders_home():
         order_count=order_count
     )
     
-@app.route("/admin/orders/create", methods=["GET"])
+@bp.route("/create", methods=["GET"])
 @login_required
 @role_required("admin", "schichtleiter")
-def admin_orders_create():
-    return render_template("admin_orders_create_choose.html")
+def orders_create():
+    return render_template("orders_create_choose.html")
 
-@app.route("/admin/orders/create/project", methods=["GET", "POST"])
+@bp.route("/create/project", methods=["GET", "POST"])
 @login_required
 @role_required("admin", "schichtleiter")
-def admin_orders_create_project():
+def orders_create_project():
     users = User.query.order_by(User.username.asc()).all()
     tools = ToolMasterdata.query.order_by(ToolMasterdata.tool_no.asc()).all()
 
@@ -123,7 +123,7 @@ def admin_orders_create_project():
 
         if Order.query.filter_by(order_no=order_no).first():
             flash("Projekt existiert bereits.", "danger")
-            return redirect(url_for("admin_orders_create_project"))
+            return redirect(url_for("orders_create_project"))
 
         # Projektleiter optional
         leader_id_int = None
@@ -157,16 +157,16 @@ def admin_orders_create_project():
         return redirect(url_for("projects_dashboard"))
 
     return render_template(
-        "admin_orders_create_project.html",
+        "orders_create_project.html",
         users=users,
         tools=tools
     )
 
 
-@app.route("/admin/orders/create/prod", methods=["GET", "POST"])
+@bp.route("/create/prod", methods=["GET", "POST"])
 @login_required
 @role_required("admin")
-def admin_orders_create_prod():
+def orders_create_prod():
     tools = ToolMasterdata.query.order_by(ToolMasterdata.tool_no.asc()).all()
 
     if request.method == "POST":
@@ -215,13 +215,13 @@ def admin_orders_create_prod():
         flash("Fertigungsauftrag angelegt.", "success")
         return redirect(url_for("admin_orders"))
 
-    return render_template("admin_orders_create_prod.html", tools=tools)
+    return render_template("orders_create_prod.html", tools=tools)
 
 
-@app.route("/admin/orders/edit/<int:order_id>", methods=["GET", "POST"])
+@bp.route("/edit/<int:order_id>", methods=["GET", "POST"])
 @login_required
 @role_required("admin")
-def admin_orders_edit(order_id):
+def orders_edit(order_id):
     o = Order.query.get_or_404(order_id)
 
     if request.method == "POST":
@@ -239,7 +239,7 @@ def admin_orders_edit(order_id):
         existing = Order.query.filter(Order.order_no == order_no, Order.id != o.id).first()
         if existing:
             flash("Auftragsnummer existiert bereits.", "danger")
-            return redirect(url_for("admin_orders_edit", order_id=order_id))
+            return redirect(url_for("orders_edit", order_id=order_id))
 
         try:
             target_qty_int = int(target_qty)
@@ -257,12 +257,12 @@ def admin_orders_edit(order_id):
         flash("Auftrag gespeichert.", "success")
         return redirect(url_for("admin_orders"))
 
-    return render_template("admin_orders_edit.html", order=o)
+    return render_template("orders_edit.html", order=o)
 
-@app.route("/admin/orders/delete/<int:order_id>", methods=["POST"])
+@bp.route("/delete/<int:order_id>", methods=["POST"])
 @login_required
 @role_required("admin")
-def admin_orders_delete(order_id):
+def orders_delete(order_id):
     o = Order.query.get_or_404(order_id)
 
     # Prüfen ob Auftrag aktiv läuft
@@ -285,13 +285,13 @@ def admin_orders_delete(order_id):
     db.session.commit()
 
     flash("Auftrag wurde gelöscht.", "success")
-    return redirect(url_for("admin_orders"))
+    return redirect(url_for("orders"))
 
 
-@app.route("/admin/orders/import", methods=["GET", "POST"])
+@bp.route("/import", methods=["GET", "POST"])
 @login_required
 @role_required("admin")
-def admin_orders_import():
+def orders_import():
     if request.method == "POST":
         file = request.files.get("file")
 
@@ -358,4 +358,4 @@ def admin_orders_import():
         flash(f"Import fertig: {created} neu, {skipped} übersprungen.", "success")
         return redirect(url_for("admin_orders"))
 
-    return render_template("admin_orders_import.html")
+    return render_template("orders_import.html")
