@@ -1,7 +1,7 @@
 import os
 from werkzeug.utils import secure_filename
 from flask import current_app
-from extensions import db
+from factoryos.extensions import db
 
 from factoryos.modules.quality.models import (
     QualityInspectionIdentificationImage
@@ -77,5 +77,6 @@ def delete_identification_image(image):
         "DELETE_IMAGE",
         f"Bild aus Modul '{section.title}' entfernt"
     )
+
 
     db.session.commit()
