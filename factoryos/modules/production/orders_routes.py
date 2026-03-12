@@ -78,8 +78,8 @@ def orders_home():
 
     order_count = len(orders)
 
-    return render_template(
-        "admin_orders.html",
+    return redirect(
+        "production.orders.orders_home",
         orders=orders,
         q=q,
         status_filter=status_filter,
@@ -90,7 +90,7 @@ def orders_home():
 @login_required
 @role_required("admin", "schichtleiter")
 def orders_create():
-    return render_template("orders_create_choose.html")
+    return redirect(url_for("production.orders.orders_create"))
 
 @bp.route("/create/project", methods=["GET", "POST"])
 @login_required
@@ -115,7 +115,7 @@ def orders_create_project():
         # Werkzeug Pflicht
         if not tool_no:
             flash("Werkzeug-Nr. ist Pflicht für Projekte.", "danger")
-            return redirect(url_for("admin_orders_create_project"))
+            return redirect(url_for("production.orders.orders_create_project"))
 
         # order_no optional -> generieren
         if not order_no:
@@ -123,7 +123,7 @@ def orders_create_project():
 
         if Order.query.filter_by(order_no=order_no).first():
             flash("Projekt existiert bereits.", "danger")
-            return redirect(url_for("orders_create_project"))
+            return redirect(url_for("production.orders.orders_create_project"))
 
         # Projektleiter optional
         leader_id_int = None
@@ -154,10 +154,10 @@ def orders_create_project():
         db.session.commit()
 
         flash("Projekt angelegt.", "success")
-        return redirect(url_for("projects_dashboard"))
+        return redirect(url_for("production.orders.projects_dashboard"))
 
-    return render_template(
-        "orders_create_project.html",
+    return redirect(
+        "production.orders.orders_create_project",
         users=users,
         tools=tools
     )
@@ -183,11 +183,11 @@ def orders_create_prod():
 
         if not order_no:
             flash("Bitte Auftragsnummer angeben.", "danger")
-            return redirect(url_for("admin_orders_create_prod"))
+            return redirect(url_for("production.orders.orders_create_prod"))
 
         if Order.query.filter_by(order_no=order_no).first():
             flash("Auftrag existiert bereits.", "danger")
-            return redirect(url_for("admin_orders_create_prod"))
+            return redirect(url_for("production.orders.orders_create_prod"))
 
         try:
             target_qty_int = int(target_qty)
@@ -196,7 +196,7 @@ def orders_create_prod():
 
         if target_qty_int <= 0:
             flash("Sollmenge muss größer 0 sein.", "danger")
-            return redirect(url_for("admin_orders_create_prod"))
+            return redirect(url_for("production.orders.orders_create_prod"))
 
         o = Order(
             order_no=order_no,
@@ -213,9 +213,9 @@ def orders_create_prod():
         db.session.commit()
 
         flash("Fertigungsauftrag angelegt.", "success")
-        return redirect(url_for("admin_orders"))
+        return redirect(url_for("production.orders.orders_home"))
 
-    return render_template("orders_create_prod.html", tools=tools)
+    return redirect(url_for("production.orders.orders_create_prod", tools=tools))
 
 
 @bp.route("/edit/<int:order_id>", methods=["GET", "POST"])
@@ -234,12 +234,12 @@ def orders_edit(order_id):
 
         if not order_no:
             flash("Bitte Auftragsnummer angeben.", "danger")
-            return redirect(url_for("admin_orders_edit", order_id=order_id))
+            return redirect(url_for("production.orders.orders_edit", order_id=order_id))
 
         existing = Order.query.filter(Order.order_no == order_no, Order.id != o.id).first()
         if existing:
             flash("Auftragsnummer existiert bereits.", "danger")
-            return redirect(url_for("orders_edit", order_id=order_id))
+            return redirect(url_for("production.orders.orders_edit", order_id=order_id))
 
         try:
             target_qty_int = int(target_qty)
@@ -255,9 +255,9 @@ def orders_edit(order_id):
 
         db.session.commit()
         flash("Auftrag gespeichert.", "success")
-        return redirect(url_for("admin_orders"))
+        return redirect(url_for("production.orders.orders_home"))
 
-    return render_template("orders_edit.html", order=o)
+    return redirect(url_for("production.orders.orders_edit", order_id=order_id))
 
 @bp.route("/delete/<int:order_id>", methods=["POST"])
 @login_required
@@ -275,7 +275,7 @@ def orders_delete(order_id):
 
     if running:
         flash("Auftrag kann nicht gelöscht werden: Es läuft noch eine aktive Buchung.", "danger")
-        return redirect(url_for("admin_orders"))
+        return redirect(url_for("production.orders.orders_home"))
 
     # abhängige Daten löschen
     TimeBooking.query.filter_by(order_id=o.id).delete()
@@ -285,7 +285,7 @@ def orders_delete(order_id):
     db.session.commit()
 
     flash("Auftrag wurde gelöscht.", "success")
-    return redirect(url_for("orders"))
+    return redirect(url_for("production.orders.orders_home"))
 
 
 @bp.route("/import", methods=["GET", "POST"])
@@ -297,7 +297,7 @@ def orders_import():
 
         if not file or file.filename == "":
             flash("Bitte Excel-Datei auswählen.", "danger")
-            return redirect(url_for("admin_orders_import"))
+            return redirect(url_for("production.orders.orders_import"))
 
         wb = load_workbook(file, data_only=True)
         ws = wb.active
@@ -311,7 +311,7 @@ def orders_import():
         for r in required:
             if r not in header:
                 flash(f"Spalte fehlt: {r}", "danger")
-                return redirect(url_for("admin_orders_import"))
+                return redirect(url_for("production.orders.orders_import"))
 
         idx = {name: header.index(name) for name in required}
 
@@ -356,6 +356,6 @@ def orders_import():
         db.session.commit()
 
         flash(f"Import fertig: {created} neu, {skipped} übersprungen.", "success")
-        return redirect(url_for("admin_orders"))
+        return redirect(url_for("production.orders.orders_home"))
 
-    return render_template("orders_import.html")
+    return redirect(url_for("production.orders.orders_import"))
