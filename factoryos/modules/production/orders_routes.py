@@ -32,15 +32,12 @@ def orders_home():
     if status_filter is None:
         status_filter = "offen"
 
-    if status_filter == "":
-        status_filter = ""
-
     query = (
         db.session.query(
             Order,
             func.coalesce(func.sum(QuantityReport.good_qty), 0).label("good_sum")
         )
-        .outerjoin(QuantityReport, QuantityReport.order_id == Order.id)
+        .outerjoin(QuantityReport)
         .group_by(Order.id)
     )
 
@@ -69,10 +66,7 @@ def orders_home():
         target = order.target_qty or 0
         good = good_sum or 0
 
-        rest = target - good
-
-        if rest < 0:
-            rest = 0
+        rest = max(0, target - good)
 
         orders.append({
             "order": order,
@@ -288,8 +282,8 @@ def orders_delete(order_id):
         return redirect(url_for("production_orders.orders_home"))
 
     # abhängige Daten löschen
-    TimeBooking.query.filter_by(order_id=o.id).delete()
-    QuantityReport.query.filter_by(order_id=o.id).delete()
+    TimeBooking.query.filter_by(order_id=o.id).delete(synchronize_session=False)
+    QuantityReport.query.filter_by(order_id=o.id).delete(synchronize_session=False)
 
     db.session.delete(o)
     db.session.commit()
