@@ -193,6 +193,70 @@ def orders_edit(order_id):
         order=o
     )
 
+@bp.route("/<order_no>")
+@login_required
+def order_detail(order_no):
+    # Auftrag holen
+    o = Order.query.filter_by(order_no=order_no).first_or_404()
+
+    # ToolMasterdata holen (über tool_no)
+    tool = None
+    if o.tool_no:
+        tool = ToolMasterdata.query.filter_by(tool_no=o.tool_no).first()
+
+    # Ist-Menge / Ausschuss summieren
+    sums = (
+        db.session.query(
+            func.coalesce(func.sum(QuantityReport.good_qty), 0).label("good_sum"),
+            func.coalesce(func.sum(QuantityReport.scrap_qty), 0).label("scrap_sum"),
+        )
+        .filter(QuantityReport.order_id == o.id)
+        .first()
+    )
+
+    good = int(sums.good_sum or 0)
+    scrap = int(sums.scrap_sum or 0)
+
+    target = int(o.target_qty or 0)
+    rest = target - good
+    if rest < 0:
+        rest = 0
+
+    # ----------------------------
+    # Berechnungen aus Stammdaten
+    # ----------------------------
+    shot_weight_g = None
+    cycle_time_s = None
+
+    material_need_kg = None
+    kg_per_hour = None
+    parts_per_hour = None
+
+    if tool:
+        # ACHTUNG: Feldnamen müssen zu deinem Model passen!
+        # (ich gehe von shot_weight_g und cycle_time_s aus)
+        shot_weight_g = tool.shot_weight_g
+        cycle_time_s = tool.cycle_time_s
+
+        if shot_weight_g and target > 0:
+            material_need_kg = (target * float(shot_weight_g)) / 1000.0
+
+        if shot_weight_g and cycle_time_s and cycle_time_s > 0:
+            parts_per_hour = 3600.0 / float(cycle_time_s)
+            kg_per_hour = (parts_per_hour * float(shot_weight_g)) / 1000.0
+
+    return render_template(
+        "order_detail.html",
+        o=o,
+        tool=tool,
+        good=good,
+        scrap=scrap,
+        rest=rest,
+        material_need_kg=material_need_kg,
+        kg_per_hour=kg_per_hour,
+        parts_per_hour=parts_per_hour
+    )
+
 @bp.route("/delete/<int:order_id>", methods=["POST"])
 @login_required
 @role_required("admin")
