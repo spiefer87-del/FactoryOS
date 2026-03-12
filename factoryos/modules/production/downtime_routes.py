@@ -4,7 +4,7 @@ bp = Blueprint(
     url_prefix="/production/downtime"
 )
 
-@bp.route("downtime/reasons")
+@bp.route("/reasons")
 @login_required
 @role_required("admin", "schichtleiter")
 def downtime_reasons():
@@ -12,7 +12,7 @@ def downtime_reasons():
     return render_template("admin_reasons.html", reasons=reasons)
 
 
-@bp.route("/downtime/reasons/create", methods=["GET", "POST"])
+@bp.route("/reasons/create", methods=["GET", "POST"])
 @login_required
 @role_required("admin")
 def downtime_reasons_create():
@@ -37,7 +37,7 @@ def downtime_reasons_create():
 
     return render_template("admin_reasons_create.html")
 
-@bp.route("/downtime/reasons/edit/<int:reason_id>", methods=["GET", "POST"])
+@bp.route("/reasons/edit/<int:reason_id>", methods=["GET", "POST"])
 @login_required
 @role_required("admin")
 def downtime_reasons_edit(reason_id):
@@ -65,7 +65,7 @@ def downtime_reasons_edit(reason_id):
 
     return render_template("admin_reasons_edit.html", reason=r)
 
-@bp.route("/downtime/reasons/toggle/<int:reason_id>", methods=["POST"])
+@bp.route("/reasons/toggle/<int:reason_id>", methods=["POST"])
 @login_required
 @role_required("admin")
 def downtime_reasons_toggle(reason_id):
