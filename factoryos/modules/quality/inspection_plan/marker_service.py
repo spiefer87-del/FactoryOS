@@ -1,4 +1,4 @@
-from extensions import db
+from factoryos.extensions import db
 
 from factoryos.modules.quality.inspection_plan.models import (
     QualityInspectionCharacteristic,
@@ -127,5 +127,6 @@ def reorder_characteristics(section_id):
 
     for i, c in enumerate(characteristics, start=1):
         c.sort_order = i
+
 
     db.session.commit()
