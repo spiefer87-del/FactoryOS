@@ -1,8 +1,8 @@
-from datetime import datetime
+from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 
 from factoryos.extensions import db
-from factoryos.modules.quality.models import Gauge, GaugeCalibration
+from factoryos.modules.quality.gauges.models import Gauge, GaugeCalibration
 
 
 # --------------------------------------------------
@@ -14,12 +14,14 @@ def calibration_status(gauge):
     if not gauge.next_calibration:
         return "unknown"
 
-    today = datetime.utcnow().date()
+    today = date.today()
 
     if gauge.next_calibration < today:
         return "overdue"
 
-    if (gauge.next_calibration - today).days <= 30:
+    days_left = (gauge.next_calibration - today).days
+
+    if days_left <= 30:
         return "warning"
 
     return "ok"
@@ -31,10 +33,15 @@ def calibration_status(gauge):
 
 def calculate_next_calibration(calibration_date, interval):
 
-    if not calibration_date or not interval:
+    try:
+        interval = int(interval)
+    except (TypeError, ValueError):
         return None
 
-    return calibration_date + relativedelta(months=int(interval))
+    if not calibration_date:
+        return None
+
+    return calibration_date + relativedelta(months=interval)
 
 
 # --------------------------------------------------
@@ -52,6 +59,11 @@ def create_gauge(data):
             "%Y-%m-%d"
         ).date()
 
+    try:
+        interval = int(interval) if interval else None
+    except ValueError:
+        interval = None
+
     next_calibration = calculate_next_calibration(
         last_calibration,
         interval
@@ -66,7 +78,8 @@ def create_gauge(data):
         location=data.get("location"),
         calibration_interval=interval,
         last_calibration=last_calibration,
-        next_calibration=next_calibration
+        next_calibration=next_calibration,
+        status="active"
     )
 
     db.session.add(gauge)
@@ -81,15 +94,20 @@ def create_gauge(data):
 
 def create_gauge_calibration(gauge_id, data):
 
-    gauge = Gauge.query.get_or_404(gauge_id)
+    gauge = Gauge.query.get(gauge_id)
+
+    if not gauge:
+        raise ValueError("Gauge not found")
 
     calibration_date = data.get("calibration_date")
 
-    if calibration_date:
-        calibration_date = datetime.strptime(
-            calibration_date,
-            "%Y-%m-%d"
-        ).date()
+    if not calibration_date:
+        raise ValueError("Calibration date required")
+
+    calibration_date = datetime.strptime(
+        calibration_date,
+        "%Y-%m-%d"
+    ).date()
 
     next_calibration = calculate_next_calibration(
         calibration_date,
@@ -114,6 +132,7 @@ def create_gauge_calibration(gauge_id, data):
 
     return calibration
 
+
 # --------------------------------------------------
 # Messmittelstatus ändern
 # --------------------------------------------------
@@ -123,13 +142,15 @@ def update_gauge_status(gauge_id, new_status):
     allowed = ["active", "inspection", "inactive"]
 
     if new_status not in allowed:
-        return None
+        raise ValueError("Invalid status")
 
-    gauge = Gauge.query.get_or_404(gauge_id)
+    gauge = Gauge.query.get(gauge_id)
+
+    if not gauge:
+        raise ValueError("Gauge not found")
 
     gauge.status = new_status
 
     db.session.commit()
-
 
     return gauge
