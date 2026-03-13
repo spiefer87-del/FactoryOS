@@ -1,0 +1,25 @@
+<div class="navbar">
+
+    <div class="nav-left">
+
+        <span class="page-title">
+            FactoryOS
+        </span>
+
+    </div>
+
+    <div class="nav-right">
+
+        <span class="user">
+
+            {{ current_user.username }}
+
+        </span>
+
+        <a href="{{ url_for('auth.logout') }}">
+            Logout
+        </a>
+
+    </div>
+
+</div>
