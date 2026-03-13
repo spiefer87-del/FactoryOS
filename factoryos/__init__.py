@@ -1,7 +1,7 @@
 from flask import Flask
 
 from .config import Config
-from .extensions import db, login_manager
+from .extensions import db, login_manager, migrate
 
 from .core.blueprint_loader import load_blueprints
 
@@ -10,22 +10,13 @@ def create_app():
 
     app = Flask(__name__)
 
-    # ------------------------
-    # CONFIG
-    # ------------------------
-
     app.config.from_object(Config)
-
-    # ------------------------
-    # EXTENSIONS
-    # ------------------------
 
     db.init_app(app)
     login_manager.init_app(app)
+    migrate.init_app(app, db)
 
-    # ------------------------
-    # BLUEPRINT AUTO LOADER
-    # ------------------------
+    login_manager.login_view = "auth.login"
 
     load_blueprints(app)
 
