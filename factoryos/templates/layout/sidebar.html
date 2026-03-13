@@ -1,0 +1,93 @@
+<div class="sidebar">
+
+    <div class="logo">
+        FactoryOS
+    </div>
+
+    <ul class="menu">
+
+        <li>
+            <a href="{{ url_for('dashboard') }}">
+                Dashboard
+            </a>
+        </li>
+
+        <li class="menu-section">
+            Produktion
+        </li>
+
+        <li>
+            <a href="{{ url_for('production.dashboard') }}">
+                Maschinen
+            </a>
+        </li>
+
+        <li>
+            <a href="{{ url_for('production_orders.orders_home') }}">
+                Aufträge
+            </a>
+        </li>
+
+        <li>
+            <a href="{{ url_for('projects.projects_home') }}">
+                Projekte
+            </a>
+        </li>
+
+        <li class="menu-section">
+            Qualität
+        </li>
+
+        <li>
+            <a href="{{ url_for('inspection.quality_inspection_plan') }}">
+                Prüfpläne
+            </a>
+        </li>
+
+        <li>
+            <a href="{{ url_for('gauges.gauge_home') }}">
+                Messmittel
+            </a>
+        </li>
+
+        {% if current_user.role in ["admin","schichtleiter"] %}
+
+        <li class="menu-section">
+            Stammdaten
+        </li>
+
+        <li>
+            <a href="{{ url_for('tools.tools_home') }}">
+                Werkzeuge
+            </a>
+        </li>
+
+        {% endif %}
+
+        {% if current_user.role == "admin" %}
+
+        <li class="menu-section">
+            Setup
+        </li>
+
+        <li>
+            <a href="{{ url_for('setup_machines.machine_list') }}">
+                Maschinen
+            </a>
+        </li>
+
+        <li class="menu-section">
+            Administration
+        </li>
+
+        <li>
+            <a href="{{ url_for('admin_users.user_list') }}">
+                Benutzer
+            </a>
+        </li>
+
+        {% endif %}
+
+    </ul>
+
+</div>
