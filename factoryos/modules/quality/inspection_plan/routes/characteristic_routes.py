@@ -53,7 +53,7 @@ def quality_update_characteristic_position():
 @login_required
 def quality_delete_characteristic_marker():
 
-    data = request.json
+    data = request.get_json()
 
     char = db.session.get(QualityInspectionCharacteristic, data.get("id"))
 
