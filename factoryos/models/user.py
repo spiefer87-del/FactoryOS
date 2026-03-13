@@ -29,10 +29,10 @@ class User(UserMixin, db.Model):
         db.Boolean,
         default=True
     )
-created_at = db.Column(
-    db.DateTime,
-    default=db.func.now()
-)
+    created_at = db.Column(
+        db.DateTime,
+        default=db.func.now()
+    )
     # -------------------------
     # PASSWORD HANDLING
     # -------------------------
