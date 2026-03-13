@@ -26,18 +26,17 @@ def quality_upload_identification_image(section_id):
     section = QualityInspectionSection.query.get_or_404(section_id)
 
     if section.section_type != "identification":
-        
-return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
+        return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
     if section.version.status != "draft":
-        return redirect(request.referrer)
+        return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
 
     if len(section.images) >= 5:
-        return redirect(request.referrer)
+        return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
 
     file = request.files.get("image")
 
     if not file:
-        return redirect(request.referrer)
+        return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
 
     upload_identification_image(
         section,
@@ -46,7 +45,7 @@ return redirect(request.referrer or url_for("inspection.quality_inspection_plan"
         current_user.id
     )
 
-    return redirect(request.referrer)
+    return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
 
 
 # --------------------------------------------------
@@ -62,14 +61,14 @@ def quality_update_image_description(image_id):
     section = image.section
 
     if section.version.status != "draft":
-        return redirect(request.referrer)
+        return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
 
     update_image_description(
         image,
         request.form.get("description")
     )
 
-    return redirect(request.referrer)
+    return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
 
 
 # --------------------------------------------------
@@ -85,8 +84,8 @@ def quality_delete_identification_image(image_id):
     section = image.section
 
     if section.version.status != "draft":
-        return redirect(request.referrer)
+        return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
 
     delete_identification_image(image)
 
-    return redirect(request.referrer)
+    return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
