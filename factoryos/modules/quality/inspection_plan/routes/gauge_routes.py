@@ -26,7 +26,7 @@ def quality_add_gauge_check(section_id):
     section = QualityInspectionSection.query.get_or_404(section_id)
 
     if section.version.status != "draft":
-        return redirect(request.referrer)
+        return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
 
     last = (
         QualityInspectionGaugeCheck.query
@@ -60,4 +60,4 @@ def quality_add_gauge_check(section_id):
 
     db.session.commit()
 
-    return redirect(request.referrer)
+    return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
