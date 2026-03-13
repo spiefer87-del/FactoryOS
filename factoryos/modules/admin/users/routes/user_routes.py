@@ -1,94 +1,98 @@
-@app.route("/admin/users")
-@login_required
-@role_required("admin")
-def admin_users():
-    users = User.query.order_by(User.username.asc()).all()
-    return render_template("admin_users.html", users=users)
+from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask_login import login_required
+
+from factoryos.core.permissions import role_required
+
+from factoryos.modules.admin.users.queries.user_queries import (
+    get_all_users,
+    get_user
+)
+
+from factoryos.modules.admin.users.services.user_service import (
+    create_new_user,
+    update_existing_user,
+    remove_user
+)
 
 
-@app.route("/admin/users/create", methods=["GET", "POST"])
+bp = Blueprint(
+    "admin_users",
+    __name__,
+    url_prefix="/admin/users"
+)
+
+
+@bp.route("/")
 @login_required
 @role_required("admin")
-def admin_users_create():
+def user_list():
+
+    users = get_all_users()
+
+    return render_template(
+        "admin/users/user_list.html",
+        users=users
+    )
+
+
+@bp.route("/create", methods=["GET","POST"])
+@login_required
+@role_required("admin")
+def user_create():
+
     if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        password = request.form.get("password", "").strip()
-        role = request.form.get("role", "mitarbeiter")
-        active = True if request.form.get("active") == "on" else False
 
-        if not username or not password:
-            flash("Bitte Benutzername und Passwort angeben.", "danger")
-            return redirect(url_for("admin_users_create"))
+        try:
+            create_new_user(request.form)
 
-        if User.query.filter_by(username=username).first():
-            flash("Benutzername existiert bereits.", "danger")
-            return redirect(url_for("admin_users_create"))
+            flash("User erstellt", "success")
 
-        u = User(username=username, role=role, active=active)
-        u.set_password(password)
+        except ValueError as e:
 
-        db.session.add(u)
-        db.session.commit()
+            flash(str(e), "danger")
+            return redirect(url_for("admin_users.user_create"))
 
-        flash("Benutzer angelegt.", "success")
-        return redirect(url_for("admin_users"))
+        return redirect(url_for("admin_users.user_list"))
 
-    return render_template("admin_users_create.html")
+    return render_template("admin/users/user_create.html")
 
-@app.route("/admin/users/edit/<int:user_id>", methods=["GET", "POST"])
+
+@bp.route("/edit/<int:user_id>", methods=["GET","POST"])
 @login_required
 @role_required("admin")
-def admin_users_edit(user_id):
-    u = User.query.get_or_404(user_id)
+def user_edit(user_id):
+
+    user = get_user(user_id)
 
     if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        role = request.form.get("role", "mitarbeiter")
-        active = True if request.form.get("active") == "on" else False
-        new_password = request.form.get("new_password", "").strip()
 
-        if not username:
-            flash("Bitte Benutzername angeben.", "danger")
-            return redirect(url_for("admin_users_edit", user_id=user_id))
+        try:
+            update_existing_user(user_id, request.form)
 
-        # Username unique check
-        existing = User.query.filter(User.username == username, User.id != u.id).first()
-        if existing:
-            flash("Benutzername existiert bereits.", "danger")
-            return redirect(url_for("admin_users_edit", user_id=user_id))
+            flash("User gespeichert", "success")
 
-        # Admin darf sich nicht selbst deaktivieren
-        if u.id == current_user.id and active is False:
-            flash("Du kannst dich nicht selbst deaktivieren.", "warning")
-            return redirect(url_for("admin_users_edit", user_id=user_id))
+        except ValueError as e:
 
-        u.username = username
-        u.role = role
-        u.active = active
+            flash(str(e), "danger")
+            return redirect(
+                url_for("admin_users.user_edit", user_id=user_id)
+            )
 
-        # Passwort optional ändern
-        if new_password:
-            u.set_password(new_password)
+        return redirect(url_for("admin_users.user_list"))
 
-        db.session.commit()
-        flash("Benutzer gespeichert.", "success")
-        return redirect(url_for("admin_users"))
-
-    return render_template("admin_users_edit.html", user=u)
+    return render_template(
+        "admin/users/user_edit.html",
+        user=user
+    )
 
 
-
-@app.route("/admin/users/toggle/<int:user_id>", methods=["POST"])
+@bp.route("/delete/<int:user_id>", methods=["POST"])
 @login_required
 @role_required("admin")
-def admin_users_toggle(user_id):
-    if current_user.id == user_id:
-        flash("Du kannst dich nicht selbst deaktivieren.", "warning")
-        return redirect(url_for("admin_users"))
+def user_delete(user_id):
 
-    u = User.query.get_or_404(user_id)
-    u.active = not u.active
-    db.session.commit()
+    remove_user(user_id)
 
-    flash("Benutzerstatus geändert.", "success")
-    return redirect(url_for("admin_users"))
+    flash("User gelöscht", "success")
+
+    return redirect(url_for("admin_users.user_list"))
