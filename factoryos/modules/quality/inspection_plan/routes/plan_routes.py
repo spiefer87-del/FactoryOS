@@ -30,6 +30,7 @@ def quality_inspection_plan():
 
 @bp.route("/create", methods=["GET", "POST"])
 @login_required
+@role_required("qm, "admin")
 def quality_create():
 
     tools = ToolMasterdata.query.order_by(ToolMasterdata.tool_no).all()
