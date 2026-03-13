@@ -17,11 +17,11 @@ def quality_delete_section(section_id):
     section = QualityInspectionSection.query.get_or_404(section_id)
 
     if section.version.status != "draft":
-        return redirect(request.referrer)
+        return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
 
     delete_section(section)
 
-    return redirect(request.referrer)
+    return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
 
 
 @bp.route("/section/<int:section_id>/add_characteristic", methods=["POST"])
@@ -31,8 +31,8 @@ def quality_add_characteristic(section_id):
     section = QualityInspectionSection.query.get_or_404(section_id)
 
     if section.version.status != "draft":
-        return redirect(request.referrer)
+        return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
 
     add_characteristic(section, request.form)
 
-    return redirect(request.referrer)
+    return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
