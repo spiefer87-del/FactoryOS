@@ -26,8 +26,8 @@ def quality_upload_identification_image(section_id):
     section = QualityInspectionSection.query.get_or_404(section_id)
 
     if section.section_type != "identification":
-        return redirect(request.referrer)
-
+        
+return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
     if section.version.status != "draft":
         return redirect(request.referrer)
 
