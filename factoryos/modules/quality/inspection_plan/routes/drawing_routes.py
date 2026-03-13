@@ -34,11 +34,11 @@ def quality_upload_drawing(section_id):
     file = request.files.get("drawing")
 
     if not file:
-        return redirect(request.referrer)
+        return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
 
     upload_drawing(section, file)
 
-    return redirect(request.referrer)
+    return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
 
 
 # --------------------------------------------------
@@ -52,7 +52,7 @@ def quality_upload_snippet(section_id):
     section = QualityInspectionSection.query.get_or_404(section_id)
 
     if section.version.status != "draft":
-        return redirect(request.referrer)
+        return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
 
     file = request.files.get("snippet")
 
@@ -62,7 +62,7 @@ def quality_upload_snippet(section_id):
         request.form.get("description")
     )
 
-    return redirect(request.referrer)
+    return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
 
 
 # --------------------------------------------------
@@ -77,7 +77,7 @@ def quality_delete_snippet(snippet_id):
 
     delete_snippet(snippet)
 
-    return redirect(request.referrer)
+    return redirect(request.referrer or url_for("inspection.quality_inspection_plan"))
 
 
 # --------------------------------------------------
