@@ -5,6 +5,7 @@ from flask_login import login_required, current_user
 from sqlalchemy.orm import selectinload
 
 from factoryos.extensions import db
+
 from factoryos.modules.quality.inspection_plan.models import (
     QualityInspectionPlanVersion,
     QualityInspectionSection,
@@ -52,9 +53,7 @@ def quality_version_edit(plan_id, version_id):
         add_type = request.form.get("add_section_type")
 
         if add_type and version.status == "draft":
-
             add_section(version, add_type)
-
             return redirect(request.url)
 
         if request.form.get("release_version"):
