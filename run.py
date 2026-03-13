@@ -1,24 +1,6 @@
-from flask import Flask
+from factoryos import create_app
 
-from .config import Config
-from .extensions import db, login_manager, migrate
+app = create_app()
 
-from .core.blueprint_loader import load_blueprints
-from .core import db_events
-
-
-def create_app():
-
-    app = Flask(__name__)
-
-    app.config.from_object(Config)
-
-    db.init_app(app)
-    login_manager.init_app(app)
-    migrate.init_app(app, db)
-
-    login_manager.login_view = "auth.login"
-
-    load_blueprints(app)
-
-    return app
+if __name__ == "__main__":
+    app.run(debug=True)
