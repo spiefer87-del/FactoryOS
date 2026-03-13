@@ -1,10 +1,15 @@
 from functools import wraps
 from flask_login import current_user
 from flask import redirect, url_for, flash
+from factoryos.extensions import db, login_manager
+from factoryos.models.user import User
+
 
 @login_manager.user_loader
 def load_user(user_id):
+
     return db.session.get(User, int(user_id))
+
 
 def role_required(*roles):
 
