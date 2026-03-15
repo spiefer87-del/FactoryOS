@@ -3,13 +3,10 @@ from flask import Blueprint, redirect, url_for, flash, render_template, request
 from flask_login import login_required, current_user
 
 from factoryos.extensions import db
-from factoryos.modules.production.models import Order, TimeBooking
+from factoryos.modules.production.models import TimeBooking
+from factoryos.modules.orders.models import Order
 
-bp = Blueprint(
-    "projects_booking",
-    __name__,
-    url_prefix="/projects"
-)
+from . import bp
 
 
 @bp.route("/start/<int:order_id>", methods=["POST"])

@@ -6,15 +6,16 @@ from sqlalchemy.orm import selectinload
 
 from factoryos.extensions import db
 
-from factoryos.modules.quality.inspection_plan.models import (
-    QualityInspectionPlanVersion,
-    QualityInspectionSection,
-    Gauge
-)
+from factoryos.modules.quality.gauges.models import Gauge
 
-from factoryos.modules.quality.inspection_plan.section_service import add_section
-from factoryos.modules.quality.inspection_plan.change_log_service import log_change
-from factoryos.modules.quality.inspection_plan.revision_service import create_new_revision
+from factoryos.modules.quality.inspection_plan.services.section_service import add_section
+from factoryos.modules.quality.inspection_plan.services.change_log_service import log_change
+from factoryos.modules.quality.inspection_plan.services.revision_service import create_new_revision
+
+from factoryos.modules.quality.inspection_plan.models import (
+    QualityInspectionSection,
+    QualityInspectionCharacteristic
+)
 
 from . import bp
 

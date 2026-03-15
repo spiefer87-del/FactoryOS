@@ -1,34 +1,54 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
 
-    <meta charset="UTF-8">
-    <title>FactoryOS</title>
+<meta charset="UTF-8">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>FactoryOS</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
 </head>
 
 <body>
 
-<div class="app-container">
+{% include "layout/navbar.html" %}
+
+<!-- Sidebar Overlay für Mobile -->
+<div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="layout">
 
     {% include "layout/sidebar.html" %}
 
-    <div class="main-area">
+    <main class="content">
 
-        {% include "layout/navbar.html" %}
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-container">
 
-        <div class="content">
-
-            {% block content %}
-            {% endblock %}
+            {% for category, message in messages %}
+                <div class="flash flash-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
 
         </div>
+        {% endif %}
+        {% endwith %}
 
-    </div>
+        {% block content %}{% endblock %}
+
+    </main>
 
 </div>
+
+<script src="{{ url_for('static', filename='js/factoryos-table.js') }}"></script>
+<script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
 
 </body>
 </html>

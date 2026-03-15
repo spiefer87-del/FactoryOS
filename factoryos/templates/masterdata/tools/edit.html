@@ -1,0 +1,75 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+<p style="color:#666;margin-bottom:20px">
+Werkzeug-ID: <strong>{{ tool.id }}</strong>
+</p>
+
+<h2 style="margin-bottom:25px">Werkzeug bearbeiten</h2>
+
+<div class="form-card">
+
+<form method="POST">
+
+<div class="form-grid">
+
+<div class="form-group">
+<label>Werkzeugnummer</label>
+<input type="text" name="tool_no" value="{{ tool.tool_no }}" required>
+</div>
+
+<div class="form-group">
+<label>Artikelnummer</label>
+<input type="text" name="article_no" value="{{ tool.article_no }}">
+</div>
+
+<div class="form-group">
+<label>Artikelname</label>
+<input type="text" name="article_name" value="{{ tool.article_name }}">
+</div>
+
+<div class="form-group">
+<label>Lagerort</label>
+<input type="text" name="location" value="{{ tool.location }}">
+</div>
+
+<div class="form-group">
+<label>Status</label>
+
+<select name="tool_status">
+
+<option value="aktiv" {% if tool.tool_status == "aktiv" %}selected{% endif %}>
+Aktiv
+</option>
+
+<option value="wartung" {% if tool.tool_status == "wartung" %}selected{% endif %}>
+Wartung
+</option>
+
+<option value="defekt" {% if tool.tool_status == "defekt" %}selected{% endif %}>
+Defekt
+</option>
+
+</select>
+
+</div>
+
+</div>
+
+<div class="form-actions">
+
+<button class="btn-primary">
+Änderungen speichern
+</button>
+
+<a href="{{ url_for('tools.list_tools') }}" class="btn-secondary">
+Abbrechen
+</a>
+
+</div>
+
+</form>
+
+</div>
+
+{% endblock %}

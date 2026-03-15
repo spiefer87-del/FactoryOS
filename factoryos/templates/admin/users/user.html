@@ -1,0 +1,74 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+
+<h2>Benutzerverwaltung</h2>
+
+<a href="{{ url_for('admin_users.create_user') }}"
+class="btn-primary">
+Neuer Benutzer
+</a>
+
+</div>
+
+
+<div class="table-container">
+
+<table class="factory-table">
+
+<thead>
+<tr>
+<th>ID</th>
+<th>Benutzername</th>
+<th>Rolle</th>
+<th>Status</th>
+<th></th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for user in users %}
+
+<tr>
+
+<td>{{ user.id }}</td>
+
+<td>{{ user.username }}</td>
+
+<td>{{ user.role.name if user.role else "-" }}</td>
+
+<td>
+
+{% if user.active %}
+<span class="status-active">Aktiv</span>
+{% else %}
+<span class="status-inactive">Deaktiviert</span>
+{% endif %}
+
+</td>
+
+<td>
+
+<a href="{{ url_for('admin_users.edit_user', user_id=user.id) }}"
+class="btn-small btn-edit">
+
+Bearbeiten
+
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

@@ -9,46 +9,20 @@ class User(UserMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    username = db.Column(
-        db.String(80),
-        unique=True,
-        nullable=False
-    )
+    username = db.Column(db.String(100), unique=True, nullable=False)
 
-    password_hash = db.Column(
-        db.String(255),
-        nullable=False
-    )
+    password_hash = db.Column(db.String(255), nullable=False)
 
-    role = db.Column(
-        db.String(20),
-        default="mitarbeiter"
-    )
+    role_id = db.Column(db.Integer, db.ForeignKey("roles.id"))
 
-    active = db.Column(
-        db.Boolean,
-        default=True
-    )
-    created_at = db.Column(
-        db.DateTime,
-        default=db.func.now()
-    )
-    # -------------------------
-    # PASSWORD HANDLING
-    # -------------------------
+    role = db.relationship("Role", back_populates="users")
+
+    active = db.Column(db.Boolean, default=True)
+
 
     def set_password(self, password):
-
         self.password_hash = generate_password_hash(password)
 
+
     def check_password(self, password):
-
         return check_password_hash(self.password_hash, password)
-
-    # -------------------------
-    # OPTIONAL
-    # -------------------------
-
-    def __repr__(self):
-
-        return f"<User {self.username}>"

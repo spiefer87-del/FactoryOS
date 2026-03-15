@@ -5,7 +5,7 @@ from factoryos.modules.quality.inspection_plan.models import (
     QualityInspectionSection
 )
 
-from factoryos.modules.quality.inspection_plan.change_log_service import log_change
+from factoryos.modules.quality.inspection_plan.services.change_log_service import log_change
 
 
 def create_marker(section_id, pos_x, pos_y):

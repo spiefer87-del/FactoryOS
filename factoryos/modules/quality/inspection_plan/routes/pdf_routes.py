@@ -3,7 +3,7 @@ from flask_login import login_required
 
 from factoryos.extensions import db
 from factoryos.modules.quality.inspection_plan.models import QualityInspectionPlanVersion
-from factoryos.modules.quality.inspection_plan.pdf_service import generate_inspection_plan_pdf
+from factoryos.modules.quality.inspection_plan.services.pdf_service import generate_inspection_plan_pdf
 
 from . import bp
 

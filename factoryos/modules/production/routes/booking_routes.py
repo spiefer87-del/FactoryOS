@@ -7,11 +7,7 @@ from factoryos.modules.production.services.booking_service import (
     resume_booking
 )
 
-bp = Blueprint(
-    "production_booking",
-    __name__,
-    url_prefix="/production"
-)
+from . import bp
 
 
 @bp.route("/start", methods=["POST"])

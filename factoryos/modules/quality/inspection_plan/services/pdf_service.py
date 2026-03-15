@@ -17,7 +17,7 @@ import os
 
 from flask import current_app
 
-from factoryos.modules.quality.models import (
+from factoryos.modules.quality.inspection_plan.models import (
     QualityInspectionPlanVersion
 )
 

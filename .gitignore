@@ -416,3 +416,21 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+# Python
+__pycache__/
+*.pyc
+
+# Virtualenv
+venv/
+lib/
+python3/
+
+# Flask
+instance/
+
+# Database
+*.db
+*.sqlite
+
+# Logs
+*.log

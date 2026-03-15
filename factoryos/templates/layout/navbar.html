@@ -1,25 +1,29 @@
-<div class="navbar">
+<header class="navbar">
 
-    <div class="nav-left">
+    <div class="navbar-left">
 
-        <span class="page-title">
+        <!-- Sidebar Toggle (nur Mobile sichtbar) -->
+        <button class="sidebar-toggle" onclick="toggleSidebar()">
+            ☰
+        </button>
+
+        <span class="navbar-logo">
             FactoryOS
         </span>
 
     </div>
 
-    <div class="nav-right">
 
-        <span class="user">
+    <div class="navbar-right">
 
+        <span class="navbar-user">
             {{ current_user.username }}
-
         </span>
 
-        <a href="{{ url_for('auth.logout') }}">
+        <a class="logout-btn" href="{{ url_for('auth.logout') }}">
             Logout
         </a>
 
     </div>
 
-</div>
+</header>

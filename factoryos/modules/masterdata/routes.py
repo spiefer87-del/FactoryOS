@@ -4,20 +4,20 @@ from flask_login import login_required
 from factoryos.modules.masterdata.core.registry import list_masterdata
 
 
-masterdata_bp = Blueprint(
+bp = Blueprint(
     "masterdata",
     __name__,
     url_prefix="/masterdata"
 )
 
 
-@masterdata_bp.route("/")
+@bp.route("/dashboard")
 @login_required
-def masterdata_home():
+def dashboard():
 
     modules = list_masterdata()
 
     return render_template(
-        "masterdata/index.html",
+        "masterdata/dashboard.html",
         modules=modules
     )

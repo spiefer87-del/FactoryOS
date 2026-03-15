@@ -4,7 +4,7 @@ from flask_login import login_required
 from factoryos.extensions import db
 from factoryos.modules.quality.inspection_plan.models import QualityInspectionCharacteristic
 
-from factoryos.modules.quality.inspection_plan.marker_service import (
+from factoryos.modules.quality.inspection_plan.services.marker_service import (
     create_marker,
     create_characteristic_with_marker,
     update_marker_position,

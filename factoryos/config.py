@@ -8,7 +8,7 @@ UPLOAD_IDENTIFICATION = os.path.join(BASE_DIR, "static/qm_identification")
 
 class Config:
 
-    SECRET_KEY = "dev"
+    SECRET_KEY = "factoryos-secret-key"
 
     SQLALCHEMY_DATABASE_URI = "sqlite:///factoryos.db"
 

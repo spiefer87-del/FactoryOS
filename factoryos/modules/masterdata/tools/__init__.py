@@ -1,15 +1,7 @@
-from factoryos.modules.masterdata.core.registry import register_masterdata
-from .models import ToolMasterdata
+from flask import Blueprint
 
-
-register_masterdata(
-    name="tools",
-    model=ToolMasterdata,
-    search_fields=[
-        "tool_no",
-        "article_no",
-        "article_name",
-        "location",
-        "tool_status"
-    ]
+bp = Blueprint(
+    "tools",
+    __name__,
+    url_prefix="/masterdata/tools"
 )

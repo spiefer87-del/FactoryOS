@@ -2,18 +2,15 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
 
 from factoryos.models.machine import Machine
-from factoryos.modules.production.models import Order, DowntimeReason
+from factoryos.modules.production.models import DowntimeReason
+from factoryos.modules.orders.models import Order
 from factoryos.modules.production.services.machine_service import (
     start_setup,
     start_machine_event,
     start_machine_downtime
 )
 
-bp = Blueprint(
-    "production_machine",
-    __name__,
-    url_prefix="/production"
-)
+from . import bp
 
 
 @bp.route("/machine/<int:machine_id>/setup", methods=["GET", "POST"])

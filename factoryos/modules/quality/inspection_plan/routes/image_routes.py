@@ -6,7 +6,7 @@ from factoryos.modules.quality.inspection_plan.models import (
     QualityInspectionIdentificationImage
 )
 
-from factoryos.modules.quality.inspection_plan.image_service import (
+from factoryos.modules.quality.inspection_plan.services.image_service import (
     upload_identification_image,
     update_image_description,
     delete_identification_image

@@ -1,0 +1,57 @@
+<div class="fos-table-wrapper">
+
+<div class="fos-table-toolbar">
+
+<input
+type="text"
+class="fos-search"
+placeholder="Suchen..."
+data-table-search="{{ table_id }}"
+>
+
+</div>
+
+
+<div class="fos-table-container">
+
+<table class="fos-table" id="{{ table_id }}">
+
+<thead>
+<tr>
+
+{% for col in columns %}
+
+<th data-sort="{{ loop.index0 }}">
+{{ col }}
+<span class="sort-indicator">↕</span>
+</th>
+
+{% endfor %}
+
+</tr>
+</thead>
+
+<tbody>
+
+{% for row in rows %}
+
+<tr>
+
+{% for cell in row %}
+<td>{{ cell|safe }}</td>
+{% endfor %}
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+
+<div class="fos-pagination" data-table="{{ table_id }}"></div>
+
+</div>

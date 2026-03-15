@@ -1,8 +1,9 @@
 from datetime import datetime
 
 from factoryos.extensions import db
-from factoryos.modules.production.models import TimeBooking, Order
-from factoryos.modules.production.services import (
+from factoryos.modules.production.models import TimeBooking
+from factoryos.modules.orders.models import Order
+from factoryos.modules.production.services.machine_service import (
     close_all_active_bookings,
     start_machine_free
 )

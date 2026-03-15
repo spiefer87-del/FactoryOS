@@ -1,0 +1,55 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<h2>Administration</h2>
+
+<div class="dashboard-grid">
+
+<a href="{{ url_for('admin_users.list_users') }}" class="dashboard-card">
+
+<div class="card-icon">👥</div>
+
+<div class="card-title">
+Benutzer
+</div>
+
+<div class="card-desc">
+Benutzer verwalten
+</div>
+
+</a>
+
+
+<a href="{{ url_for('admin_roles.list_roles') }}" class="dashboard-card">
+
+<div class="card-icon">🔐</div>
+
+<div class="card-title">
+Rollen
+</div>
+
+<div class="card-desc">
+Rechte verwalten
+</div>
+
+</a>
+
+
+<a href="{{ url_for('admin_permissions.permission_matrix') }}" class="dashboard-card">
+
+<div class="card-icon">🛡</div>
+
+<div class="card-title">
+Rechteverwaltung
+</div>
+
+<div class="card-desc">
+Rollenrechte verwalten
+</div>
+
+</a>
+
+</div>
+
+{% endblock %}

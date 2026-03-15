@@ -1,11 +1,11 @@
 from factoryos.extensions import db
 
-from factoryos.modules.quality.models import (
+from factoryos.modules.quality.inspection_plan.models import (
     QualityInspectionSection,
     QualityInspectionCharacteristic
 )
 
-from factoryos.modules.quality.inspection_plan.change_log_service import log_change
+from factoryos.modules.quality.inspection_plan.services.change_log_service import log_change
 
 def add_section(version, section_type):
 

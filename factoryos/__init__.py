@@ -4,7 +4,8 @@ from .config import Config
 from .extensions import db, login_manager, migrate
 
 from .core.blueprint_loader import load_blueprints
-
+from .core import routes as core_routes
+from .core.db_seed import run_seeds
 
 def create_app():
 
@@ -15,9 +16,16 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
-
+    
     login_manager.login_view = "auth.login"
 
+    # Core routes (Startseite)
+    app.register_blueprint(core_routes.bp)
+
+    # Module automatisch laden
     load_blueprints(app)
+
+    for rule in app.url_map.iter_rules():
+        print(rule.endpoint, rule.rule)
 
     return app

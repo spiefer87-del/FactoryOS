@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+
+<meta charset="UTF-8">
+<title>FactoryOS Login</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+<body class="login-page">
+
+<div class="login-container">
+
+    <div class="login-card">
+
+        <h1 class="login-logo">FactoryOS</h1>
+
+        <form method="POST">
+
+            <input 
+                type="text" 
+                name="username" 
+                placeholder="Benutzername"
+                required
+            >
+
+            <input 
+                type="password" 
+                name="password" 
+                placeholder="Passwort"
+                autocomplete="current-password"
+                required
+            >
+
+            <button type="submit">
+                Login
+            </button>
+
+        </form>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+
+        <div class="login-messages">
+            {% for category, message in messages %}
+                <div class="login-msg {{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+
+        {% endif %}
+        {% endwith %}
+
+    </div>
+
+</div>
+
+</body>
+</html>

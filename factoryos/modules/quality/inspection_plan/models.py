@@ -1,3 +1,6 @@
+from datetime import datetime
+from factoryos.extensions import db
+
 class QualityInspectionPlan(db.Model):
     __tablename__ = "qm_plans"
 

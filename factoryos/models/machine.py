@@ -1,4 +1,4 @@
-from extensions import db
+from factoryos.extensions import db
 
 
 class Machine(db.Model):

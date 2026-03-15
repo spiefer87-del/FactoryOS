@@ -1,7 +1,12 @@
-from .project_routes import bp as project_bp
-from .booking_routes import bp as booking_bp
+from flask import Blueprint
 
-blueprints = [
-    project_bp,
-    booking_bp
-]
+bp = Blueprint(
+    "projects",
+    __name__,
+    url_prefix="/projects"
+)
+
+# Route Dateien importieren
+from . import dashboard_routes
+from . import booking_routes
+from . import project_routes

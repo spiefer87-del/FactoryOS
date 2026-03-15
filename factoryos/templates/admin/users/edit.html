@@ -1,0 +1,86 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<h2>Benutzer bearbeiten</h2>
+
+<div class="form-container">
+
+<form method="post">
+
+<div class="form-group">
+<label>Benutzername</label>
+<input type="text" name="username" value="{{ user.username }}" required>
+</div>
+
+<div class="form-group">
+<label>Neues Passwort</label>
+<input type="password" name="password" placeholder="leer lassen für unverändert">
+</div>
+
+<div class="form-group">
+
+<label>Rolle</label>
+
+<select name="role_id">
+
+{% for role in roles %}
+
+<option value="{{ role.id }}"
+{% if user.role_id == role.id %}selected{% endif %}>
+
+{{ role.name }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+</div>
+
+<div class="form-group">
+<label>Status</label>
+
+<select name="active">
+
+<option value="1" {% if user.active %}selected{% endif %}>Aktiv</option>
+<option value="0" {% if not user.active %}selected{% endif %}>Deaktiviert</option>
+
+</select>
+
+</div>
+
+<div class="form-actions">
+
+<button class="btn-primary">
+Benutzer speichern
+</button>
+
+<a href="{{ url_for('admin_users.list_users') }}"
+class="btn-secondary">
+Abbrechen
+</a>
+
+</div>
+
+</form>
+
+<hr class="form-divider">
+
+<form method="post"
+action="{{ url_for('admin_users.delete_user', user_id=user.id) }}"
+
+onsubmit="return confirm('Benutzer wirklich löschen?');">
+
+<button class="btn-danger">
+Benutzer löschen
+</button>
+
+</form>
+
+</div>
+
+{% endblock %}

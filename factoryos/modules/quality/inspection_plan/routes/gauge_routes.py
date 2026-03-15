@@ -8,7 +8,7 @@ from factoryos.modules.quality.inspection_plan.models import (
     QualityInspectionGaugeCheck
 )
 
-from factoryos.modules.quality.inspection_plan.change_log_service import (
+from factoryos.modules.quality.inspection_plan.services.change_log_service import (
     log_change
 )
 

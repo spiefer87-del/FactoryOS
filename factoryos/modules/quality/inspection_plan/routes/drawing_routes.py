@@ -8,13 +8,13 @@ from factoryos.modules.quality.inspection_plan.models import (
     QualityInspectionDimensionSnippet
 )
 
-from factoryos.modules.quality.inspection_plan.drawing_service import (
+from factoryos.modules.quality.inspection_plan.services.drawing_service import (
     upload_drawing,
     upload_snippet,
     delete_snippet
 )
 
-from factoryos.modules.quality.inspection_plan.feature_detection_service import (
+from factoryos.modules.quality.inspection_plan.services.feature_detection_service import (
     detect_drawing_features
 )
 

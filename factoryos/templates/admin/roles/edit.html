@@ -1,0 +1,50 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<h2>Rolle bearbeiten</h2>
+
+<form method="post">
+
+<div class="form-group">
+<label>Name</label>
+<input type="text" name="name" value="{{ role.name }}" required>
+</div>
+
+<div class="form-group">
+<label>Beschreibung</label>
+<input type="text" name="description" value="{{ role.description }}">
+</div>
+
+<div class="form-group">
+<label>Status</label>
+
+<select name="active">
+
+<option value="1" {% if role.active %}selected{% endif %}>Aktiv</option>
+<option value="0" {% if not role.active %}selected{% endif %}>Inaktiv</option>
+
+</select>
+
+</div>
+
+<button class="btn-primary">
+Speichern
+</button>
+
+</form>
+
+<hr>
+
+<form method="post"
+action="{{ url_for('admin_roles.delete_role_route', role_id=role.id) }}"
+
+onsubmit="return confirm('Rolle wirklich löschen?');">
+
+<button class="btn-danger">
+Rolle löschen
+</button>
+
+</form>
+
+{% endblock %}

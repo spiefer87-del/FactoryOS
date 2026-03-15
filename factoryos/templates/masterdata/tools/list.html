@@ -1,0 +1,41 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<h2>Werkzeugliste</h2>
+
+{% set columns = [
+"Werkzeugnr",
+"Artikelnummer",
+"Artikelname",
+"Standort",
+"Status",
+"Aktionen"
+] %}
+
+{% set rows = [] %}
+
+{% for tool in tools %}
+
+{% set row = [
+
+'<a href="' ~ url_for("tools.detail",tool_id=tool.id) ~ '">' ~ tool.tool_no ~ '</a>',
+
+tool.article_no,
+tool.article_name,
+tool.location,
+
+'<span class="status-badge status-' ~ tool.tool_status ~ '">' ~ tool.tool_status ~ '</span>',
+
+'<a class="btn-small btn-edit" href="' ~ url_for("tools.edit",tool_id=tool.id) ~ '">Bearbeiten</a>
+ <a class="btn-small btn-delete" href="' ~ url_for("tools.delete",tool_id=tool.id) ~ '">Löschen</a>'
+
+] %}
+
+{% set _ = rows.append(row) %}
+
+{% endfor %}
+
+{% include "components/table.html" with context %}
+
+{% endblock %}

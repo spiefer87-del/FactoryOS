@@ -1,0 +1,67 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<h2>Rollenverwaltung</h2>
+
+<a href="{{ url_for('admin_roles.create_role_route') }}"
+class="btn-primary">
+Neue Rolle
+</a>
+
+<div class="table-container">
+
+<table class="factory-table">
+
+<thead>
+
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Beschreibung</th>
+<th>Status</th>
+<th></th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for role in roles %}
+
+<tr>
+
+<td>{{ role.id }}</td>
+<td>{{ role.name }}</td>
+<td>{{ role.description }}</td>
+
+<td>
+{% if role.active %}
+Aktiv
+{% else %}
+Inaktiv
+{% endif %}
+</td>
+
+<td>
+
+<a href="{{ url_for('admin_roles.edit_role', role_id=role.id) }}"
+class="btn-small btn-edit">
+
+Bearbeiten
+
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<h2 style="margin-bottom:25px">Werkzeug Details</h2>
+
+<div class="form-card">
+
+<div class="detail-grid">
+
+<div class="detail-item">
+<label>Werkzeugnummer</label>
+<div>{{ tool.tool_no }}</div>
+</div>
+
+<div class="detail-item">
+<label>Artikelnummer</label>
+<div>{{ tool.article_no or "-" }}</div>
+</div>
+
+<div class="detail-item">
+<label>Artikelname</label>
+<div>{{ tool.article_name or "-" }}</div>
+</div>
+
+<div class="detail-item">
+<label>Lagerort</label>
+<div>{{ tool.location or "-" }}</div>
+</div>
+
+<div class="detail-item">
+<label>Status</label>
+
+<span class="status-badge status-{{ tool.tool_status }}">
+{{ tool.tool_status }}
+</span>
+
+</div>
+
+</div>
+
+<div class="form-actions">
+
+<a href="{{ url_for('tools.edit', tool_id=tool.id) }}" class="btn-primary">
+Werkzeug bearbeiten
+</a>
+
+<a href="{{ url_for('tools.list_tools') }}" class="btn-secondary">
+Zurück zur Liste
+</a>
+
+</div>
+
+</div>
+
+{% endblock %}

@@ -18,9 +18,20 @@ def role_required(*roles):
         @wraps(fn)
         def wrapper(*args, **kwargs):
 
-            if current_user.role not in roles:
+            if not current_user.is_authenticated:
+                return redirect(url_for("auth.login"))
+
+            if not current_user.role:
+                flash("Keine Rolle zugewiesen.", "danger")
+                return redirect(url_for("core.home"))
+
+            # Admin darf alles
+            if current_user.role.name == "admin":
+                return fn(*args, **kwargs)
+
+            if current_user.role.name not in roles:
                 flash("Keine Berechtigung.", "danger")
-                return redirect(url_for("dashboard"))
+                return redirect(url_for("core.home"))
 
             return fn(*args, **kwargs)
 

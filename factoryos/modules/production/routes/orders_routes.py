@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required
 
 from factoryos.models.tools import ToolMasterdata
-from factoryos.core.permissions import role_required
+from factoryos.core.auth import role_required
 
 from factoryos.modules.production.services.order_service import (
     get_orders_overview,
@@ -13,11 +13,7 @@ from factoryos.modules.production.services.order_service import (
     import_orders_from_excel
 )
 
-bp = Blueprint(
-    "production_orders",
-    __name__,
-    url_prefix="/production/orders"
-)
+from . import bp
 
 
 @bp.route("/")

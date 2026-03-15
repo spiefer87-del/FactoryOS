@@ -1,0 +1,21 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<h2>Stammdaten</h2>
+
+<div class="dashboard-grid">
+
+<a href="{{ url_for('tools.dashboard') }}" class="dashboard-card">
+<div class="card-icon">🛠</div>
+<div class="card-title">Werkzeuge</div>
+</a>
+
+<a href="{{ url_for('articles.dashboard') }}" class="dashboard-card">
+<div class="card-icon">📦</div>
+<div class="card-title">Artikel</div>
+</a>
+
+</div>
+
+{% endblock %}

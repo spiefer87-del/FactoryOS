@@ -1,93 +1,76 @@
-<div class="sidebar">
+<aside id="sidebar" class="sidebar">
 
-    <div class="logo">
-        FactoryOS
-    </div>
-
-    <ul class="menu">
+    <ul class="sidebar-nav">
 
         <li>
-            <a href="{{ url_for('dashboard') }}">
-                Dashboard
+            <a class="{% if request.blueprint == 'core' %}active{% endif %}"
+               href="{{ url_for('core.home') }}">
+
+               <span class="sidebar-icon">🏠</span>
+               Dashboard
             </a>
         </li>
 
-        <li class="menu-section">
-            Produktion
-        </li>
 
         <li>
-            <a href="{{ url_for('production.dashboard') }}">
-                Maschinen
+            <a class="{% if request.blueprint == 'orders' %}active{% endif %}"
+               href="{{ url_for('orders.dashboard') }}">
+
+               <span class="sidebar-icon">📋</span>
+               Aufträge
             </a>
         </li>
 
+
         <li>
-            <a href="{{ url_for('production_orders.orders_home') }}">
-                Aufträge
+            <a class="{% if request.blueprint == 'production' %}active{% endif %}"
+               href="{{ url_for('production.dashboard') }}">
+
+               <span class="sidebar-icon">🏭</span>
+               Produktion
             </a>
         </li>
 
+
         <li>
-            <a href="{{ url_for('projects.projects_home') }}">
-                Projekte
+            <a class="{% if request.blueprint == 'projects' %}active{% endif %}"
+               href="{{ url_for('projects.dashboard') }}">
+
+               <span class="sidebar-icon">📁</span>
+               Projekte
             </a>
         </li>
 
-        <li class="menu-section">
-            Qualität
-        </li>
 
         <li>
-            <a href="{{ url_for('inspection.quality_inspection_plan') }}">
-                Prüfpläne
+            <a class="{% if request.blueprint == 'quality' %}active{% endif %}"
+               href="{{ url_for('quality.dashboard') }}">
+
+               <span class="sidebar-icon">🔬</span>
+               Qualität
             </a>
         </li>
 
+
         <li>
-            <a href="{{ url_for('gauges.gauge_home') }}">
-                Messmittel
+            <a class="{% if request.blueprint == 'masterdata' %}active{% endif %}"
+               href="{{ url_for('masterdata.dashboard') }}">
+
+               <span class="sidebar-icon">📦</span>
+               Stammdaten
             </a>
         </li>
 
-        {% if current_user.role in ["admin","schichtleiter"] %}
-
-        <li class="menu-section">
-            Stammdaten
-        </li>
 
         <li>
-            <a href="{{ url_for('tools.tools_home') }}">
-                Werkzeuge
+            <a class="{% if request.blueprint == 'admin' %}active{% endif %}"
+               href="{{ url_for('admin.dashboard') }}">
+
+               <span class="sidebar-icon">⚙</span>
+               Administration
             </a>
         </li>
-
-        {% endif %}
-
-        {% if current_user.role == "admin" %}
-
-        <li class="menu-section">
-            Setup
-        </li>
-
-        <li>
-            <a href="{{ url_for('setup_machines.machine_list') }}">
-                Maschinen
-            </a>
-        </li>
-
-        <li class="menu-section">
-            Administration
-        </li>
-
-        <li>
-            <a href="{{ url_for('admin_users.user_list') }}">
-                Benutzer
-            </a>
-        </li>
-
-        {% endif %}
 
     </ul>
 
-</div>
+</aside>

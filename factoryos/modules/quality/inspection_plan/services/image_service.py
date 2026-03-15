@@ -3,11 +3,11 @@ from werkzeug.utils import secure_filename
 from flask import current_app
 from factoryos.extensions import db
 
-from factoryos.modules.quality.models import (
+from factoryos.modules.quality.inspection_plan.models import (
     QualityInspectionIdentificationImage
 )
 
-from factoryos.modules.quality.inspection_plan.change_log_service import log_change
+from factoryos.modules.quality.inspection_plan.services.change_log_service import log_change
 
 
 def upload_identification_image(section, file, description, user_id):

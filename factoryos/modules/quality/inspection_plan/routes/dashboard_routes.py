@@ -3,8 +3,8 @@ from flask_login import login_required
 
 from . import bp
 
-
-@bp.route("/")
+@bp.route("/dashboard")
 @login_required
-def quality_dashboard():
-    return render_template("quality/dashboard.html")
+def dashboard():
+
+    return render_template("quality/inspection_plan/dashboard.html")

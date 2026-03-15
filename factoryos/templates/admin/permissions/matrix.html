@@ -1,0 +1,97 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+
+<h2>Rechteverwaltung</h2>
+
+</div>
+
+<form method="post">
+
+<div class="table-container permissions-matrix">
+
+<table class="factory-table">
+
+<thead>
+
+<tr>
+
+<th class="sticky-col">Rolle</th>
+
+{% for module, permissions in permission_groups.items() %}
+<th colspan="{{ permissions|length }}" class="permission-group">
+{{ module|capitalize }}
+</th>
+{% endfor %}
+
+</tr>
+
+<tr>
+
+<th class="sticky-col"></th>
+
+{% for module, permissions in permission_groups.items() %}
+    {% for permission in permissions %}
+        <th class="permission-name">
+            {{ permission.name.split(".")[1] }}
+        </th>
+    {% endfor %}
+{% endfor %}
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for role in roles %}
+
+<tr>
+
+<td class="sticky-col role-name">
+
+<strong>{{ role.name }}</strong>
+
+</td>
+
+{% for module, permissions in permission_groups.items() %}
+    {% for permission in permissions %}
+
+<td class="permission-cell">
+
+<input type="checkbox"
+name="role_{{ role.id }}"
+value="{{ permission.id }}"
+
+{% if permission in role.permissions %}
+checked
+{% endif %}
+
+>
+
+</td>
+
+    {% endfor %}
+{% endfor %}
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+<br>
+
+<button class="btn-primary">
+Rechte speichern
+</button>
+
+</form>
+
+{% endblock %}

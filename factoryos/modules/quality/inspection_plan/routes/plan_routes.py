@@ -4,6 +4,8 @@ from flask_login import login_required, current_user
 from factoryos.extensions import db
 from factoryos.models.tools import ToolMasterdata
 
+from factoryos.core.auth import role_required
+
 from factoryos.modules.quality.inspection_plan.models import (
     QualityInspectionPlan,
     QualityInspectionPlanVersion

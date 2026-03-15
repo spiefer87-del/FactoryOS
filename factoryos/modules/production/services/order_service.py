@@ -1,8 +1,9 @@
 from sqlalchemy import func, or_
 from openpyxl import load_workbook
 
-from factoryos.extensions import db
-from factoryos.modules.production.models import Order, QuantityReport, TimeBooking
+from factoryos.modules.production.models import QuantityReport, TimeBooking
+from factoryos.modules.orders.models import Order
+
 from factoryos.models.tools import ToolMasterdata
 
 def get_orders_overview(q, status_filter):

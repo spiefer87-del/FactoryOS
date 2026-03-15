@@ -1,0 +1,82 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+
+<h2>Aufträge</h2>
+
+<a href="#" class="btn-primary">
+Neuer Auftrag
+</a>
+
+</div>
+
+<div class="table-container">
+
+<table class="factory-table">
+
+<thead>
+<tr>
+
+<th>Auftrag</th>
+<th>Artikel</th>
+<th>Menge</th>
+<th>Status</th>
+<th></th>
+
+</tr>
+</thead>
+
+<tbody>
+
+{% for order in orders %}
+
+<tr>
+
+<td>{{ order.order_no }}</td>
+
+<td>{{ order.article_name }}</td>
+
+<td>{{ order.target_qty }}</td>
+
+<td>
+
+{% if order.status == "open" %}
+<span class="status-badge status-wartung">Offen</span>
+
+{% elif order.status == "running" %}
+<span class="status-badge status-aktiv">In Arbeit</span>
+
+{% elif order.status == "finished" %}
+<span class="status-badge status-aktiv">Fertig</span>
+
+{% else %}
+<span class="status-badge status-defekt">{{ order.status }}</span>
+{% endif %}
+
+</td>
+
+<td>
+
+<a
+href="{{ url_for('orders.detail', order_id=order.id) }}"
+class="btn-small btn-edit">
+
+Details
+
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,18 @@
+from flask import redirect, url_for
+from flask_login import login_required
+
+from .. import bp
+from factoryos.extensions import db
+from factoryos.models.tools import ToolMasterdata
+
+
+@bp.route("/delete/<int:tool_id>")
+@login_required
+def delete(tool_id):
+
+    tool = ToolMasterdata.query.get_or_404(tool_id)
+
+    db.session.delete(tool)
+    db.session.commit()
+
+    return redirect(url_for("tools.list_tools"))
