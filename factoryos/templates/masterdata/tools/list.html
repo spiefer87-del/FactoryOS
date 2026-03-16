@@ -28,8 +28,8 @@ tool.location,
 '<span class="status-badge status-' ~ tool.tool_status ~ '">' ~ tool.tool_status ~ '</span>',
 
 '<div class="table-actions">
-<a class="btn-small btn-edit" href="' ~ url_for("tool.edit", tool_id=tool.id) ~ '">Bearbeiten</a>
-<a class="btn-small btn-delete" href="' ~ url_for("tool.delete", tool_id=tool.id) ~ '">Löschen</a>
+<a class="btn-small btn-edit" href="' ~ url_for("tools.edit", tool_id=tool.id) ~ '">Bearbeiten</a>
+<a class="btn-small btn-delete" href="' ~ url_for("tools.delete", tool_id=tool.id) ~ '">Löschen</a>
 </div>'
 
 ] %}
