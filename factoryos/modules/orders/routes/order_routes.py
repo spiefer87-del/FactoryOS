@@ -1,3 +1,4 @@
+from . import bp
 
 @orders_bp.route("/<int:order_id>")
 def detail(order_id):
