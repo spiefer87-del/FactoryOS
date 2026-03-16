@@ -1,1 +1,21 @@
+{% extends "layout/base.html" %}
 
+{% block content %}
+
+<h2>Aufträge</h2>
+
+<div class="dashboard-grid">
+
+<a href="{{ url_for('orders.create') }}" class="dashboard-card">
+<div class="card-icon">➕</div>
+<div class="card-title">Auftrag erstellen</div>
+</a>
+
+<a href="{{ url_for('orders.overview') }}" class="dashboard-card">
+<div class="card-icon">📋</div>
+<div class="card-title">Auftragsübersicht</div>
+</a>
+
+</div>
+
+{% endblock %}
