@@ -1,7 +1,7 @@
 from flask import redirect, url_for
 from flask_login import login_required
 
-from .. import bp
+from . import bp
 from factoryos.extensions import db
 from factoryos.models.tools import ToolMasterdata
 
