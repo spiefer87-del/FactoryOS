@@ -8,4 +8,11 @@
 <p>Status: {{ order.status }}</p>
 <p>Menge: {{ order.target_qty }}</p>
 
+<a href="{{ url_for('orders.edit', order_id=order.id) }}" class="btn-primary">
+Bearbeiten
+</a>
+
+<a href="{{ url_for('orders.delete', order_id=order.id) }}" class="btn-danger">
+Löschen
+</a>
 {% endblock %}
