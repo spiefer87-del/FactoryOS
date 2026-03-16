@@ -1,0 +1,61 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<h2>Auftrag bearbeiten</h2>
+
+<form method="POST" class="form-container">
+
+<div class="form-group">
+<label>Artikelnummer</label>
+<input type="text" name="article" value="{{ order.article }}">
+</div>
+
+<div class="form-group">
+<label>Artikelname</label>
+<input type="text" name="article_name" value="{{ order.article_name }}">
+</div>
+
+<div class="form-group">
+<label>Beschreibung</label>
+<textarea name="description">{{ order.description }}</textarea>
+</div>
+
+<div class="form-group">
+<label>Standort</label>
+<input type="text" name="location" value="{{ order.location }}">
+</div>
+
+<div class="form-group">
+<label>Zielmenge</label>
+<input type="number" name="target_qty" value="{{ order.target_qty }}">
+</div>
+
+<div class="form-group">
+<label>Status</label>
+<select name="status">
+
+<option value="offen" {% if order.status=="offen" %}selected{% endif %}>
+Offen
+</option>
+
+<option value="in_arbeit" {% if order.status=="in_arbeit" %}selected{% endif %}>
+In Arbeit
+</option>
+
+<option value="fertig" {% if order.status=="fertig" %}selected{% endif %}>
+Fertig
+</option>
+
+<option value="gesperrt" {% if order.status=="gesperrt" %}selected{% endif %}>
+Gesperrt
+</option>
+
+</select>
+</div>
+
+<button class="btn-primary">Speichern</button>
+
+</form>
+
+{% endblock %}
