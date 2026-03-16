@@ -1,8 +1,7 @@
 from flask import render_template, request
 from flask_login import login_required
 
-from .. import bp
-from ..queries.tool_queries import get_tools
+from . import bp
 
 
 @bp.route("/list")
