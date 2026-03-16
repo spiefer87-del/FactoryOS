@@ -27,8 +27,10 @@ order.target_qty or "",
 
 '<span class="status-badge status-' ~ order.status ~ '">' ~ order.status ~ '</span>',
 
-'<a class="btn-small btn-edit" href="' ~ url_for("orders.edit", order_id=order.id) ~ '">Bearbeiten</a>
- <a class="btn-small btn-delete" href="' ~ url_for("orders.delete", order_id=order.id) ~ '">Löschen</a>'
+'<div class="table-actions">
+<a class="btn-small btn-edit" href="' ~ url_for("orders.edit", order_id=order.id) ~ '">Bearbeiten</a>
+<a class="btn-small btn-delete" href="' ~ url_for("orders.delete", order_id=order.id) ~ '">Löschen</a>
+</div>'
 
 ] %}
 
