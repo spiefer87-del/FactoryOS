@@ -1,7 +1,7 @@
 from flask import render_template
 from flask_login import login_required
 
-from .. import bp
+from . import bp
 from factoryos.models.tools import ToolMasterdata
 
 
