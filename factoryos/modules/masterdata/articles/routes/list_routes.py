@@ -11,6 +11,6 @@ def list_articles():
     articles = Article.query.order_by(Article.article_no).all()
 
     return render_template(
-        "masterdata/articles/articles_list.html",
+        "masterdata/articles/list.html",
         articles=articles
     )
