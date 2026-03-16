@@ -6,9 +6,9 @@ bp = Blueprint(
     url_prefix="/orders"
 )
 
-from .dashboard_routes import *
-from .overview_routes import *
-from .detail_routes import *
-from .create_routes import *
-from .edit_routes import *
-from .delete_routes import *
+from . import dashboard_routes
+from . import overview_routes
+from . import detail_routes
+from . import create_routes
+from . import edit_routes
+from . import delete_routes
