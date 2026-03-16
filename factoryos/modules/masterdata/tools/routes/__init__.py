@@ -1,4 +1,9 @@
-from .. import bp
+
+bp = Blueprint(
+    "tools",
+    __name__,
+    url_prefix="/masterdata/tools"
+)
 
 from .dashboard_routes import *
 from .list_routes import *
