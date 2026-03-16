@@ -1,14 +1,17 @@
-from flask import render_template
+from flask import render_template, request
 from flask_login import login_required
+
 from . import bp
-from factoryos.modules.masterdata.articles.models import Article
+from ..queries.article_queries import search_articles
 
 
 @bp.route("/list")
 @login_required
-def list_articles():
+def list():
 
-    articles = Article.query.order_by(Article.article_no).all()
+    search = request.args.get("search")
+
+    articles = search_articles(search)
 
     return render_template(
         "masterdata/articles/list.html",
