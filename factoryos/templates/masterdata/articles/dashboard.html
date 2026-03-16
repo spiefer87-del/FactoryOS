@@ -2,21 +2,21 @@
 
 {% block content %}
 
-<h2 style="margin-bottom:30px">Stammdaten</h2>
+<h2>Artikel</h2>
 
 <div class="dashboard-grid">
 
-    <a href="{{ url_for('tools.dashboard') }}" class="dashboard-card">
-        <div class="card-icon">🛠️</div>
-        <div class="card-title">Werkzeuge</div>
-        <div class="card-desc">Werkzeugverwaltung</div>
-    </a>
+<a href="{{ url_for('articles.create') }}" class="dashboard-card">
+<div class="card-icon">➕</div>
+<div class="card-title">Artikel anlegen</div>
+<div class="card-desc">Neuen Artikel erstellen</div>
+</a>
 
-    <a href="{{ url_for('articles.dashboard') }}" class="dashboard-card">
-        <div class="card-icon">📦</div>
-        <div class="card-title">Artikel</div>
-        <div class="card-desc">Artikelstammdaten</div>
-    </a>
+<a href="{{ url_for('articles.list_articles') }}" class="dashboard-card">
+<div class="card-icon">📦</div>
+<div class="card-title">Artikelübersicht</div>
+<div class="card-desc">Alle Artikel anzeigen</div>
+</a>
 
 </div>
 
