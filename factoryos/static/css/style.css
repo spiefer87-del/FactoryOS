@@ -464,16 +464,12 @@ font-size:14px;
 
 /* Small Buttons */
 
-.btn-small{
-
-padding:5px 10px;
-
-border-radius:6px;
-
-font-size:12px;
-
-text-decoration:none;
-
+.btn-small {
+padding: 6px 10px;
+font-size: 0.8rem;
+border-radius: 6px;
+text-decoration: none;
+display: inline-block;
 }
 
 
@@ -568,6 +564,7 @@ text-decoration:underline;
 .table-actions{
 display:flex;
 gap:6px;
+flex-wrap: wrap;
 }
 
 
@@ -1028,4 +1025,15 @@ flex-direction:column;
 
 }
 
+.table-actions {
+flex-direction: column;
+gap: 4px;
 }
+
+.btn-small {
+width: 100%;
+text-align: center;
+}
+
+}
+
