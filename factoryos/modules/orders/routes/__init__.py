@@ -7,3 +7,4 @@ bp = Blueprint(
 )
 
 from .dashboard_routes import *
+from .order_routes import *
