@@ -1,0 +1,40 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<h2>Artikelübersicht</h2>
+
+{% set columns = [
+"Artikelnummer",
+"Artikelname",
+"Beschreibung",
+"Status",
+"Aktionen"
+] %}
+
+{% set rows = [] %}
+
+{% for article in articles %}
+
+{% set row = [
+
+'<a href="' ~ url_for("articles.detail", article_id=article.id) ~ '">' ~ article.article_no ~ '</a>',
+
+article.article_name,
+
+article.description,
+
+'<span class="status-badge status-' ~ article.status ~ '">' ~ article.status ~ '</span>',
+
+'<a class="btn-small btn-edit" href="' ~ url_for("articles.edit", article_id=article.id) ~ '">Bearbeiten</a>
+ <a class="btn-small btn-delete" href="' ~ url_for("articles.delete", article_id=article.id) ~ '">Löschen</a>'
+
+] %}
+
+{% set _ = rows.append(row) %}
+
+{% endfor %}
+
+{% include "components/table.html" with context %}
+
+{% endblock %}
