@@ -2,81 +2,40 @@
 
 {% block content %}
 
-<div class="page-header">
+<h2>Auftragsübersicht</h2>
 
-<h2>Aufträge</h2>
-  
-<a href="{{ url_for('orders.create') }}" class="btn-primary">
-Neuer Auftrag
-</a>
+{% set columns = [
+"Auftrag",
+"Artikel",
+"Artikelname",
+"Menge",
+"Status",
+"Aktionen"
+] %}
 
-</div>
-
-<div class="table-container">
-
-<table class="factory-table">
-
-<thead>
-<tr>
-
-<th>Auftrag</th>
-<th>Artikel</th>
-<th>Menge</th>
-<th>Status</th>
-<th></th>
-
-</tr>
-</thead>
-
-<tbody>
+{% set rows = [] %}
 
 {% for order in orders %}
 
-<tr>
+{% set row = [
 
-<td>{{ order.order_no }}</td>
+'<a href="' ~ url_for("orders.detail", order_id=order.id) ~ '">' ~ order.order_no ~ '</a>',
 
-<td>{{ order.article_name }}</td>
+order.article or "",
+order.article_name or "",
+order.target_qty or "",
 
-<td>{{ order.target_qty }}</td>
+'<span class="status-badge status-' ~ order.status ~ '">' ~ order.status ~ '</span>',
 
-<td>
+'<a class="btn-small btn-edit" href="' ~ url_for("orders.edit", order_id=order.id) ~ '">Bearbeiten</a>
+ <a class="btn-small btn-delete" href="' ~ url_for("orders.delete", order_id=order.id) ~ '">Löschen</a>'
 
-{% if order.status == "open" %}
-<span class="status-badge status-wartung">Offen</span>
+] %}
 
-{% elif order.status == "running" %}
-<span class="status-badge status-aktiv">In Arbeit</span>
-
-{% elif order.status == "finished" %}
-<span class="status-badge status-aktiv">Fertig</span>
-
-{% else %}
-<span class="status-badge status-defekt">{{ order.status }}</span>
-{% endif %}
-
-</td>
-
-<td>
-
-<a
-href="{{ url_for('orders.detail', order_id=order.id) }}"
-class="btn-small btn-edit">
-
-Details
-
-</a>
-
-</td>
-
-</tr>
+{% set _ = rows.append(row) %}
 
 {% endfor %}
 
-</tbody>
-
-</table>
-
-</div>
+{% include "components/table.html" with context %}
 
 {% endblock %}
