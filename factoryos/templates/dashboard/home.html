@@ -4,49 +4,37 @@
 
 <h2>FactoryOS Dashboard</h2>
 
-<div class="row">
+<div class="dashboard-grid">
 
-<div class="card">
-Maschinenstatus
-</div>
+<a href="{{ url_for('production.dashboard') }}" class="dashboard-card">
+    <div class="card-icon">🏭</div>
+    <div class="card-title">Produktion</div>
+</a>
 
-<div class="card">
-Aktive Aufträge
-</div>
+<a href="{{ url_for('orders.dashboard') }}" class="dashboard-card">
+    <div class="card-icon">📋</div>
+    <div class="card-title">Aufträge</div>
+</a>
 
-<div class="card">
-Qualität
-</div>
+<a href="{{ url_for('quality.dashboard') }}" class="dashboard-card">
+    <div class="card-icon">📏</div>
+    <div class="card-title">Qualität</div>
+</a>
 
-<div class="card">
-Projekte
-</div>
+<a href="{{ url_for('projects.dashboard') }}" class="dashboard-card">
+    <div class="card-icon">📐</div>
+    <div class="card-title">Projekte</div>
+</a>
 
-</div>
+<a href="{{ url_for('masterdata.dashboard') }}" class="dashboard-card">
+    <div class="card-icon">🗂</div>
+    <div class="card-title">Stammdaten</div>
+</a>
 
-<h1>FactoryOS Dashboard</h1>
-
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:30px">
-
-    <div style="background:white;padding:20px;border-radius:8px">
-        <h3>Produktion</h3>
-        <p>Status Maschinen</p>
-    </div>
-
-    <div style="background:white;padding:20px;border-radius:8px">
-        <h3>Qualität</h3>
-        <p>Prüfpläne</p>
-    </div>
-
-    <div style="background:white;padding:20px;border-radius:8px">
-        <h3>Projekte</h3>
-        <p>Projektstatus</p>
-    </div>
-
-    <div style="background:white;padding:20px;border-radius:8px">
-        <h3>Stammdaten</h3>
-        <p>Tools / Maschinen</p>
-    </div>
+<a href="{{ url_for('admin.dashboard') }}" class="dashboard-card">
+    <div class="card-icon">⚙️</div>
+    <div class="card-title">Administration</div>
+</a>
 
 </div>
 
