@@ -19,4 +19,5 @@ def load_blueprints(app):
             module = importlib.import_module(name)
 
             if hasattr(module, "bp"):
+                print("Registering:", module.bp.name)
                 app.register_blueprint(module.bp)
