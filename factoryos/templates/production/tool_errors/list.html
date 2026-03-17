@@ -4,72 +4,48 @@
 
 <h2>Tool Errors</h2>
 
-<div class="table-header">
-
 <a class="btn-primary"
    href="{{ url_for('production.tool_error_create') }}">
    Fehler melden
 </a>
 
-</div>
+
+{% set columns = [
+"ID",
+"Werkzeug",
+"Fehler",
+"Datum",
+"Aktionen"
+] %}
 
 
-<div class="table-container">
+{% set rows = [] %}
 
-<table class="table">
-
-<thead>
-<tr>
-<th>ID</th>
-<th>Tool</th>
-<th>Fehler</th>
-<th>Datum</th>
-<th>Aktionen</th>
-</tr>
-</thead>
-
-<tbody>
 
 {% for error in errors %}
 
-<tr>
+{% set row = [
 
-<td>{{ error.id }}</td>
+error.id,
 
-<td>
-{% if error.tool %}
-{{ error.tool.tool_no }}
-{% else %}
-{{ error.tool_id }}
-{% endif %}
-</td>
+'<a href="' ~ url_for("tools.detail", tool_id=error.tool.id) ~ '">' ~ error.tool.tool_no ~ '</a>' if error.tool else error.tool_id,
 
-<td>{{ error.error_type }}</td>
+error.error_type,
 
-<td>{{ error.created_at.strftime("%d.%m.%Y %H:%M") }}</td>
+error.created_at.strftime("%d.%m.%Y %H:%M"),
 
-<td class="actions">
+'<div class="table-actions">
+<a class="btn-small btn-edit" href="' ~ url_for("production.tool_error_detail", error_id=error.id) ~ '">Details</a>
+<a class="btn-small btn-delete" href="' ~ url_for("production.tool_error_delete", error_id=error.id) ~ '">Löschen</a>
+</div>'
 
-<a class="btn-small"
-   href="{{ url_for('production.tool_error_detail', error_id=error.id) }}">
-Details
-</a>
+] %}
 
-<a class="btn-danger"
-   href="{{ url_for('production.tool_error_delete', error_id=error.id) }}">
-Löschen
-</a>
-
-</td>
-
-</tr>
+{% set _ = rows.append(row) %}
 
 {% endfor %}
 
-</tbody>
 
-</table>
-
-</div>
+{% include "components/table.html" with context %}
 
 {% endblock %}
