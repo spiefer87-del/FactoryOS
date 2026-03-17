@@ -1,8 +1,8 @@
 from datetime import datetime
 from factoryos.extensions import db
 
-class ToolMasterdata(db.Model):
-    __tablename__ = "tool_masterdata"
+class Tool(db.Model):
+    __tablename__ = "tools"
 
     id = db.Column(db.Integer, primary_key=True)
 
