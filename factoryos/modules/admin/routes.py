@@ -11,7 +11,7 @@ bp = Blueprint(
 
 @bp.route("/")
 @login_required
-@role_required("admin")
+
 def dashboard():
 
     return render_template(
