@@ -1,1 +1,52 @@
+{% extends "layout/base.html" %}
 
+{% block content %}
+
+<h2>Tool Errors</h2>
+
+<a class="btn-primary"
+   href="{{ url_for('production.tool_error_create') }}">
+   Fehler melden
+</a>
+
+<table class="table">
+
+<tr>
+<th>ID</th>
+<th>Tool</th>
+<th>Fehler</th>
+<th>Datum</th>
+<th>Aktionen</th>
+</tr>
+
+{% for error in errors %}
+
+<tr>
+
+<td>{{ error.id }}</td>
+
+<td>{{ error.tool_id }}</td>
+
+<td>{{ error.error_type }}</td>
+
+<td>{{ error.created_at }}</td>
+
+<td>
+
+<a href="{{ url_for('production.tool_error_detail', error_id=error.id) }}">
+Details
+</a>
+
+<a href="{{ url_for('production.tool_error_delete', error_id=error.id) }}">
+Löschen
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% endblock %}
