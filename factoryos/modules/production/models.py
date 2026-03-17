@@ -79,5 +79,6 @@ class ToolError(db.Model):
     description = db.Column(db.Text)
     reported_by = db.Column(db.String(100))
     created_at = db.Column(db.DateTime)
+    order_id = db.Column(db.Integer)
 
     
