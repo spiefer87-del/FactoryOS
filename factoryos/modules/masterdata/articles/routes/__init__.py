@@ -10,5 +10,6 @@ from . import dashboard_routes
 from . import list_routes
 from . import create_routes
 from . import edit_routes
+from . import detail_routes
 from . import delete_routes
 
