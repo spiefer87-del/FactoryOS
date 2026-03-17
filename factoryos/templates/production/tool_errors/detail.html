@@ -1,1 +1,40 @@
+{% extends "layout/base.html" %}
 
+{% block content %}
+
+<h2>Tool Error</h2>
+
+<div class="detail-card">
+
+<div class="detail-grid">
+
+<div>
+<label>Tool</label>
+{{ error.tool_id }}
+</div>
+
+<div>
+<label>Fehlerart</label>
+{{ error.error_type }}
+</div>
+
+<div>
+<label>Machine</label>
+{{ error.machine_id }}
+</div>
+
+<div>
+<label>Order</label>
+{{ error.order_id }}
+</div>
+
+<div class="full">
+<label>Beschreibung</label>
+{{ error.description }}
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}
