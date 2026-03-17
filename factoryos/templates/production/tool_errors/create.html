@@ -1,1 +1,61 @@
+{% extends "layout/base.html" %}
 
+{% block content %}
+
+<h2>Tool Error melden</h2>
+
+<div class="form-container">
+
+<form method="POST">
+
+<div class="form-grid">
+
+<div class="form-group">
+<label>Tool ID</label>
+<input type="number" name="tool_id" required>
+</div>
+
+<div class="form-group">
+<label>Order ID</label>
+<input type="number" name="order_id">
+</div>
+
+<div class="form-group">
+<label>Machine ID</label>
+<input type="number" name="machine_id">
+</div>
+
+<div class="form-group">
+<label>Fehlerart</label>
+
+<select name="error_type">
+
+<option>Werkzeugbruch</option>
+<option>Werkzeug beschädigt</option>
+<option>Werkzeug verschlissen</option>
+<option>Werkzeugmaß falsch</option>
+
+</select>
+
+</div>
+
+<div class="form-group full">
+<label>Beschreibung</label>
+<textarea name="description"></textarea>
+</div>
+
+</div>
+
+<div class="form-actions">
+
+<button class="btn-primary">
+Fehler melden
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+{% endblock %}
