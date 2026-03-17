@@ -10,3 +10,4 @@ bp = Blueprint(
 from . import dashboard_routes
 from . import booking_routes
 from . import machine_routes
+from . import tool_error_routes
