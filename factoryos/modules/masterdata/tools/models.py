@@ -1,20 +1,10 @@
 from factoryos.extensions import db
 
-class ToolError(db.Model):
+class Tool(db.Model):
 
-    __tablename__ = "tool_errors"
+    __tablename__ = "tools"
 
     id = db.Column(db.Integer, primary_key=True)
-
-    tool_id = db.Column(db.Integer, db.ForeignKey("tools.id"))
-    order_id = db.Column(db.Integer)
-
-    machine_id = db.Column(db.Integer)
-
-    error_type = db.Column(db.String(100))
-
-    description = db.Column(db.Text)
-
-    reported_by = db.Column(db.Integer)
-
-    created_at = db.Column(db.DateTime)
+    tool_no = db.Column(db.String(50))
+    article_no = db.Column(db.String(50))
+    article_name = db.Column(db.String(100))
