@@ -6,7 +6,7 @@ class QualityInspectionPlan(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    tool_id = db.Column(db.Integer, db.ForeignKey("tool_masterdata.id"), nullable=False)
+    tool_id = db.Column(db.Integer, db.ForeignKey("tools.id"), nullable=False)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     created_by_id = db.Column(db.Integer, db.ForeignKey("users.id"))
