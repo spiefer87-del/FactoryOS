@@ -1,3 +1,5 @@
+from factoryos.extensions import db
+
 class ToolError(db.Model):
 
     __tablename__ = "tool_errors"
