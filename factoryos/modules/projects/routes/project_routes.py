@@ -5,7 +5,7 @@ from sqlalchemy import or_
 
 from factoryos.extensions import db
 from factoryos.models.user import User
-from factoryos.models.tools import ToolMasterdata
+from factoryos.models.tools import Tool
 from factoryos.modules.production.models import TimeBooking
 from factoryos.modules.orders.models import Order
 from factoryos.core.auth import role_required
@@ -18,7 +18,7 @@ from . import bp
 @role_required("admin", "schichtleiter")
 def projects_create():
     users = User.query.order_by(User.username.asc()).all()
-    tools = ToolMasterdata.query.order_by(ToolMasterdata.tool_no.asc()).all()
+    tools = Tool.query.order_by(Tool.tool_no.asc()).all()
 
     if request.method == "POST":
         order_no = request.form.get("order_no", "").strip()

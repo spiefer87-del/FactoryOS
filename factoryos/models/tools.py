@@ -19,9 +19,12 @@ class Tool(db.Model):
     pack_unit = db.Column(db.Integer, nullable=True)    # VP Einheit
 
     location = db.Column(db.String(100), nullable=True, index=True)
-
     # manuell pflegbar
     tool_status = db.Column(db.String(50), nullable=False, default="OK")
 
 
+
+    # Beziehungen
+    tool = db.relationship("Tool", foreign_keys=[tool_id])
+    created_by = db.relationship("User", foreign_keys=[created_by_id])
 

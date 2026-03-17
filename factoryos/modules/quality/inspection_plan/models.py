@@ -11,7 +11,7 @@ class QualityInspectionPlan(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     created_by_id = db.Column(db.Integer, db.ForeignKey("users.id"))
 
-    tool = db.relationship("ToolMasterdata")
+    tool = db.relationship("Tool")
     created_by = db.relationship("User")
 
     versions = db.relationship(

@@ -3,14 +3,14 @@ from flask_login import login_required
 
 from . import bp
 from ..services.tool_service import update_tool
-from factoryos.models.tools import ToolMasterdata
+from factoryos.models.tools import Tool
 
 
 @bp.route("/edit/<int:tool_id>", methods=["GET", "POST"])
 @login_required
 def edit(tool_id):
 
-    tool = ToolMasterdata.query.get_or_404(tool_id)
+    tool = Tool.query.get_or_404(tool_id)
 
     if request.method == "POST":
 

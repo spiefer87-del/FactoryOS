@@ -4,7 +4,7 @@ from openpyxl import load_workbook
 from factoryos.modules.production.models import QuantityReport, TimeBooking
 from factoryos.modules.orders.models import Order
 
-from factoryos.models.tools import ToolMasterdata
+from factoryos.models.tools import Tool
 
 def get_orders_overview(q, status_filter):
 
@@ -144,7 +144,7 @@ def get_order_detail_data(order_no):
 
     tool = None
     if o.tool_no:
-        tool = ToolMasterdata.query.filter_by(tool_no=o.tool_no).first()
+        tool = Tool.query.filter_by(tool_no=o.tool_no).first()
 
     sums = (
         db.session.query(

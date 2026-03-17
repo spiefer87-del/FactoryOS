@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required
 
-from factoryos.models.tools import ToolMasterdata
+from factoryos.models.tools import Tool
 from factoryos.core.auth import role_required
 
 from factoryos.modules.production.services.order_service import (
@@ -47,7 +47,7 @@ def orders_create():
 @role_required("admin")
 def orders_create_prod():
 
-    tools = ToolMasterdata.query.order_by(ToolMasterdata.tool_no.asc()).all()
+    tools = Tool.query.order_by(Tool.tool_no.asc()).all()
 
     if request.method == "POST":
 

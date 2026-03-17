@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 
 from factoryos.extensions import db
-from factoryos.models.tools import ToolMasterdata
+from factoryos.models.tools import Tool
 
 from factoryos.core.auth import role_required
 
@@ -35,7 +35,7 @@ def quality_inspection_plan():
 @role_required("qm", "admin")
 def quality_create():
 
-    tools = ToolMasterdata.query.order_by(ToolMasterdata.tool_no).all()
+    tools = Tool.query.order_by(Tool.tool_no).all()
 
     if request.method == "POST":
 

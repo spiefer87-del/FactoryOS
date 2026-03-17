@@ -5,7 +5,7 @@ from sqlalchemy import or_
 
 from factoryos.extensions import db
 from factoryos.models.user import User
-from factoryos.models.tools import ToolMasterdata
+from factoryos.models.tools import Tool
 from factoryos.modules.production.models import TimeBooking
 from factoryos.modules.orders.models import Order
 from factoryos.core.auth import role_required

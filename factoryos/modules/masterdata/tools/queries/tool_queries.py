@@ -1,34 +1,34 @@
-from factoryos.models.tools import ToolMasterdata
+from factoryos.models.tools import Tool
 
 
 def get_tools(search, status, location):
 
-    query = ToolMasterdata.query
+    query = Tool.query
 
     if search:
         query = query.filter(
-            ToolMasterdata.tool_no.contains(search)
+            Tool.tool_no.contains(search)
         )
 
     if status:
         query = query.filter(
-            ToolMasterdata.tool_status == status
+            Tool.tool_status == status
         )
 
     if location:
         query = query.filter(
-            ToolMasterdata.location == location
+            Tool.location == location
         )
 
     tools = query.order_by(
-        ToolMasterdata.tool_no
+        Tool.tool_no
     ).all()
 
     statuses = ["aktiv", "wartung", "defekt"]
 
     locations = (
-        ToolMasterdata.query
-        .with_entities(ToolMasterdata.location)
+        Tool.query
+        .with_entities(Tool.location)
         .distinct()
         .all()
     )

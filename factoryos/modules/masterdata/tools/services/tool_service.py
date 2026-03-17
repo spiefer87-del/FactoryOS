@@ -1,10 +1,10 @@
 from factoryos.extensions import db
-from factoryos.models.tools import ToolMasterdata
+from factoryos.models.tools import Tool
 
 
 def create_tool(data):
 
-    tool = ToolMasterdata(
+    tool = Tool(
         tool_no=data.get("tool_no"),
         article_no=data.get("article_no"),
         article_name=data.get("article_name"),
