@@ -4,13 +4,21 @@
 
 <h2>Tool Errors</h2>
 
+<div class="table-header">
+
 <a class="btn-primary"
    href="{{ url_for('production.tool_error_create') }}">
    Fehler melden
 </a>
 
+</div>
+
+
+<div class="table-container">
+
 <table class="table">
 
+<thead>
 <tr>
 <th>ID</th>
 <th>Tool</th>
@@ -18,6 +26,9 @@
 <th>Datum</th>
 <th>Aktionen</th>
 </tr>
+</thead>
+
+<tbody>
 
 {% for error in errors %}
 
@@ -25,19 +36,27 @@
 
 <td>{{ error.id }}</td>
 
-<td>{{ error.tool_id }}</td>
+<td>
+{% if error.tool %}
+{{ error.tool.tool_no }}
+{% else %}
+{{ error.tool_id }}
+{% endif %}
+</td>
 
 <td>{{ error.error_type }}</td>
 
-<td>{{ error.created_at }}</td>
+<td>{{ error.created_at.strftime("%d.%m.%Y %H:%M") }}</td>
 
-<td>
+<td class="actions">
 
-<a href="{{ url_for('production.tool_error_detail', error_id=error.id) }}">
+<a class="btn-small"
+   href="{{ url_for('production.tool_error_detail', error_id=error.id) }}">
 Details
 </a>
 
-<a href="{{ url_for('production.tool_error_delete', error_id=error.id) }}">
+<a class="btn-danger"
+   href="{{ url_for('production.tool_error_delete', error_id=error.id) }}">
 Löschen
 </a>
 
@@ -47,6 +66,10 @@ Löschen
 
 {% endfor %}
 
+</tbody>
+
 </table>
+
+</div>
 
 {% endblock %}
