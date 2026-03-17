@@ -80,5 +80,6 @@ class ToolError(db.Model):
     reported_by = db.Column(db.String(100))
     created_at = db.Column(db.DateTime)
     order_id = db.Column(db.Integer)
+    machine_id = db.Column(db.Integer)
 
     
