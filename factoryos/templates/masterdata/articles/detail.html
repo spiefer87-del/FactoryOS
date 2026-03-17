@@ -2,26 +2,20 @@
 
 {% block content %}
 
-<h2>Artikel Details</h2>
+<div class="page-header">
 
-<div class="detail-container">
+<h2>Artikel</h2>
 
-<div class="detail-header">
-
-<div class="detail-title">
-<h3>{{ article.article_no }} - {{ article.article_name }}</h3>
-</div>
-
-<div class="detail-actions">
+<div class="page-actions">
 
 <a class="btn-small btn-edit"
    href="{{ url_for('articles.edit', article_id=article.id) }}">
-   Bearbeiten
+   ✏ Bearbeiten
 </a>
 
 <a class="btn-small btn-delete"
    href="{{ url_for('articles.delete', article_id=article.id) }}">
-   Löschen
+   🗑 Löschen
 </a>
 
 </div>
@@ -29,43 +23,64 @@
 </div>
 
 
-<table class="detail-table">
+<div class="detail-card">
 
-<tr>
-<th>Artikelnummer</th>
-<td>{{ article.article_no }}</td>
-</tr>
+<div class="detail-title">
 
-<tr>
-<th>Artikelname</th>
-<td>{{ article.article_name }}</td>
-</tr>
+<h3>{{ article.article_no }}</h3>
+<span class="detail-subtitle">{{ article.article_name }}</span>
 
-<tr>
-<th>Status</th>
-<td>
+</div>
+
+
+<div class="detail-grid">
+
+<div class="detail-item">
+
+<label>Artikelnummer</label>
+<div class="detail-value">
+{{ article.article_no }}
+</div>
+
+</div>
+
+
+<div class="detail-item">
+
+<label>Status</label>
+
+<div class="detail-value">
+
 <span class="status-badge status-{{ article.status }}">
 {{ article.status }}
 </span>
-</td>
-</tr>
 
-<tr>
-<th>Beschreibung</th>
-<td>{{ article.description }}</td>
-</tr>
+</div>
 
-</table>
+</div>
+
+
+<div class="detail-item full">
+
+<label>Beschreibung</label>
+
+<div class="detail-value">
+{{ article.description or "-" }}
+</div>
+
+</div>
+
+</div>
+
+</div>
 
 
 <div class="detail-footer">
 
 <a class="btn-secondary"
    href="{{ url_for('articles.list') }}">
-   Zurück zur Liste
+   ← Zurück zur Liste
 </a>
-
-</div>
 
 </div>
 
