@@ -79,4 +79,27 @@ class ToolError(db.Model):
     order_id = db.Column(db.Integer)
     machine_id = db.Column(db.Integer)
 
-    
+class ToolErrorImage(db.Model):
+    __tablename__ = "tool_error_images"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    report_id = db.Column(db.Integer, db.ForeignKey("tool_error_reports.id"), nullable=False)
+    filename = db.Column(db.String(255), nullable=False)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    report = db.relationship("ToolErrorReport", backref="images")
+
+class ToolErrorTitlePreset(db.Model):
+    __tablename__ = "tool_error_title_presets"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    title = db.Column(db.String(200), unique=True, nullable=False)
+    active = db.Column(db.Boolean, default=True)
+
+    sort_order = db.Column(db.Integer, default=0)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
