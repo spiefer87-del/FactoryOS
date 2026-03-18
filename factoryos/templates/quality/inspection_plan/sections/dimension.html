@@ -1,4 +1,30 @@
-<h6 class="fw-bold">Gesamtzeichnung</h6>
+<div class="qm-section">
+
+<div class="qm-section-header">
+
+<h4>
+📏 Maßprüfung
+</h4>
+
+{% if version.status == "draft" %}
+
+<form method="post"
+action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }}">
+
+<button class="qm-delete-btn">
+✕
+</button>
+
+</form>
+
+{% endif %}
+
+</div>
+
+
+<!-- Zeichnung -->
+
+<div class="qm-drawing-area">
 
 {% if section.drawing_path %}
 
@@ -8,14 +34,35 @@
 
 <img
 src="{{ url_for('static', filename=section.drawing_path) }}"
-class="drawing-img border rounded"
+class="drawing-img"
 data-section="{{ section.id }}"
 data-status="{{ version.status }}">
 
-<svg class="marker-layer"
-     data-section="{{ section.id }}"
-     viewBox="0 0 100 100"
-     preserveAspectRatio="none">
+<svg
+class="marker-layer"
+data-section="{{ section.id }}"
+viewBox="0 0 100 100"
+preserveAspectRatio="none">
+
+{% for c in section.characteristics %}
+
+{% if c.pos_x and c.pos_y %}
+
+<g class="marker"
+data-id="{{ c.id }}"
+transform="translate({{ c.pos_x*100 }} {{ c.pos_y*100 }})">
+
+<circle r="1.8" class="marker-circle"></circle>
+
+<text class="marker-text">
+{{ c.sort_order }}
+</text>
+
+</g>
+
+{% endif %}
+
+{% endfor %}
 
 </svg>
 
@@ -24,27 +71,26 @@ data-status="{{ version.status }}">
 
 {% else %}
 
-<div class="alert alert-light border">
+<div class="qm-upload-box">
 
-Noch keine Zeichnung hochgeladen.
+Zeichnung hochladen
+
+<form method="post"
+enctype="multipart/form-data"
+action="{{ url_for('inspection.quality_upload_drawing', section_id=section.id) }}">
+
+<input type="file" name="drawing" required>
+
+<button class="btn btn-primary">
+Upload
+</button>
+
+</form>
 
 </div>
 
 {% endif %}
 
-{% if version.status == "draft" %}
+</div>
 
-<form method="post"
-enctype="multipart/form-data"
-action="{{ url_for('inspection.quality_upload_drawing', section_id=section.id) }}"
-class="mt-3">
-
-<input type="file" name="drawing" required>
-
-<button class="btn btn-sm btn-outline-primary">
-Zeichnung hochladen
-</button>
-
-</form>
-
-{% endif %}
+</div>
