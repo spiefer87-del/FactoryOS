@@ -81,7 +81,6 @@ def quality_version_edit(plan_id, version_id):
     return render_template(
         "quality/inspection_plan/version_editor.html",
         version=version,
-        versions=versions,
         gauges=gauges
     )
 
