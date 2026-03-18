@@ -73,11 +73,25 @@ def quality_create_characteristic_with_marker():
 
     characteristic = create_characteristic_with_marker(data)
 
+    # wenn Formular
+    if not request.is_json:
+
+        section = characteristic.section
+        version = section.version
+
+        return redirect(
+            url_for(
+                "inspection.quality_version_edit",
+                plan_id=version.plan_id,
+                version_id=version.id
+            )
+        )
+
+    # wenn AJAX
     return jsonify({
         "success": True,
         "id": characteristic.id
     })
-
 
 @bp.route("/add_point", methods=["POST"])
 @login_required
