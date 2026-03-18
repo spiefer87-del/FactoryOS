@@ -1,0 +1,133 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<h2>Prüfpläne</h2>
+
+<div class="page-actions">
+
+<a class="btn-primary"
+   href="{{ url_for('inspection.quality_create') }}">
+   Neuer Prüfplan
+</a>
+
+</div>
+
+
+{% if plans %}
+
+<div class="card-grid">
+
+{% for plan in plans %}
+
+{% set latest = plan.versions[0] if plan.versions else None %}
+
+<div class="card">
+
+<div class="card-header">
+
+<strong>{{ plan.tool.tool_no }}</strong>
+
+</div>
+
+<div class="card-body">
+
+<div class="card-description">
+
+{{ plan.tool.description }}
+
+</div>
+
+
+{% if latest %}
+
+<div class="card-meta">
+
+Revision: <strong>{{ latest.revision }}</strong>
+
+</div>
+
+<div class="card-status">
+
+{% if latest.status == "released" %}
+
+<span class="status-badge status-released">
+Freigegeben
+</span>
+
+{% else %}
+
+<span class="status-badge status-draft">
+Entwurf
+</span>
+
+{% endif %}
+
+</div>
+
+
+<div class="card-actions">
+
+<a class="btn-small btn-edit"
+   href="{{ url_for('inspection.quality_version_edit',
+                    plan_id=plan.id,
+                    version_id=latest.id) }}">
+   Öffnen
+</a>
+
+
+<form method="post"
+      action="{{ url_for('inspection.quality_delete_plan',
+                         plan_id=plan.id) }}"
+      onsubmit="return confirm('Prüfplan wirklich löschen?')">
+
+<button class="btn-small btn-delete">
+Löschen
+</button>
+
+</form>
+
+
+{% if latest.status == "released" %}
+
+<form method="post"
+      action="{{ url_for('inspection.quality_new_revision',
+                         version_id=latest.id) }}">
+
+<button class="btn-small btn-primary">
+Neue Revision
+</button>
+
+</form>
+
+{% endif %}
+
+</div>
+
+{% else %}
+
+<div class="text-muted">
+Keine Version vorhanden
+</div>
+
+{% endif %}
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+{% else %}
+
+<div class="empty-state">
+
+Noch keine Prüfpläne vorhanden.
+
+</div>
+
+{% endif %}
+
+{% endblock %}
