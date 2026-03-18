@@ -110,13 +110,13 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 fill:#e74c3c;
 stroke:white;
 stroke-width:0.6;
-r:8px;
+r:4px;
 }
 
 .marker-text{
 fill:white;
 font-weight:bold;
-font-size:10px;
+font-size:6px;
 text-anchor:middle;
 dominant-baseline:middle;
 }
