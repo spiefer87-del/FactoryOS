@@ -18,12 +18,11 @@ def add_section(version, section_type):
     }
 
     section = QualityInspectionSection(
-
-        version_id=version.id,
         section_type=section_type,
-        title=titles.get(section_type, "Module")
-
+        title=title
     )
+
+version.sections.append(section)
 
     db.session.add(section)
 
