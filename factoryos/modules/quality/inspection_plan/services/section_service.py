@@ -17,6 +17,8 @@ def add_section(version, section_type):
         "text": "Text Check"
     }
 
+    title = titles.get(section_type, "Modul")
+
     section = QualityInspectionSection(
         section_type=section_type,
         title=title
