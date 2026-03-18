@@ -9,7 +9,7 @@ from factoryos.extensions import db
 from factoryos.modules.quality.inspection_plan.services.section_service import add_section
 from factoryos.modules.quality.inspection_plan.services.change_log_service import log_change
 from factoryos.modules.quality.inspection_plan.services.revision_service import create_new_revision
-from factoryos.modules.quality.gauge.models import Gauge
+from factoryos.modules.quality.gauges.models import Gauge
 
 from ..models import (
     QualityInspectionSection,
