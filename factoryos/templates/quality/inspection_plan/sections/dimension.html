@@ -22,7 +22,7 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
 </div>
 
 
-<!-- Zeichnung -->
+<!-- ================= Zeichnung ================= -->
 
 <div class="qm-drawing-area">
 
@@ -34,9 +34,10 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
 
 <img
 src="{{ url_for('static', filename=section.drawing_path) }}"
-class="drawing-img"
+class="drawing-img border rounded"
 data-section="{{ section.id }}"
-data-status="{{ version.status }}">
+data-status="{{ version.status }}"
+style="cursor:{% if version.status == 'draft' %}crosshair{% else %}default{% endif %}">
 
 <svg
 class="marker-layer"
@@ -46,10 +47,17 @@ preserveAspectRatio="none">
 
 {% for c in section.characteristics %}
 
-{% if c.pos_x and c.pos_y %}
+{% if c.pos_x is not none and c.pos_y is not none %}
 
 <g class="marker"
 data-id="{{ c.id }}"
+data-status="{{ version.status }}"
+data-name="{{ c.name }}"
+data-target="{{ c.target_value }}"
+data-tolminus="{{ c.tolerance_minus }}"
+data-tolplus="{{ c.tolerance_plus }}"
+data-unit="{{ c.unit }}"
+data-number="{{ c.sort_order }}"
 transform="translate({{ c.pos_x*100 }} {{ c.pos_y*100 }})">
 
 <circle r="1.8" class="marker-circle"></circle>
@@ -69,6 +77,21 @@ transform="translate({{ c.pos_x*100 }} {{ c.pos_y*100 }})">
 </div>
 </div>
 
+
+<!-- ===== Bohrungen erkennen ===== -->
+
+{% if version.status == "draft" %}
+
+<button
+class="btn btn-outline-info btn-sm mt-2 detect-features"
+data-section="{{ section.id }}">
+
+🔍 Bohrungen erkennen
+
+</button>
+
+{% endif %}
+
 {% else %}
 
 <div class="qm-upload-box">
@@ -81,7 +104,7 @@ action="{{ url_for('inspection.quality_upload_drawing', section_id=section.id) }
 
 <input type="file" name="drawing" required>
 
-<button class="btn btn-primary">
+<button class="btn btn-primary mt-2">
 Upload
 </button>
 
@@ -92,5 +115,121 @@ Upload
 {% endif %}
 
 </div>
+
+
+<!-- ================= MERKMAL TABELLE ================= -->
+
+<h6 class="fw-bold mt-4">Prüfmaße</h6>
+
+<table class="table table-sm table-striped">
+
+<thead>
+<tr>
+<th>#</th>
+<th>Merkmal</th>
+<th>Soll</th>
+<th>-Tol</th>
+<th>+Tol</th>
+<th>Einheit</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for c in section.characteristics %}
+
+<tr
+class="characteristic-row"
+data-id="{{ c.id }}">
+
+<td class="char-number">
+{{ c.sort_order }}
+</td>
+
+<td>{{ c.name }}</td>
+
+<td>{{ c.target_value }}</td>
+
+<td>{{ c.tolerance_minus }}</td>
+
+<td>{{ c.tolerance_plus }}</td>
+
+<td>{{ c.unit }}</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+
+<!-- ================= MANUELLES MERKMAL ================= -->
+
+{% if version.status == "draft" %}
+
+<form
+method="post"
+action="{{ url_for('inspection.quality_add_characteristic', section_id=section.id) }}"
+class="row g-2">
+
+<div class="col-md-3">
+
+<input
+class="form-control form-control-sm"
+name="name"
+placeholder="Merkmal"
+required>
+
+</div>
+
+<div class="col-md-2">
+
+<input
+class="form-control form-control-sm"
+name="target_value"
+placeholder="Soll">
+
+</div>
+
+<div class="col-md-2">
+
+<input
+class="form-control form-control-sm"
+name="tolerance_minus"
+placeholder="-Tol">
+
+</div>
+
+<div class="col-md-2">
+
+<input
+class="form-control form-control-sm"
+name="tolerance_plus"
+placeholder="+Tol">
+
+</div>
+
+<div class="col-md-2">
+
+<input
+class="form-control form-control-sm"
+name="unit"
+placeholder="Einheit">
+
+</div>
+
+<div class="col-md-1">
+
+<button class="btn btn-success btn-sm w-100">
++
+</button>
+
+</div>
+
+</form>
+
+{% endif %}
 
 </div>
