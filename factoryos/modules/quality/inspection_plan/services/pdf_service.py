@@ -17,9 +17,8 @@ import os
 
 from flask import current_app
 
-from factoryos.modules.quality.inspection_plan.models import (
-    QualityInspectionPlanVersion
-)
+from ..models import QualityInspectionPlanVersion
+
 
 
 def generate_inspection_plan_pdf(version_id):
