@@ -80,6 +80,7 @@ def quality_version_edit(plan_id, version_id):
 
     return render_template(
         "quality/inspection_plan/version_editor.html",
+    )
 
 
 @bp.route("/<int:version_id>/new_revision", methods=["POST"])
