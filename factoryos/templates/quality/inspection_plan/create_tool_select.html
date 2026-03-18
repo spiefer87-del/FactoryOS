@@ -1,0 +1,48 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<h2>Prüfplan erstellen</h2>
+
+<div class="form-container">
+
+<form method="POST">
+
+<div class="form-group">
+
+<label>Werkzeug auswählen</label>
+
+<select name="tool_id" required>
+
+<option value="">-- Werkzeug auswählen --</option>
+
+{% for tool in tools %}
+
+<option value="{{ tool.id }}">
+{{ tool.tool_no }} - {{ tool.article_name }}
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+<div class="form-actions">
+
+<button class="btn-primary">
+Prüfplan erstellen
+</button>
+
+<a href="{{ url_for('inspection.dashboard') }}"
+class="btn-secondary">
+Abbrechen
+</a>
+
+</div>
+
+</form>
+
+</div>
+
+{% endblock %}
