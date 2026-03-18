@@ -27,3 +27,26 @@ class QualityInspectionCharacteristic(db.Model):
         "QualityInspectionSection",
         back_populates="characteristics"
     )
+
+class QualityInspectionDimensionSnippet(db.Model):
+    __tablename__ = "qm_dimension_snippets"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    section_id = db.Column(
+        db.Integer,
+        db.ForeignKey("qm_sections.id"),
+        nullable=False
+    )
+
+    image_path = db.Column(db.String(300))
+    description = db.Column(db.String(300))
+
+    sort_order = db.Column(db.Integer, default=0)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    section = db.relationship(
+        "QualityInspectionSection",
+        back_populates="snippets"
+    )
