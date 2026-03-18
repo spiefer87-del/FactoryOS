@@ -71,9 +71,27 @@ width:420px;
 box-shadow:0 10px 30px rgba(0,0,0,0.2);
 }
 
+.drawing-wrapper{
+    position:relative;
+    display:inline-block;
+    overflow:hidden;
+}
+
+.drawing-stage{
+    transform-origin:0 0;
+}
+
 .drawing-wrapper img{
     display:block;
     max-width:none;   /* EXTREM WICHTIG */
+}
+
+.marker-layer{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
 }
 
 .marker-circle {
