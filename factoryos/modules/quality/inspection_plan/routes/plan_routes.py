@@ -6,7 +6,7 @@ from factoryos.models.tools import Tool
 
 from factoryos.core.auth import role_required
 
-from factoryos.modules.quality.inspection_plan.models import (
+from ..models import (
     QualityInspectionPlan,
     QualityInspectionPlanVersion
 )
