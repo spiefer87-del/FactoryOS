@@ -79,11 +79,7 @@ def quality_version_edit(plan_id, version_id):
         return redirect(request.url)
 
     return render_template(
-        "qm_builder.html",
-        version=version,
-        versions=version.plan.versions,
-        gauges=gauges
-    )
+        "quality/inspection_plan/version_editor.html",
 
 
 @bp.route("/<int:version_id>/new_revision", methods=["POST"])
