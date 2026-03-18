@@ -10,12 +10,19 @@ href="{{ url_for('static', filename='css/qm_builder.css') }}">
 <h2>Prüfplan Revision {{ version.revision }}</h2>
 
 {% include "quality/inspection_plan/components/revision_bar.html" %}
-
 {% include "quality/inspection_plan/components/plan_info.html" %}
-
 {% include "quality/inspection_plan/components/module_selector.html" %}
 
 <h3>Module</h3>
+
+{% if not version.sections %}
+
+<div class="card p-4 text-center text-muted">
+Noch keine Module vorhanden.<br>
+Bitte oben ein Modul hinzufügen.
+</div>
+
+{% else %}
 
 {% for section in version.sections %}
 
@@ -36,18 +43,9 @@ href="{{ url_for('static', filename='css/qm_builder.css') }}">
 
 {% endif %}
 
-{% if not version.sections %}
-
-<div class="card p-4 text-center text-muted">
-
-Noch keine Module vorhanden.  
-Bitte oben ein Modul hinzufügen.
-
-</div>
+{% endfor %}
 
 {% endif %}
-
-{% endfor %}
 
 {% include "quality/inspection_plan/components/change_log.html" %}
 {% include "quality/inspection_plan/components/marker_modal.html" %}
