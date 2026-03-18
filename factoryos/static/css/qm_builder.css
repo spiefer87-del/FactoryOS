@@ -49,3 +49,18 @@ padding:40px;
 text-align:center;
 color:#777;
 }
+
+.marker-circle {
+    fill: red;
+}
+
+.marker-text {
+    font-size: 2px;
+    fill: white;
+    text-anchor: middle;
+    dominant-baseline: middle;
+}
+
+.marker {
+    cursor: pointer;
+}
