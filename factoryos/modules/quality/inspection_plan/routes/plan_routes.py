@@ -65,7 +65,7 @@ def quality_create():
             )
         )
 
-    return render_template("create.html", tools=tools)
+    return render_template("version_edit.html", tools=tools)
 
 
 @bp.route("/<int:plan_id>/delete", methods=["POST"])
