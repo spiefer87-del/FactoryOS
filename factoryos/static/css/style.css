@@ -887,37 +887,7 @@ color:white;
     background: #e0f2fe;
     color: #075985;
 }
-/* ------------------------------------------------ */
-/* Quality COMPONENT */
-/* ------------------------------------------------ */
 
-.qm-section{
-
-margin-bottom:20px;
-
-}
-
-.drawing-wrapper{
-
-position:relative;
-display:inline-block;
-max-width:100%;
-
-}
-
-.marker-circle{
-
-fill:#e74c3c;
-stroke:white;
-
-}
-
-.marker-text{
-
-fill:white;
-font-size:10px;
-
-}
 /* ------------------------------------------------ */
 /* MOBILE LAYOUT */
 /* ------------------------------------------------ */
