@@ -1,7 +1,7 @@
 from flask import request, redirect
 from flask_login import login_required, current_user
 
-from factoryos.modules.quality.inspection_plan.models import (
+from ..models import (
     QualityInspectionSection,
     QualityInspectionIdentificationImage
 )
