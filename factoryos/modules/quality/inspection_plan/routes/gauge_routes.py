@@ -3,7 +3,7 @@ from flask_login import login_required
 
 from factoryos.extensions import db
 
-from factoryos.modules.quality.inspection_plan.models import (
+from ..models import (
     QualityInspectionSection,
     QualityInspectionGaugeCheck
 )
