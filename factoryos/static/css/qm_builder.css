@@ -1,1 +1,92 @@
+.drawing-wrapper{
+position:relative;
+display:inline-block;
+max-width:100%;
+overflow:hidden;
+cursor:grab;
+}
 
+.drawing-wrapper:active{
+cursor:grabbing;
+}
+
+.drawing-stage{
+transform-origin:0 0;
+will-change:transform;
+}
+
+.drawing-wrapper img{
+display:block;
+max-width:none;
+}
+
+.marker-layer{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+pointer-events:auto;
+overflow:visible;
+}
+
+.marker{
+cursor:grab;
+}
+
+.marker-circle{
+fill:#e74c3c;
+stroke:white;
+stroke-width:0.6;
+cursor:pointer;
+pointer-events:all;
+filter:drop-shadow(0 2px 3px rgba(0,0,0,0.35));
+vector-effect:non-scaling-stroke;
+}
+
+.marker-text{
+fill:white;
+font-weight:bold;
+font-size:2.5px;
+text-anchor:middle;
+dominant-baseline:middle;
+pointer-events:none;
+}
+
+.marker.marker-highlight circle{
+stroke:#f1c40f;
+stroke-width:0.8;
+}
+
+.marker-tooltip{
+opacity:0;
+transition:opacity 0.15s ease;
+pointer-events:none;
+}
+
+.marker:hover .marker-tooltip{
+opacity:1;
+}
+
+.marker-tooltip-box{
+position:fixed;
+background:white;
+border:1px solid #ccc;
+border-radius:6px;
+padding:6px 8px;
+font-size:12px;
+box-shadow:0 3px 10px rgba(0,0,0,0.25);
+pointer-events:none;
+display:none;
+z-index:9999;
+white-space:nowrap;
+}
+
+.tooltip-title{
+font-weight:bold;
+margin-bottom:3px;
+}
+
+.row-highlight{
+background:#fff3cd !important;
+}
