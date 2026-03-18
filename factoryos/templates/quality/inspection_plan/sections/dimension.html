@@ -233,3 +233,67 @@ placeholder="Einheit">
 {% endif %}
 
 </div>
+
+
+<!-- ================= MARKER MODAL ================= -->
+
+<div id="characteristicModal" class="qm-modal">
+
+<div class="qm-modal-content">
+
+<h5 class="mb-3">Merkmal anlegen</h5>
+
+<form
+method="post"
+action="{{ url_for('inspection.quality_create_characteristic_with_marker') }}">
+
+<input type="hidden" name="pos_x" id="posX">
+<input type="hidden" name="pos_y" id="posY">
+<input type="hidden" name="section_id" id="sectionID">
+
+<div class="row g-2">
+
+<div class="col-md-12">
+<input class="form-control" name="name" placeholder="Merkmal" required>
+</div>
+
+<div class="col-md-4">
+<input class="form-control" name="target_value" placeholder="Soll">
+</div>
+
+<div class="col-md-4">
+<input class="form-control" name="tolerance_minus" placeholder="-Tol">
+</div>
+
+<div class="col-md-4">
+<input class="form-control" name="tolerance_plus" placeholder="+Tol">
+</div>
+
+<div class="col-md-12">
+<input class="form-control" name="unit" placeholder="Einheit">
+</div>
+
+</div>
+
+<div class="mt-3 d-flex gap-2">
+
+<button class="btn btn-primary">
+Speichern
+</button>
+
+<button
+type="button"
+class="btn btn-secondary"
+onclick="document.getElementById('characteristicModal').style.display='none'">
+
+Abbrechen
+
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
