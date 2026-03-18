@@ -3,10 +3,7 @@ import os
 from flask import request, redirect, jsonify, current_app
 from flask_login import login_required
 
-from factoryos.modules.quality.inspection_plan.models import (
-    QualityInspectionSection,
-    QualityInspectionDimensionSnippet
-)
+from ..models.plan_models import QualityInspectionSection
 
 from factoryos.modules.quality.inspection_plan.services.drawing_service import (
     upload_drawing,
