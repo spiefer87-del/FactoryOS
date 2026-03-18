@@ -29,52 +29,37 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
 {% if section.drawing_path %}
 
 <div class="drawing-wrapper">
+    <div class="drawing-stage">
 
-<div class="drawing-stage">
+        <img
+        src="{{ url_for('static', filename=section.drawing_path) }}"
+        class="drawing-img"
+        data-section="{{ section.id }}"
+        data-status="{{ version.status }}">
 
-<img
-src="{{ url_for('static', filename=section.drawing_path) }}"
-class="drawing-img border rounded"
-data-section="{{ section.id }}"
-data-status="{{ version.status }}"
-style="cursor:{% if version.status == 'draft' %}crosshair{% else %}default{% endif %}">
+        <svg class="marker-layer"
+             viewBox="0 0 100 100"
+             preserveAspectRatio="none">
 
-<svg
-class="marker-layer"
-data-section="{{ section.id }}"
-viewBox="0 0 100 100"
-preserveAspectRatio="none">
+            {% for c in section.characteristics %}
+            {% if c.pos_x is not none and c.pos_y is not none %}
 
-{% for c in section.characteristics %}
+            <g class="marker"
+               data-id="{{ c.id }}"
+               data-status="{{ version.status }}"
+               transform="translate({{ c.pos_x*100 }} {{ c.pos_y*100 }})">
 
-{% if c.pos_x is not none and c.pos_y is not none %}
+                <circle r="1.8"></circle>
+                <text>{{ c.sort_order }}</text>
 
-<g class="marker"
-data-id="{{ c.id }}"
-data-status="{{ version.status }}"
-data-name="{{ c.name }}"
-data-target="{{ c.target_value }}"
-data-tolminus="{{ c.tolerance_minus }}"
-data-tolplus="{{ c.tolerance_plus }}"
-data-unit="{{ c.unit }}"
-data-number="{{ c.sort_order }}"
-transform="translate({{ c.pos_x*100 }} {{ c.pos_y*100 }})">
+            </g>
 
-<circle r="1.8" class="marker-circle"></circle>
+            {% endif %}
+            {% endfor %}
 
-<text class="marker-text">
-{{ c.sort_order }}
-</text>
+        </svg>
 
-</g>
-
-{% endif %}
-
-{% endfor %}
-
-</svg>
-
-</div>
+    </div>
 </div>
 
 
