@@ -22,7 +22,7 @@ def add_section(version, section_type):
         title=title
     )
 
-version.sections.append(section)
+    version.sections.append(section)
 
     db.session.add(section)
 
