@@ -2,17 +2,49 @@
 
 {% block content %}
 
-<h1>Qualität Dashboard</h1>
+<h2>Qualitätsmanagement</h2>
 
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:30px">
+<div class="dashboard-grid">
 
-    <div style="background:white;padding:20px;border-radius:8px">
-        <h3>Prüfpläne</h3>
-        <p>Status Prüfplan</p>
+<!-- ================= PRÜFPLÄNE ================= -->
+
+<a href="{{ url_for('inspection.dashboard') }}"
+   class="dashboard-card">
+
+    <div class="dashboard-card-icon">
+        📋
     </div>
 
+    <div class="dashboard-card-title">
+        Prüfpläne
+    </div>
+
+    <div class="dashboard-card-desc">
+        Prüfpläne erstellen, bearbeiten und Revisionen verwalten.
+    </div>
+
+</a>
+
+
+<!-- ================= AUSWERTUNGEN ================= -->
+
+<a href="#"
+   class="dashboard-card dashboard-card-disabled">
+
+    <div class="dashboard-card-icon">
+        📊
+    </div>
+
+    <div class="dashboard-card-title">
+        Auswertungen
+    </div>
+
+    <div class="dashboard-card-desc">
+        Qualitätskennzahlen und Statistiken (in Entwicklung).
+    </div>
+
+</a>
 
 </div>
 
 {% endblock %}
-
