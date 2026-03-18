@@ -71,6 +71,11 @@ width:420px;
 box-shadow:0 10px 30px rgba(0,0,0,0.2);
 }
 
+.drawing-wrapper img{
+    display:block;
+    max-width:none;   /* EXTREM WICHTIG */
+}
+
 .marker-circle {
     fill: red;
 }
