@@ -34,7 +34,8 @@ def quality_add_characteristic(section_id):
 
     add_characteristic(section, request.form)
 
-   @bp.route("/section/<int:section_id>/add_characteristic", methods=["POST"])
+
+@bp.route("/section/<int:section_id>/add_characteristic", methods=["POST"])
 @login_required
 def quality_add_characteristic(section_id):
 
