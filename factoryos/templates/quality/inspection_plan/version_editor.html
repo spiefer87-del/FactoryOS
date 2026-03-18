@@ -1,3 +1,6 @@
+<link rel="stylesheet"
+href="{{ url_for('static', filename='css/qm_builder.css') }}">
+
 {% extends "layout/base.html" %}
 
 {% block content %}
@@ -36,6 +39,6 @@
 {% include "quality/inspection_plan/components/change_log.html" %}
 {% include "quality/inspection_plan/components/marker_modal.html" %}
 
-<script src="{{ url_for('static', filename='js/qm_builder/builder.js') }}"></script>
+<script src="{{ url_for('static', filename='js/qm_builder.js') }}"></script>
 
 {% endblock %}
