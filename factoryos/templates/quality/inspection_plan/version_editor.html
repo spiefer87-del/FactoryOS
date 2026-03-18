@@ -36,6 +36,17 @@ href="{{ url_for('static', filename='css/qm_builder.css') }}">
 
 {% endif %}
 
+{% if not version.sections %}
+
+<div class="card p-4 text-center text-muted">
+
+Noch keine Module vorhanden.  
+Bitte oben ein Modul hinzufügen.
+
+</div>
+
+{% endif %}
+
 {% endfor %}
 
 {% include "quality/inspection_plan/components/change_log.html" %}
