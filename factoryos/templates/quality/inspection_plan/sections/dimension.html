@@ -49,8 +49,11 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
                data-status="{{ version.status }}"
                transform="translate({{ c.pos_x*100 }} {{ c.pos_y*100 }})">
 
-                <circle r="1.8"></circle>
-                <text>{{ c.sort_order }}</text>
+                <circle r="1.8" class="marker-circle"></circle>
+
+                <text class="marker-text">
+                {{ c.sort_order }}
+                </text>
 
             </g>
 
