@@ -1,1 +1,36 @@
+<div class="card shadow-sm mb-3">
+<div class="card-body py-2">
 
+<div class="d-flex justify-content-between align-items-center">
+
+<div class="d-flex align-items-center gap-3">
+
+<h5 class="fw-bold mb-0">
+Prüfplan Revision {{ version.revision }}
+</h5>
+
+{% if version.status == "released" %}
+<span class="badge bg-success">Freigegeben</span>
+{% else %}
+<span class="badge bg-warning text-dark">Entwurf</span>
+{% endif %}
+
+</div>
+
+<div class="d-flex gap-2">
+
+<a href="{{ url_for('inspection.quality_inspection_plan') }}"
+class="btn btn-outline-secondary btn-sm">
+← Übersicht
+</a>
+
+<a href="{{ url_for('inspection.quality_export_pdf', version_id=version.id) }}"
+class="btn btn-outline-secondary btn-sm">
+PDF Export
+</a>
+
+</div>
+
+</div>
+</div>
+</div>
