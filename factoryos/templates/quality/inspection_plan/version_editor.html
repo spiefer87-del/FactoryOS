@@ -1,9 +1,11 @@
 {% extends "layout/base.html" %}
 
-{% block content %}
-
+{% block styles %}
 <link rel="stylesheet"
 href="{{ url_for('static', filename='css/qm_builder.css') }}">
+{% endblock %}
+
+{% block content %}
 
 <h2>Prüfplan Revision {{ version.revision }}</h2>
 
