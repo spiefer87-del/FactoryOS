@@ -1,12 +1,4 @@
-<div class="card qm-section">
-
-<div class="card-header">
-
-{{ section.title }}
-
-</div>
-
-<div class="card-body">
+<h6 class="fw-bold">Gesamtzeichnung</h6>
 
 {% if section.drawing_path %}
 
@@ -16,22 +8,26 @@
 
 <img
 src="{{ url_for('static', filename=section.drawing_path) }}"
-class="drawing-img"
+class="drawing-img border rounded"
 data-section="{{ section.id }}"
 data-status="{{ version.status }}">
 
 <svg class="marker-layer"
-     viewBox="0 0 100 100"
-     preserveAspectRatio="none">
+data-section="{{ section.id }}"
+viewBox="0 0 100 100"
+preserveAspectRatio="none">
 
 {% for c in section.characteristics %}
 
 <g class="marker"
-   data-id="{{ c.id }}"
-   transform="translate({{ c.pos_x*100 }} {{ c.pos_y*100 }})">
+data-id="{{ c.id }}"
+transform="translate({{ c.pos_x*100 }} {{ c.pos_y*100 }})">
 
-<circle r="1.8"></circle>
-<text>{{ c.sort_order }}</text>
+<circle r="1.8" class="marker-circle"></circle>
+
+<text class="marker-text">
+{{ c.sort_order }}
+</text>
 
 </g>
 
@@ -43,7 +39,3 @@ data-status="{{ version.status }}">
 </div>
 
 {% endif %}
-
-</div>
-
-</div>
