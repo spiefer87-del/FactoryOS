@@ -1,4 +1,4 @@
-from flask import request, redirect
+from flask import request, redirect, url_for
 from flask_login import login_required
 
 from ..models import QualityInspectionSection
