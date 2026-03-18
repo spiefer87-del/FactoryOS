@@ -21,8 +21,11 @@ if(img.dataset.status !== "draft") return
 
 const rect = img.getBoundingClientRect()
 
-const x = (e.clientX - rect.left) / rect.width
-const y = (e.clientY - rect.top) / rect.height
+const offsetX = e.clientX - rect.left
+const offsetY = e.clientY - rect.top
+
+const x = offsetX / img.clientWidth
+const y = offsetY / img.clientHeight
 
 document.getElementById("posX").value = x
 document.getElementById("posY").value = y
