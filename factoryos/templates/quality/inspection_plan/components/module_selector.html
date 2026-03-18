@@ -1,35 +1,39 @@
-<h5 class="fw-bold mb-3">➕ Modul hinzufügen</h5>
+<div class="qm-module-selector">
 
-<div class="row g-3 mb-4">
+<h4>➕ Modul hinzufügen</h4>
 
-{% for type,label,icon,color in [
-("identification","Identifizierung","🆔","primary"),
-("dimension","Maßprüfung","📏","success"),
-("gauge","Lehrenprüfung","🧪","warning"),
-("visual","Sichtprüfung","👁","info"),
-("text","Textprüfung","📝","secondary")
+<div class="qm-module-grid">
+
+{% set modules = [
+("identification","Identifizierung","🆔"),
+("dimension","Maßprüfung","📏"),
+("gauge","Lehrenprüfung","🧪"),
+("visual","Sichtprüfung","👁"),
+("text","Textprüfung","📝")
 ] %}
 
-<div class="col-6 col-md-4 col-lg-3">
+{% for type,label,icon in modules %}
 
-{% if version.status == "draft" %}
+<form method="post" class="qm-module-card">
 
-<form method="post">
-<button type="submit"
+<button
 name="add_section_type"
 value="{{ type }}"
-class="btn btn-outline-{{ color }} w-100 p-4 rounded-4 shadow-sm">
+type="submit">
 
-<div class="fs-3">{{ icon }}</div>
-<div class="fw-bold mt-2">{{ label }}</div>
+<div class="qm-module-icon">
+{{ icon }}
+</div>
+
+<div class="qm-module-title">
+{{ label }}
+</div>
 
 </button>
+
 </form>
-
-{% endif %}
-
-</div>
 
 {% endfor %}
 
+</div>
 </div>
