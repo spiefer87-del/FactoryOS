@@ -1,3 +1,26 @@
+function getDrawingCoordinates(wrapper, clientX, clientY){
+
+    const stage = wrapper.querySelector(".drawing-stage")
+    const img = wrapper.querySelector(".drawing-img")
+
+    const rect = img.getBoundingClientRect()
+
+    const style = window.getComputedStyle(stage)
+    const matrix = new DOMMatrix(style.transform)
+
+    const scale = matrix.a
+    const translateX = matrix.e
+    const translateY = matrix.f
+
+    const x = (clientX - rect.left - translateX) / scale
+    const y = (clientY - rect.top - translateY) / scale
+
+    return {
+        x: x / rect.width,
+        y: y / rect.height
+    }
+}
+
 document.addEventListener("DOMContentLoaded", function(){
 
 initDrawingMarkers()
@@ -19,14 +42,11 @@ if(!img) return
 
 if(img.dataset.status !== "draft") return
 
-const rect = img.getBoundingClientRect()
+const coords = getDrawingCoordinates(wrapper, e.clientX, e.clientY)
 
-const offsetX = e.clientX - rect.left
-const offsetY = e.clientY - rect.top
-
-const x = offsetX / img.clientWidth
-const y = offsetY / img.clientHeight
-
+const x = coords.x
+const y = coords.y
+  
 document.getElementById("posX").value = x
 document.getElementById("posY").value = y
 document.getElementById("sectionID").value = img.dataset.section
@@ -61,10 +81,10 @@ if(!activeMarker) return
 const wrapper=activeMarker.closest(".drawing-wrapper")
 const img=wrapper.querySelector("img")
 
-const rect = img.getBoundingClientRect()
+const coords = getDrawingCoordinates(wrapper, e.clientX, e.clientY)
 
-let x = (e.clientX - rect.left) / rect.width
-let y = (e.clientY - rect.top) / rect.height
+let x = coords.x
+let y = coords.y
 
 x=Math.max(0,Math.min(1,x))
 y=Math.max(0,Math.min(1,y))
