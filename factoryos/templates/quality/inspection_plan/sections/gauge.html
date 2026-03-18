@@ -1,1 +1,39 @@
+<h6 class="fw-bold mt-3">Lehrenprüfung</h6>
 
+<table class="table table-sm table-striped">
+
+<thead>
+<tr>
+<th>#</th>
+<th>Merkmal</th>
+<th>Messmittel</th>
+<th>Methode</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for g in section.gauge_checks %}
+
+<tr>
+
+<td>{{ g.sort_order }}</td>
+<td>{{ g.name }}</td>
+
+<td>
+{% if g.gauge %}
+{{ g.gauge.gauge_no }} - {{ g.gauge.name }}
+{% else %}
+-
+{% endif %}
+</td>
+
+<td>{{ g.method }}</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
