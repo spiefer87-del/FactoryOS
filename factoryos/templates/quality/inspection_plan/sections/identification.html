@@ -1,1 +1,18 @@
+<div class="row g-3">
 
+{% for image in section.images %}
+
+<div class="col-md-3">
+
+<img src="{{ url_for('static', filename=image.image_path) }}"
+class="img-fluid rounded border">
+
+<div class="small text-muted mt-1">
+{{ image.description }}
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
