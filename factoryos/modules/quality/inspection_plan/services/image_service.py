@@ -3,9 +3,7 @@ from werkzeug.utils import secure_filename
 from flask import current_app
 from factoryos.extensions import db
 
-from ..models.media_models import (
-    QualityInspectionIdentificationImage
-)
+from ..models import QualityInspectionIdentificationImage
 
 from factoryos.modules.quality.inspection_plan.services.change_log_service import log_change
 
