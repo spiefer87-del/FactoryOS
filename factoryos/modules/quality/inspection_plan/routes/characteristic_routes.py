@@ -2,7 +2,7 @@ from flask import request, jsonify
 from flask_login import login_required
 
 from factoryos.extensions import db
-from factoryos.modules.quality.inspection_plan.models import QualityInspectionCharacteristic
+from ..models import QualityInspectionCharacteristic
 
 from factoryos.modules.quality.inspection_plan.services.marker_service import (
     create_marker,
