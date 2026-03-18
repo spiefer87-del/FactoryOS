@@ -12,6 +12,8 @@ from factoryos.modules.quality.inspection_plan.services.revision_service import 
 from factoryos.modules.quality.gauges.models import Gauge
 
 from ..models import (
+    QualityInspectionPlan,
+    QualityInspectionPlanVersion,
     QualityInspectionSection,
     QualityInspectionCharacteristic
 )
