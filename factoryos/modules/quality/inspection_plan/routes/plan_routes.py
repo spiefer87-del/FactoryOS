@@ -41,6 +41,11 @@ def quality_create():
 
         tool_id = request.form.get("tool_id")
 
+        if not tool_id:
+            flash("Bitte Werkzeug auswählen", "warning")
+            return redirect(url_for("inspection.quality_create"))
+
+        # Plan erstellen
         plan = QualityInspectionPlan(
             tool_id=tool_id,
             created_by_id=current_user.id
@@ -49,9 +54,11 @@ def quality_create():
         db.session.add(plan)
         db.session.flush()
 
+        # Version erstellen
         version = QualityInspectionPlanVersion(
             plan_id=plan.id,
-            revision=1.0
+            revision="A",
+            status="draft"
         )
 
         db.session.add(version)
@@ -65,7 +72,10 @@ def quality_create():
             )
         )
 
-    return render_template("version_edit.html", tools=tools)
+    return render_template(
+        "quality/inspection_plan/create_tool_select.html",
+        tools=tools
+    )
 
 
 @bp.route("/<int:plan_id>/delete", methods=["POST"])
