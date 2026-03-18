@@ -1,3 +1,6 @@
+from datetime import datetime
+from factoryos.extensions import db
+
 class QualityInspectionIdentificationImage(db.Model):
     __tablename__ = "qm_section_images"
 
