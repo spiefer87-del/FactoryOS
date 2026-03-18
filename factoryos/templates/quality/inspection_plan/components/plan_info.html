@@ -1,1 +1,24 @@
+<div class="card shadow-sm rounded-4 mb-4">
+<div class="card-body p-4">
 
+<div class="row g-3">
+
+<div class="col-md-4">
+<label class="form-label text-muted small">Werkzeugnummer</label>
+<div class="fw-bold">{{ version.plan.tool.tool_no }}</div>
+</div>
+
+<div class="col-md-4">
+<label class="form-label text-muted small">Artikelnummer</label>
+<div class="fw-bold">{{ version.plan.tool.article_no or "-" }}</div>
+</div>
+
+<div class="col-md-4">
+<label class="form-label text-muted small">Bezeichnung</label>
+<div>{{ version.plan.tool.article_name or "-" }}</div>
+</div>
+
+</div>
+
+</div>
+</div>
