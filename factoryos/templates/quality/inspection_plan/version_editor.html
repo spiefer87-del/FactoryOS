@@ -1,1 +1,41 @@
+{% extends "layout/base.html" %}
 
+{% block content %}
+
+<h2>Prüfplan Revision {{ version.revision }}</h2>
+
+{% include "quality/inspection_plan/components/revision_bar.html" %}
+
+{% include "quality/inspection_plan/components/plan_info.html" %}
+
+{% include "quality/inspection_plan/components/module_selector.html" %}
+
+<h3>Module</h3>
+
+{% for section in version.sections %}
+
+{% if section.section_type == "identification" %}
+{% include "quality/inspection_plan/sections/identification.html" %}
+
+{% elif section.section_type == "dimension" %}
+{% include "quality/inspection_plan/sections/dimension.html" %}
+
+{% elif section.section_type == "gauge" %}
+{% include "quality/inspection_plan/sections/gauge.html" %}
+
+{% elif section.section_type == "visual" %}
+{% include "quality/inspection_plan/sections/visual.html" %}
+
+{% elif section.section_type == "text" %}
+{% include "quality/inspection_plan/sections/text.html" %}
+
+{% endif %}
+
+{% endfor %}
+
+{% include "quality/inspection_plan/components/change_log.html" %}
+{% include "quality/inspection_plan/components/marker_modal.html" %}
+
+<script src="{{ url_for('static', filename='js/qm_builder/builder.js') }}"></script>
+
+{% endblock %}
