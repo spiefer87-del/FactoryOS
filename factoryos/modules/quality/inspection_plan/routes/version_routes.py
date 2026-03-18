@@ -13,8 +13,7 @@ from factoryos.modules.quality.gauges.models import Gauge
 
 from ..models import (
     QualityInspectionSection,
-    QualityInspectionCharacteristic,
-    Gauge
+    QualityInspectionCharacteristic
 )
 
 from . import bp
