@@ -69,9 +69,9 @@ def quality_delete_characteristic_marker():
 @login_required
 def quality_create_characteristic_with_marker():
 
-    characteristic = create_characteristic_with_marker(
-        request.json
-    )
+    data = request.json if request.is_json else request.form
+
+    characteristic = create_characteristic_with_marker(data)
 
     return jsonify({
         "success": True,
