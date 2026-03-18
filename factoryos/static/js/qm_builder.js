@@ -23,32 +23,24 @@ function getDrawingCoordinates(wrapper, clientX, clientY){
 
 document.addEventListener("DOMContentLoaded", function(){
 
-initDrawingMarkers()
-initMarkerDrag()
-initTableHighlight()
-initZoomPan()
+let activeMarker=null
+let isDragging = false
 
-})
-
-function initDrawingMarkers(){
+/* ================= CLICK ================= */
 
 document.querySelectorAll(".drawing-wrapper").forEach(function(wrapper){
 
 wrapper.addEventListener("click",function(e){
 
+if(isDragging) return
+
 const img = wrapper.querySelector(".drawing-img")
-
-if(!img) return
-
-if(img.dataset.status !== "draft") return
+if(!img || img.dataset.status !== "draft") return
 
 const coords = getDrawingCoordinates(wrapper, e.clientX, e.clientY)
 
-const x = coords.x
-const y = coords.y
-  
-document.getElementById("posX").value = x
-document.getElementById("posY").value = y
+document.getElementById("posX").value = coords.x
+document.getElementById("posY").value = coords.y
 document.getElementById("sectionID").value = img.dataset.section
 
 document.getElementById("characteristicModal").style.display="block"
@@ -57,17 +49,44 @@ document.getElementById("characteristicModal").style.display="block"
 
 })
 
-}
+/* ================= SAVE ================= */
 
-function initMarkerDrag(){
+document.getElementById("characteristicForm").addEventListener("submit",function(e){
 
-let activeMarker=null
+e.preventDefault()
+
+fetch("/quality/inspection-plans/create_characteristic_with_marker",{
+
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+
+section_id:document.getElementById("sectionID").value,
+pos_x:document.getElementById("posX").value,
+pos_y:document.getElementById("posY").value,
+
+name:document.getElementById("charName").value,
+target_value:document.getElementById("charTarget").value,
+tolerance_minus:document.getElementById("charTolMinus").value,
+tolerance_plus:document.getElementById("charTolPlus").value,
+unit:document.getElementById("charUnit").value
+
+})
+
+}).then(()=>location.reload())
+
+})
+
+/* ================= DRAG ================= */
 
 document.querySelectorAll(".marker").forEach(function(marker){
 
 marker.addEventListener("mousedown",function(e){
 
+if(marker.dataset.status!=="draft") return
+
 activeMarker = marker
+isDragging = true
 e.stopPropagation()
 
 })
@@ -79,15 +98,11 @@ document.addEventListener("mousemove",function(e){
 if(!activeMarker) return
 
 const wrapper=activeMarker.closest(".drawing-wrapper")
-const img=wrapper.querySelector("img")
 
 const coords = getDrawingCoordinates(wrapper, e.clientX, e.clientY)
 
-let x = coords.x
-let y = coords.y
-
-x=Math.max(0,Math.min(1,x))
-y=Math.max(0,Math.min(1,y))
+let x = Math.max(0,Math.min(1,coords.x))
+let y = Math.max(0,Math.min(1,coords.y))
 
 activeMarker.setAttribute(
 "transform",
@@ -98,65 +113,52 @@ activeMarker.setAttribute(
 
 document.addEventListener("mouseup",function(){
 
-activeMarker=null
+if(!activeMarker) return
+
+const transform=activeMarker.getAttribute("transform")
+const match=transform.match(/translate\((.*)\s(.*)\)/)
+
+fetch("/quality/inspection-plans/update_characteristic_position",{
+
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+
+id:activeMarker.dataset.id,
+x:parseFloat(match[1])/100,
+y:parseFloat(match[2])/100
 
 })
 
-}
+})
 
-function initTableHighlight(){
+activeMarker = null
+
+setTimeout(()=>{ isDragging=false },50)
+
+})
+
+/* ================= DELETE ================= */
 
 document.querySelectorAll(".marker").forEach(function(marker){
 
-marker.addEventListener("click",function(){
-
-const id=marker.dataset.id
-
-document.querySelectorAll(".characteristic-row")
-.forEach(r=>r.classList.remove("row-highlight"))
-
-const row=document.querySelector(
-`.characteristic-row[data-id="${id}"]`
-)
-
-if(row){
-
-row.classList.add("row-highlight")
-
-row.scrollIntoView({
-behavior:"smooth",
-block:"center"
-})
-
-}
-
-})
-
-})
-
-}
-
-function initZoomPan(){
-
-document.querySelectorAll(".drawing-wrapper").forEach(wrapper=>{
-
-const stage = wrapper.querySelector(".drawing-stage")
-
-let scale=1
-
-wrapper.addEventListener("wheel",function(e){
+marker.addEventListener("contextmenu",function(e){
 
 e.preventDefault()
 
-if(e.deltaY<0) scale+=0.1
-else scale-=0.1
+if(marker.dataset.status!=="draft") return
+if(!confirm("Marker löschen?")) return
 
-scale=Math.max(0.5,Math.min(4,scale))
+fetch("/quality/inspection-plans/delete_characteristic_marker",{
 
-stage.style.transform=`scale(${scale})`
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({id:marker.dataset.id})
+
+}).then(()=>location.reload())
 
 })
 
 })
 
-}
+})
