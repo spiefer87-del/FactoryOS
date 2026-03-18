@@ -1,54 +1,46 @@
 {% extends "layout/base.html" %}
 
 {% block styles %}
-<link rel="stylesheet"
-href="{{ url_for('static', filename='css/qm_builder.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/qm_builder.css') }}">
 {% endblock %}
 
 {% block content %}
 
-<h2>Prüfplan Revision {{ version.revision }}</h2>
+<div class="qm-builder">
+
+<h2 class="qm-title">
+Prüfplan Revision {{ version.revision }}
+</h2>
 
 {% include "quality/inspection_plan/components/revision_bar.html" %}
+
 {% include "quality/inspection_plan/components/plan_info.html" %}
+
 {% include "quality/inspection_plan/components/module_selector.html" %}
 
-<h3>Module</h3>
+<div class="qm-sections">
 
 {% if not version.sections %}
 
-<div class="card p-4 text-center text-muted">
-Noch keine Module vorhanden.<br>
+<div class="card qm-empty">
+Noch keine Module vorhanden.
 Bitte oben ein Modul hinzufügen.
 </div>
 
-{% else %}
+{% endif %}
 
 {% for section in version.sections %}
 
-{% if section.section_type == "identification" %}
-{% include "quality/inspection_plan/sections/identification.html" %}
-
-{% elif section.section_type == "dimension" %}
-{% include "quality/inspection_plan/sections/dimension.html" %}
-
-{% elif section.section_type == "gauge" %}
-{% include "quality/inspection_plan/sections/gauge.html" %}
-
-{% elif section.section_type == "visual" %}
-{% include "quality/inspection_plan/sections/visual.html" %}
-
-{% elif section.section_type == "text" %}
-{% include "quality/inspection_plan/sections/text.html" %}
-
-{% endif %}
+{% include "quality/inspection_plan/sections/" + section.section_type + ".html" %}
 
 {% endfor %}
 
-{% endif %}
+</div>
 
 {% include "quality/inspection_plan/components/change_log.html" %}
 {% include "quality/inspection_plan/components/marker_modal.html" %}
+
+</div>
 
 <script src="{{ url_for('static', filename='js/qm_builder.js') }}"></script>
 
