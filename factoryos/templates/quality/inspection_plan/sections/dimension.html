@@ -13,29 +13,38 @@ data-section="{{ section.id }}"
 data-status="{{ version.status }}">
 
 <svg class="marker-layer"
-data-section="{{ section.id }}"
-viewBox="0 0 100 100"
-preserveAspectRatio="none">
-
-{% for c in section.characteristics %}
-
-<g class="marker"
-data-id="{{ c.id }}"
-transform="translate({{ c.pos_x*100 }} {{ c.pos_y*100 }})">
-
-<circle r="1.8" class="marker-circle"></circle>
-
-<text class="marker-text">
-{{ c.sort_order }}
-</text>
-
-</g>
-
-{% endfor %}
+     data-section="{{ section.id }}"
+     viewBox="0 0 100 100"
+     preserveAspectRatio="none">
 
 </svg>
 
 </div>
 </div>
+
+{% else %}
+
+<div class="alert alert-light border">
+
+Noch keine Zeichnung hochgeladen.
+
+</div>
+
+{% endif %}
+
+{% if version.status == "draft" %}
+
+<form method="post"
+enctype="multipart/form-data"
+action="{{ url_for('inspection.quality_upload_drawing', section_id=section.id) }}"
+class="mt-3">
+
+<input type="file" name="drawing" required>
+
+<button class="btn btn-sm btn-outline-primary">
+Zeichnung hochladen
+</button>
+
+</form>
 
 {% endif %}
