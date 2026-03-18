@@ -1,1 +1,35 @@
+<h5 class="fw-bold mb-3">➕ Modul hinzufügen</h5>
 
+<div class="row g-3 mb-4">
+
+{% for type,label,icon,color in [
+("identification","Identifizierung","🆔","primary"),
+("dimension","Maßprüfung","📏","success"),
+("gauge","Lehrenprüfung","🧪","warning"),
+("visual","Sichtprüfung","👁","info"),
+("text","Textprüfung","📝","secondary")
+] %}
+
+<div class="col-6 col-md-4 col-lg-3">
+
+{% if version.status == "draft" %}
+
+<form method="post">
+<button type="submit"
+name="add_section_type"
+value="{{ type }}"
+class="btn btn-outline-{{ color }} w-100 p-4 rounded-4 shadow-sm">
+
+<div class="fs-3">{{ icon }}</div>
+<div class="fw-bold mt-2">{{ label }}</div>
+
+</button>
+</form>
+
+{% endif %}
+
+</div>
+
+{% endfor %}
+
+</div>
