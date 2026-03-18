@@ -1,9 +1,8 @@
 from factoryos.extensions import db
 
-from factoryos.modules.quality.inspection_plan.models import (
-    QualityInspectionCharacteristic,
-    QualityInspectionSection
-)
+from ..models import QualityInspectionSection
+from ..models import QualityInspectionCharacteristic
+
 
 from factoryos.modules.quality.inspection_plan.services.change_log_service import log_change
 
