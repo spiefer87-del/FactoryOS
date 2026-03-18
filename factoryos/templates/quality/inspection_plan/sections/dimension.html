@@ -1,1 +1,49 @@
+<div class="card qm-section">
 
+<div class="card-header">
+
+{{ section.title }}
+
+</div>
+
+<div class="card-body">
+
+{% if section.drawing_path %}
+
+<div class="drawing-wrapper">
+
+<div class="drawing-stage">
+
+<img
+src="{{ url_for('static', filename=section.drawing_path) }}"
+class="drawing-img"
+data-section="{{ section.id }}"
+data-status="{{ version.status }}">
+
+<svg class="marker-layer"
+     viewBox="0 0 100 100"
+     preserveAspectRatio="none">
+
+{% for c in section.characteristics %}
+
+<g class="marker"
+   data-id="{{ c.id }}"
+   transform="translate({{ c.pos_x*100 }} {{ c.pos_y*100 }})">
+
+<circle r="1.8"></circle>
+<text>{{ c.sort_order }}</text>
+
+</g>
+
+{% endfor %}
+
+</svg>
+
+</div>
+</div>
+
+{% endif %}
+
+</div>
+
+</div>
