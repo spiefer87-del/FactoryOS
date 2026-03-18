@@ -2,6 +2,7 @@ from flask import request, redirect
 from flask_login import login_required
 
 from ..models import QualityInspectionSection
+from factoryos.modules.quality.inspection_plan.services.section_service import delete_section
 
 from . import bp
 
