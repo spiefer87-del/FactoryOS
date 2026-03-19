@@ -29,6 +29,45 @@ class="btn btn-outline-secondary btn-sm">
 PDF Export
 </a>
 
+<!-- ✅ FREIGEBEN -->
+
+{% if version.status == "draft" %}
+
+<form method="post" style="display:inline">
+
+<button type="submit"
+name="release_version"
+value="1"
+class="btn btn-success btn-sm"
+
+{% if not version.is_dirty %}
+disabled
+{% endif %}>
+
+Freigeben
+
+</button>
+
+</form>
+
+{% endif %}
+
+<!-- ✅ NEUE REVISION -->
+
+{% if version.status == "released" %}
+
+<form method="post"
+action="{{ url_for('inspection.quality_new_revision', version_id=version.id) }}"
+style="display:inline">
+
+<button class="btn btn-warning btn-sm">
+Neue Revision
+</button>
+
+</form>
+
+{% endif %}
+
 </div>
 
 </div>
