@@ -25,7 +25,7 @@ def quality_inspection_plan():
     )
 
     return render_template(
-        "qm_inspectionplan.html",
+        "dashboard.html",
         plans=plans
     )
 
