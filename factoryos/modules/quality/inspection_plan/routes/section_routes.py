@@ -34,6 +34,6 @@ def quality_add_characteristic(section_id):
         url_for(
             "inspection.quality_version_edit",
             plan_id=section.version.plan_id,
-            version_id=section.version.id
+            plan_version_id=section.version.id
         )
     )
