@@ -4,130 +4,58 @@
 
 <h2>Prüfpläne</h2>
 
-<div class="page-actions">
+{% set columns = [
+"Werkzeugnr",
+"Artikelnummer",
+"Artikelname",
+"Revision",
+"Status",
+"Aktionen"
+] %}
 
-<a class="btn-primary"
-   href="{{ url_for('inspection.quality_create') }}">
-   Neuer Prüfplan
-</a>
-
-</div>
-
-
-{% if plans %}
-
-<div class="card-grid">
+{% set rows = [] %}
 
 {% for plan in plans %}
 
 {% set latest = plan.versions[0] if plan.versions else None %}
 
-<div class="card">
+{% set row = [
 
-<div class="card-header">
+'<a href="' ~ url_for("inspection.quality_version_edit",
+    plan_id=plan.id,
+    version_id=latest.id if latest else 0) ~ '">' ~ plan.tool.tool_no ~ '</a>',
 
-<strong>{{ plan.tool.tool_no }}</strong>
+plan.tool.article_no or "-",
+plan.tool.article_name or "-",
 
-</div>
+latest.revision if latest else "-",
 
-<div class="card-body">
+(
+'<span class="status-badge status-' ~ latest.status ~ '">' ~ latest.status ~ '</span>'
+) if latest else "-",
 
-<div class="card-description">
+'<div class="table-actions">' ~
 
-{{ plan.tool.description }}
+    (
+    '<a class="btn-small btn-edit" href="' ~ url_for("inspection.quality_version_edit",
+        plan_id=plan.id,
+        version_id=latest.id) ~ '">Öffnen</a>'
+    if latest else ''
+    )
 
-</div>
+    ~
 
+    '<a class="btn-small btn-delete" href="' ~ url_for("inspection.quality_delete_plan",
+        plan_id=plan.id) ~ '">Löschen</a>'
 
-{% if latest %}
+~ '</div>'
 
-<div class="card-meta">
+] %}
 
-Revision: <strong>{{ latest.revision }}</strong>
-
-</div>
-
-<div class="card-status">
-
-{% if latest.status == "released" %}
-
-<span class="status-badge status-released">
-Freigegeben
-</span>
-
-{% else %}
-
-<span class="status-badge status-draft">
-Entwurf
-</span>
-
-{% endif %}
-
-</div>
-
-
-<div class="card-actions">
-
-<a class="btn-small btn-edit"
-   href="{{ url_for('inspection.quality_version_edit',
-                    plan_id=plan.id,
-                    version_id=latest.id) }}">
-   Öffnen
-</a>
-
-
-<form method="post"
-      action="{{ url_for('inspection.quality_delete_plan',
-                         plan_id=plan.id) }}"
-      onsubmit="return confirm('Prüfplan wirklich löschen?')">
-
-<button class="btn-small btn-delete">
-Löschen
-</button>
-
-</form>
-
-
-{% if latest.status == "released" %}
-
-<form method="post"
-      action="{{ url_for('inspection.quality_new_revision',
-                         version_id=latest.id) }}">
-
-<button class="btn-small btn-primary">
-Neue Revision
-</button>
-
-</form>
-
-{% endif %}
-
-</div>
-
-{% else %}
-
-<div class="text-muted">
-Keine Version vorhanden
-</div>
-
-{% endif %}
-
-</div>
-
-</div>
+{% set _ = rows.append(row) %}
 
 {% endfor %}
 
-</div>
-
-{% else %}
-
-<div class="empty-state">
-
-Noch keine Prüfpläne vorhanden.
-
-</div>
-
-{% endif %}
+{% include "components/table.html" with context %}
 
 {% endblock %}
