@@ -57,7 +57,7 @@ def quality_create():
         # Version erstellen
         version = QualityInspectionPlanVersion(
             plan_id=plan.id,
-            revision="A",
+            revision="1.0",
             status="draft"
         )
 
