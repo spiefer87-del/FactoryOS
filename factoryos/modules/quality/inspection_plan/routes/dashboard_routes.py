@@ -7,4 +7,13 @@ from . import bp
 @login_required
 def dashboard():
 
-    return render_template("quality/inspection_plan/dashboard.html")
+    plans = (
+        QualityInspectionPlan.query
+        .order_by(QualityInspectionPlan.id.desc())
+        .all()
+    )
+
+    return render_template(
+        "quality/inspection_plan/dashboard.html",
+        plans=plans
+    )
