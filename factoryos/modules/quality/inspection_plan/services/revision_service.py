@@ -20,7 +20,7 @@ def create_new_revision(version_id, user_id):
     new_revision = increment_revision(old_version.revision)
 
     new_version = QualityInspectionPlanVersion(
-        plan_id=old_version.plan_id,
+        plan_version_id=old_version.plan_id,
         revision=new_revision,
         status="draft"
     )
