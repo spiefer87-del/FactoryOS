@@ -98,6 +98,6 @@ def quality_new_revision(version_id):
         url_for(
             "inspection.quality_version_edit",
             plan_id=new_version.plan_id,
-            plan_version_id= new_version.id
+            version_id=new_version.id   # ✅ RICHTIG
         )
     )
