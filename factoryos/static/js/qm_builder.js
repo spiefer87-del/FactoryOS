@@ -139,7 +139,6 @@ setTimeout(()=>{ isDragging=false },50)
 })
 
 /* ================= DELETE ================= */
-
 document.querySelectorAll(".marker").forEach(function(marker){
 
 marker.addEventListener("contextmenu",function(e){
@@ -147,18 +146,26 @@ marker.addEventListener("contextmenu",function(e){
 e.preventDefault()
 
 if(marker.dataset.status!=="draft") return
-if(!confirm("Marker löschen?")) return
+
+if(!confirm("Marker und Merkmal löschen?")) return
+
+const id=marker.dataset.id
+
+marker.remove()
+
+const row=document.querySelector('.characteristic-row[data-id="'+id+'"]')
+
+if(row) row.remove()
 
 fetch("/quality/inspection-plans/delete_characteristic_marker",{
 
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({id:marker.dataset.id})
-
+body:JSON.stringify({id:id})
 }).then(()=>location.reload())
-
 })
 
 })
 
 })
+
