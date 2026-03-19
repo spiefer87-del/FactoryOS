@@ -1,6 +1,11 @@
 from flask import render_template
 from flask_login import login_required
 
+from ..models import (
+    QualityInspectionPlan,
+    QualityInspectionPlanVersion
+)
+
 from . import bp
 
 @bp.route("/dashboard")
