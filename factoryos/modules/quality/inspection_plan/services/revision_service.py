@@ -61,7 +61,7 @@ def copy_sections(old_version, new_version):
 
         new_section = QualityInspectionSection(
 
-            version_id=new_version.id,
+            plan_version_id==new_version.id,
             title=section.title,
             section_type=section.section_type,
             drawing_path=section.drawing_path
