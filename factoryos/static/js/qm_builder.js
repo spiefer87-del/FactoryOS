@@ -169,3 +169,30 @@ body:JSON.stringify({id:id})
 
 })
 
+document.querySelectorAll(".marker").forEach(function(marker){
+
+marker.addEventListener("click",function(){
+
+const id=marker.dataset.id
+
+document.querySelectorAll(".characteristic-row")
+.forEach(r=>r.classList.remove("row-highlight"))
+
+const row=document.querySelector(
+`.characteristic-row[data-id="${id}"]`
+)
+
+if(row){
+
+row.classList.add("row-highlight")
+
+row.scrollIntoView({
+behavior:"smooth",
+block:"center"
+})
+
+}
+
+})
+
+})
