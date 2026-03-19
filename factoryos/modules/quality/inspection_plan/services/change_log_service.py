@@ -12,7 +12,6 @@ def log_change(version, action, message, user_id=None):
     log = QualityInspectionChangeLog(
 
         plan_id=version.plan_id,
-        plan_version_id=version.id,
 
         action=action,
         message=message,
