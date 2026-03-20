@@ -3,6 +3,8 @@ from factoryos.extensions import db
 from ..models import QualityInspectionSection
 from ..models import QualityInspectionCharacteristic
 
+from PIL import Image as PILImage, ImageDraw, ImageFont
+from io import BytesIO
 
 from factoryos.modules.quality.inspection_plan.services.change_log_service import log_change
 
@@ -129,3 +131,53 @@ def reorder_characteristics(section_id):
 
 
     db.session.commit()
+
+
+
+
+def draw_markers_on_image(image_path, characteristics):
+
+    img = PILImage.open(image_path).convert("RGB")
+
+    width, height = img.size
+    draw = ImageDraw.Draw(img)
+
+    font_size = int(height * 0.022)
+
+    try:
+        font = ImageFont.truetype("DejaVuSans-Bold.ttf", font_size)
+    except:
+        font = ImageFont.load_default()
+
+    r = int(height * 0.014)
+
+    for c in sorted(characteristics, key=lambda x: x.sort_order or 0):
+
+        if c.pos_x is None or c.pos_y is None:
+            continue
+
+        x = int(c.pos_x * width)
+        y = int(c.pos_y * height)
+
+        # Kreis
+        draw.ellipse(
+            (x-r, y-r, x+r, y+r),
+            fill=(220, 0, 0),
+            outline=(0, 0, 0),
+            width=2
+        )
+
+        # Text (zentriert)
+        draw.text(
+            (x, y),
+            str(c.sort_order),
+            fill=(255, 255, 255),
+            font=font,
+            anchor="mm"
+        )
+
+    output = BytesIO()
+    img.save(output, format="PNG")
+    output.seek(0)
+
+    return output
