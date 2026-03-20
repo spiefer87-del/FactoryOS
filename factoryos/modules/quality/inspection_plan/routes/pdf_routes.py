@@ -24,6 +24,6 @@ def quality_export_pdf(version_id):
         url_for(
             "inspection.quality_version_edit",
             plan_id=version.plan_id,
-            plan_version_id=version.id
+            version_id=version.id
         )
     )
