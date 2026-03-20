@@ -1,4 +1,4 @@
-from flask import redirect, url_for, send_file
+from flask import redirect, url_for, send_file, current_app
 from flask_login import login_required
 
 from factoryos.extensions import db
