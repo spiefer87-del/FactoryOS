@@ -189,7 +189,10 @@ def build_dimension_section(section):
             img = Image(image_with_markers)
 
             # 🔥 echtes Verhältnis aus DB!
-            ratio = section.image_height / section.image_width
+            if section.image_width and section.image_height:
+                ratio = section.image_height / section.image_width
+            else:
+                ratio = 1  # fallback
             
             target_width = 16 * cm
             
