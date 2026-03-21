@@ -72,7 +72,10 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 }
 
 .qm-drawing-area {
+    width: 100%;
     overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
 }
 
 .drawing-wrapper {
