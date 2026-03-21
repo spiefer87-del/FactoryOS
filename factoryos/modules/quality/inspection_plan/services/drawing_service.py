@@ -45,7 +45,7 @@ def upload_drawing(section, file):
 
     from PIL import Image as PILImage
 
-    TARGET_WIDTH = 1600  # 🔥 hier steuerst du alles!
+    TARGET_WIDTH = 1200  # 🔥 hier steuerst du alles!
     
     # ================================
     # PREVIEW ERZEUGEN + NORMALISIEREN
