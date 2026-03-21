@@ -104,3 +104,34 @@ document.addEventListener("mouseup", function(){
 })
 
 })
+
+/* ================= DELETE ================= */
+
+document.querySelectorAll(".marker").forEach(marker => {
+
+    marker.addEventListener("contextmenu", function(e){
+
+        e.preventDefault()
+
+        if(marker.dataset.status !== "draft") return
+        if(!confirm("Marker und Merkmal löschen?")) return
+
+        const id = marker.dataset.id
+
+        // UI sofort entfernen
+        marker.remove()
+
+        const row = document.querySelector(`.characteristic-row[data-id="${id}"]`)
+        if(row) row.remove()
+
+        // Backend löschen
+        fetch("/quality/inspection-plans/delete_characteristic_marker",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({ id: id })
+        })
+        .then(()=>location.reload())
+
+    })
+
+})
