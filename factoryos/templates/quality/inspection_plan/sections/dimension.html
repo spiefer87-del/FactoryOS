@@ -47,7 +47,12 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
             <!-- 🔥 MARKER -->
             {% for c in section.characteristics %}
             {% if c.pos_x is not none and c.pos_y is not none %}
-
+            
+            <!-- 🔥 DEBUG -->
+            <div style="color:red; font-size:12px;">
+                {{ c.pos_x }} | {{ c.pos_y }}
+            </div>
+            
             <g class="marker"
                data-id="{{ c.id }}"
                data-status="{{ version.status }}"
