@@ -188,14 +188,10 @@ def build_dimension_section(section):
 
             img = Image(image_with_markers)
             
-            # 🔥 feste Breite (wie UI)
-            target_width = 16 * cm
-            
-            # Verhältnis berechnen
-            ratio = img.imageHeight / img.imageWidth
-            
-            img.drawWidth = target_width
-            img.drawHeight = target_width * ratio
+            ratio = section.image_height / section.image_width
+
+            img.drawWidth = 16 * cm
+            img.drawHeight = 16 * cm * ratio
 
             block.append(img)
             block.append(Spacer(1, 10))
