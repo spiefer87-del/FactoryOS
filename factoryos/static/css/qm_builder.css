@@ -94,10 +94,9 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 }
 
 .drawing-img {
-    width: 100%;
-    height: auto;
-    object-fit: contain;
     display: block;
+    height: auto;
+    max-width: none; /* 🔥 wichtig */
 }
 
 .marker-layer {
@@ -123,8 +122,8 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 
 .drawing-stage {
     position: relative;
-    width: 100%;
-    min-width: 600px;
+    display: inline-block;
+    min-width: 700px;
     touch-action: none;
 }
 
