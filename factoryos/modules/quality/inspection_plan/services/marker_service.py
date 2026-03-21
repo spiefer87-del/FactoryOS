@@ -146,15 +146,15 @@ def generate_svg_with_markers(image_path, section):
 
     import base64
 
-    # fallback falls keine Dimensionen vorhanden
+    # Bild laden
+    with open(image_path, "rb") as img_file:
+        base64_image = base64.b64encode(img_file.read()).decode("utf-8")
+
+    # 🔥 Verhältnis berechnen
     if section.image_width and section.image_height:
         ratio = section.image_height / section.image_width
     else:
         ratio = 1
-
-    # Bild laden
-    with open(image_path, "rb") as img_file:
-        base64_image = base64.b64encode(img_file.read()).decode("utf-8")
 
     svg = []
 
@@ -163,9 +163,10 @@ def generate_svg_with_markers(image_path, section):
          viewBox="0 0 100 {100 * ratio}"
          preserveAspectRatio="xMidYMid meet">
 
-        <image href="data:image/jpeg;base64,{base64_image}"
+        <image href="data:image/png;base64,{base64_image}"
                x="0" y="0"
-               width="100" height="{100 * ratio}"/>
+               width="100"
+               height="{100 * ratio}"/>
     ''')
 
     for c in sorted(section.characteristics, key=lambda x: x.sort_order or 0):
@@ -173,8 +174,9 @@ def generate_svg_with_markers(image_path, section):
         if c.pos_x is None or c.pos_y is None:
             continue
 
+        # 🔥 WICHTIG: exakt wie im HTML
         x = c.pos_x * 100
-        y = c.pos_y * 100  # ❗ KEIN ratio hier
+        y = c.pos_y * 100 * ratio
 
         svg.append(f'''
         <g transform="translate({x} {y})">
@@ -185,7 +187,7 @@ def generate_svg_with_markers(image_path, section):
                     stroke-width="0.3"/>
 
             <text text-anchor="middle"
-                  dominant-baseline="middle"
+                  dominant-baseline="central"
                   fill="white"
                   font-size="2.5">
                 {c.sort_order}
