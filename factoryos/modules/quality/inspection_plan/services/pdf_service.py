@@ -19,7 +19,7 @@ import os
 
 from flask import current_app
 
-from factoryos.modules.quality.inspection_plan.services.marker_service import draw_markers_on_image
+from factoryos.modules.quality.inspection_plan.services.marker_service import render_svg_to_png
 
 from ..models import QualityInspectionPlanVersion
 
