@@ -29,49 +29,34 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
 {% if section.drawing_path %}
 
 <div class="drawing-wrapper">
-    <div class="drawing-stage">
+    <div class="drawing-stage" style="position:relative; display:inline-block;">
 
-        <svg class="drawing-svg"
-             data-section="{{ section.id }}"
+        <img
+        src="{{ url_for('static', filename=section.drawing_path) }}"
+        class="drawing-img"
+        data-section="{{ section.id }}"
+        data-status="{{ version.status }}"
+        style="display:block; max-width:100%; height:auto;">
+
+        {% for c in section.characteristics %}
+        {% if c.pos_x is not none and c.pos_y is not none %}
+
+        <div class="marker"
+             data-id="{{ c.id }}"
              data-status="{{ version.status }}"
-             viewBox="0 0 {{ section.image_width }} {{ section.image_height }}">
+             style="
+                position:absolute;
+                left: {{ c.pos_x * section.image_width }}px;
+                top: {{ c.pos_y * section.image_height }}px;
+                transform: translate(-50%, -50%);
+             ">
 
-            <!-- 🔥 BILD IM SVG -->
-            <image
-                href="{{ url_for('static', filename=section.drawing_path) }}"
-                x="0"
-                y="0"
-                width="{{ section.image_width }}"
-                height="{{ section.image_height }}" />
+            <div class="marker-circle">{{ c.sort_order }}</div>
 
-            <!-- 🔥 MARKER -->
-            {% for c in section.characteristics %}
-            {% if c.pos_x is not none and c.pos_y is not none %}
-            
-            <!-- 🔥 DEBUG -->
-            <div style="color:red; font-size:12px;">
-                {{ c.pos_x }} | {{ c.pos_y }}
-            </div>
-            
-            <g class="marker"
-               data-id="{{ c.id }}"
-               data-status="{{ version.status }}"
-               transform="translate({{ c.pos_x }} {{ c.pos_y * section.image_height }})"
+        </div>
 
-               <circle cx="200" cy="200" r="20" fill="blue"></circle>
-
-                <text class="marker-text"
-                      text-anchor="middle"
-                      dominant-baseline="middle">
-                    {{ c.sort_order }}
-                </text>
-
-            </g>
-
-            {% endif %}
-            {% endfor %}
-
-        </svg>
+        {% endif %}
+        {% endfor %}
 
     </div>
 </div>
