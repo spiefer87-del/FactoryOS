@@ -4,21 +4,11 @@ let offsetY = 0
 function getDrawingCoordinates(wrapper, clientX, clientY){
 
     const stage = wrapper.querySelector(".drawing-stage")
-    const rect = wrapper.getBoundingClientRect()
-
-    const style = window.getComputedStyle(stage)
-    const matrix = new DOMMatrix(style.transform)
-
-    const scale = matrix.a
-    const translateX = matrix.e
-    const translateY = matrix.f
-
-    const x = (clientX - rect.left - translateX) / scale
-    const y = (clientY - rect.top - translateY) / scale
+    const rect = stage.getBoundingClientRect()
 
     return {
-        x: x / rect.width,
-        y: y / rect.height
+        x: (clientX - rect.left) / rect.width,
+        y: (clientY - rect.top) / rect.height
     }
 }
 
@@ -40,14 +30,8 @@ document.querySelectorAll(".drawing-wrapper").forEach(function(wrapper){
 
         const coords = getDrawingCoordinates(wrapper, e.clientX, e.clientY)
 
-        const svg = wrapper.querySelector(".marker-layer")
-        const viewBox = svg.viewBox.baseVal
-        const ratio = viewBox.height / 100
-        
-        const fixedY = coords.y / ratio
-
         document.getElementById("posX").value = coords.x
-        document.getElementById("posY").value = fixedY
+        document.getElementById("posY").value = coords.y
         document.getElementById("sectionID").value = img.dataset.section
 
         document.getElementById("characteristicModal").style.display="block"
@@ -106,19 +90,14 @@ document.querySelectorAll(".marker").forEach(function(marker){
         isDragging = true
 
         const wrapper = marker.closest(".drawing-wrapper")
-        const svg = wrapper.querySelector(".marker-layer")
-
         const coords = getDrawingCoordinates(wrapper, e.clientX, e.clientY)
-
-        const viewBox = svg.viewBox.baseVal
-        const ratio = viewBox.height / 100
 
         const transform = marker.getAttribute("transform")
         const match = transform.match(/translate\(([^ ]+) ([^ ]+)\)/)
 
         if(match){
             offsetX = parseFloat(match[1]) / 100 - coords.x
-            offsetY = (parseFloat(match[2]) / (100 * ratio)) - coords.y
+            offsetY = parseFloat(match[2]) / 100 - coords.y
         }
 
         document.body.style.userSelect = "none"
@@ -134,12 +113,7 @@ document.addEventListener("mousemove", function(e){
     if(!activeMarker) return
 
     const wrapper = activeMarker.closest(".drawing-wrapper")
-    const svg = wrapper.querySelector(".marker-layer")
-
     const coords = getDrawingCoordinates(wrapper, e.clientX, e.clientY)
-
-    const viewBox = svg.viewBox.baseVal
-    const ratio = viewBox.height / 100
 
     let x = coords.x + offsetX
     let y = coords.y + offsetY
@@ -149,7 +123,7 @@ document.addEventListener("mousemove", function(e){
 
     activeMarker.setAttribute(
         "transform",
-        `translate(${x * 100} ${y * 100 * ratio})`
+        `translate(${x * 100} ${y * 100})`
     )
 })
 
@@ -158,12 +132,6 @@ document.addEventListener("mousemove", function(e){
 document.addEventListener("mouseup", function(){
 
     if(!activeMarker) return
-
-    const wrapper = activeMarker.closest(".drawing-wrapper")
-    const svg = wrapper.querySelector(".marker-layer")
-
-    const viewBox = svg.viewBox.baseVal
-    const ratio = viewBox.height / 100
 
     const transform = activeMarker.getAttribute("transform")
     const match = transform.match(/translate\(([^ ]+) ([^ ]+)\)/)
@@ -175,7 +143,7 @@ document.addEventListener("mouseup", function(){
             body:JSON.stringify({
                 id: activeMarker.dataset.id,
                 x: parseFloat(match[1]) / 100,
-                y: (parseFloat(match[2]) / 100) / ratio
+                y: parseFloat(match[2]) / 100
             })
         })
     }
@@ -204,11 +172,9 @@ document.querySelectorAll(".marker").forEach(function(marker){
         if(row) row.remove()
 
         fetch("/quality/inspection-plans/delete_characteristic_marker",{
-
             method:"POST",
             headers:{"Content-Type":"application/json"},
             body:JSON.stringify({id:id})
-
         }).then(()=>location.reload())
 
     })
