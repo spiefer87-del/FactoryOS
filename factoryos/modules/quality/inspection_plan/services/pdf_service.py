@@ -14,6 +14,7 @@ from reportlab.lib.units import cm, mm
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 from reportlab.pdfgen import canvas
+from reportlab.platypus import Image
 
 import os
 
@@ -186,8 +187,15 @@ def build_dimension_section(section):
             image_with_markers = render_svg_to_png(svg)
 
             img = Image(image_with_markers)
-
-            img._restrictSize(16 * cm, 12 * cm)
+            
+            # 🔥 feste Breite (wie UI)
+            target_width = 16 * cm
+            
+            # Verhältnis berechnen
+            ratio = img.imageHeight / img.imageWidth
+            
+            img.drawWidth = target_width
+            img.drawHeight = target_width * ratio
 
             block.append(img)
             block.append(Spacer(1, 10))
