@@ -4,7 +4,6 @@ let offsetY = 0
 function getDrawingCoordinates(wrapper, clientX, clientY){
 
     const stage = wrapper.querySelector(".drawing-stage")
-
     const rect = wrapper.getBoundingClientRect()
 
     const style = window.getComputedStyle(stage)
@@ -32,90 +31,94 @@ let isDragging = false
 
 document.querySelectorAll(".drawing-wrapper").forEach(function(wrapper){
 
-wrapper.addEventListener("click",function(e){
+    wrapper.addEventListener("click",function(e){
 
-if(isDragging) return
+        if(isDragging) return
 
-const img = wrapper.querySelector(".drawing-img")
-if(!img || img.dataset.status !== "draft") return
+        const img = wrapper.querySelector(".drawing-img")
+        if(!img || img.dataset.status !== "draft") return
 
-const coords = getDrawingCoordinates(wrapper, e.clientX, e.clientY)
+        const coords = getDrawingCoordinates(wrapper, e.clientX, e.clientY)
 
-document.getElementById("posX").value = coords.x
-document.getElementById("posY").value = coords.y
-document.getElementById("sectionID").value = img.dataset.section
+        document.getElementById("posX").value = coords.x
+        document.getElementById("posY").value = coords.y
+        document.getElementById("sectionID").value = img.dataset.section
 
-document.getElementById("characteristicModal").style.display="block"
+        document.getElementById("characteristicModal").style.display="block"
+
+    })
 
 })
 
-})
-
-/* ================= MODAL SCHLIESSEN ================= */
+/* ================= MODAL ================= */
 
 window.closeCharacteristicModal = function(){
-document.getElementById("characteristicModal").style.display="none"
+    document.getElementById("characteristicModal").style.display="none"
 }
 
-/* ================= SPEICHERN ================= */
+/* ================= SAVE ================= */
 
 const form = document.getElementById("characteristicForm")
 
 if(form){
-form.addEventListener("submit",function(e){
+    form.addEventListener("submit",function(e){
 
-e.preventDefault()
+        e.preventDefault()
 
-fetch("/quality/inspection-plans/create_characteristic_with_marker",{
+        fetch("/quality/inspection-plans/create_characteristic_with_marker",{
 
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
 
-section_id:document.getElementById("sectionID").value,
-pos_x:document.getElementById("posX").value,
-pos_y:document.getElementById("posY").value,
+                section_id:document.getElementById("sectionID").value,
+                pos_x:document.getElementById("posX").value,
+                pos_y:document.getElementById("posY").value,
 
-name:document.getElementById("charName").value,
-target_value:document.getElementById("charTarget").value,
-tolerance_minus:document.getElementById("charTolMinus").value,
-tolerance_plus:document.getElementById("charTolPlus").value,
-unit:document.getElementById("charUnit").value
+                name:document.getElementById("charName").value,
+                target_value:document.getElementById("charTarget").value,
+                tolerance_minus:document.getElementById("charTolMinus").value,
+                tolerance_plus:document.getElementById("charTolPlus").value,
+                unit:document.getElementById("charUnit").value
 
-})
+            })
 
-}).then(()=>location.reload())
+        }).then(()=>location.reload())
 
-})
+    })
 }
 
 /* ================= DRAG START ================= */
 
-marker.addEventListener("mousedown", function(e){
+document.querySelectorAll(".marker").forEach(function(marker){
 
-    if(marker.dataset.status !== "draft") return
+    marker.addEventListener("mousedown", function(e){
 
-    activeMarker = marker
-    isDragging = true
+        if(marker.dataset.status !== "draft") return
 
-    const wrapper = marker.closest(".drawing-wrapper")
-    const svg = wrapper.querySelector(".marker-layer")
+        activeMarker = marker
+        isDragging = true
 
-    const coords = getDrawingCoordinates(wrapper, e.clientX, e.clientY)
+        const wrapper = marker.closest(".drawing-wrapper")
+        const svg = wrapper.querySelector(".marker-layer")
 
-    const viewBox = svg.viewBox.baseVal
-    const ratio = viewBox.height / 100
+        const coords = getDrawingCoordinates(wrapper, e.clientX, e.clientY)
 
-    const transform = marker.getAttribute("transform")
-    const match = transform.match(/translate\(([^ ]+) ([^ ]+)\)/)
+        const viewBox = svg.viewBox.baseVal
+        const ratio = viewBox.height / 100
 
-    if(match){
-        offsetX = parseFloat(match[1]) / 100 - coords.x
-        offsetY = (parseFloat(match[2]) / (100 * ratio)) - coords.y
-    }
+        const transform = marker.getAttribute("transform")
+        const match = transform.match(/translate\(([^ ]+) ([^ ]+)\)/)
 
-    document.body.style.userSelect = "none"
-    e.stopPropagation()
+        if(match){
+            offsetX = parseFloat(match[1]) / 100 - coords.x
+            offsetY = (parseFloat(match[2]) / (100 * ratio)) - coords.y
+        }
+
+        document.body.style.userSelect = "none"
+        e.stopPropagation()
+    })
+
 })
 
 /* ================= DRAG MOVE ================= */
@@ -180,29 +183,29 @@ document.addEventListener("mouseup", function(){
 
 document.querySelectorAll(".marker").forEach(function(marker){
 
-marker.addEventListener("contextmenu",function(e){
+    marker.addEventListener("contextmenu",function(e){
 
-e.preventDefault()
+        e.preventDefault()
 
-if(marker.dataset.status !== "draft") return
-if(!confirm("Marker und Merkmal löschen?")) return
+        if(marker.dataset.status !== "draft") return
+        if(!confirm("Marker und Merkmal löschen?")) return
 
-const id = marker.dataset.id
+        const id = marker.dataset.id
 
-marker.remove()
+        marker.remove()
 
-const row = document.querySelector(`.characteristic-row[data-id="${id}"]`)
-if(row) row.remove()
+        const row = document.querySelector(`.characteristic-row[data-id="${id}"]`)
+        if(row) row.remove()
 
-fetch("/quality/inspection-plans/delete_characteristic_marker",{
+        fetch("/quality/inspection-plans/delete_characteristic_marker",{
 
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({id:id})
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({id:id})
 
-}).then(()=>location.reload())
+        }).then(()=>location.reload())
 
-})
+    })
 
 })
 
@@ -210,27 +213,27 @@ body:JSON.stringify({id:id})
 
 document.querySelectorAll(".marker").forEach(function(marker){
 
-marker.addEventListener("click",function(){
+    marker.addEventListener("click",function(){
 
-const id = marker.dataset.id
+        const id = marker.dataset.id
 
-document.querySelectorAll(".characteristic-row")
-.forEach(r=>r.classList.remove("row-highlight"))
+        document.querySelectorAll(".characteristic-row")
+        .forEach(r=>r.classList.remove("row-highlight"))
 
-const row = document.querySelector(`.characteristic-row[data-id="${id}"]`)
+        const row = document.querySelector(`.characteristic-row[data-id="${id}"]`)
 
-if(row){
+        if(row){
 
-row.classList.add("row-highlight")
+            row.classList.add("row-highlight")
 
-row.scrollIntoView({
-behavior:"smooth",
-block:"center"
-})
+            row.scrollIntoView({
+                behavior:"smooth",
+                block:"center"
+            })
 
-}
+        }
 
-})
+    })
 
 })
 
@@ -238,31 +241,31 @@ block:"center"
 
 document.querySelectorAll(".characteristic-row").forEach(function(row){
 
-row.addEventListener("click",function(){
+    row.addEventListener("click",function(){
 
-const id = row.dataset.id
+        const id = row.dataset.id
 
-document.querySelectorAll(".marker")
-.forEach(m=>m.classList.remove("marker-highlight"))
+        document.querySelectorAll(".marker")
+        .forEach(m=>m.classList.remove("marker-highlight"))
 
-const marker = document.querySelector(`.marker[data-id="${id}"]`)
+        const marker = document.querySelector(`.marker[data-id="${id}"]`)
 
-if(marker){
+        if(marker){
 
-marker.classList.add("marker-highlight")
+            marker.classList.add("marker-highlight")
 
-marker.closest(".drawing-wrapper").scrollIntoView({
-behavior:"smooth",
-block:"center"
-})
+            marker.closest(".drawing-wrapper").scrollIntoView({
+                behavior:"smooth",
+                block:"center"
+            })
 
-setTimeout(()=>{
-marker.classList.remove("marker-highlight")
-},1500)
+            setTimeout(()=>{
+                marker.classList.remove("marker-highlight")
+            },1500)
 
-}
+        }
 
-})
+    })
 
 })
 
