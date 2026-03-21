@@ -87,11 +87,7 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
     border-radius: 3px;
 }
 
-.drawing-wrapper {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-}
+
 
 
 
@@ -122,18 +118,11 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 
 
 
-.drawing-wrapper img{
-    display:block;
-    max-width:none;   /* EXTREM WICHTIG */
-}
-
-
-
 .drawing-stage {
     position: relative;
     display: inline-block;
+    width: max-content; /* 🔥 wichtig */
     min-width: 700px;
-    touch-action: none;
 }
 
 .marker {
