@@ -78,6 +78,15 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
     -webkit-overflow-scrolling: touch;
 }
 
+.qm-drawing-area::-webkit-scrollbar {
+    height: 6px;
+}
+
+.qm-drawing-area::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+}
+
 .drawing-wrapper {
     width: 100%;
     display: flex;
