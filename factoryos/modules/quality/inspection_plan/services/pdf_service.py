@@ -178,10 +178,12 @@ def build_dimension_section(section):
 
         if os.path.exists(img_path):
 
-            image_with_markers = draw_markers_on_image(
-                img_path,
+            svg = generate_svg_with_markers(
+                os.path.join(current_app.static_folder, section.drawing_path),
                 section.characteristics
             )
+            
+            image_with_markers = render_svg_to_png(svg)
 
             img = Image(image_with_markers)
 
