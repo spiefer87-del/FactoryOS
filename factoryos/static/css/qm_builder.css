@@ -127,11 +127,10 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 
 
 
-.marker-circle{
-fill:#e74c3c;
-stroke:white;
-stroke-width:0.6;
-r:4px;
+.marker-circle {
+    fill: red;
+    stroke: black;
+    stroke-width: 2;
 }
 
 .marker-text{
