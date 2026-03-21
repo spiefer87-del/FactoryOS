@@ -40,8 +40,14 @@ document.querySelectorAll(".drawing-wrapper").forEach(function(wrapper){
 
         const coords = getDrawingCoordinates(wrapper, e.clientX, e.clientY)
 
+        const svg = wrapper.querySelector(".marker-layer")
+        const viewBox = svg.viewBox.baseVal
+        const ratio = viewBox.height / 100
+        
+        const fixedY = coords.y / ratio
+
         document.getElementById("posX").value = coords.x
-        document.getElementById("posY").value = coords.y
+        document.getElementById("posY").value = fixedY
         document.getElementById("sectionID").value = img.dataset.section
 
         document.getElementById("characteristicModal").style.display="block"
