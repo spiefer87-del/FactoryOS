@@ -9,6 +9,8 @@ from io import BytesIO
 import cairosvg
 from io import BytesIO
 
+import base64
+
 from factoryos.modules.quality.inspection_plan.services.change_log_service import log_change
 
 
@@ -138,20 +140,24 @@ def reorder_characteristics(section_id):
 
 
 
+
+
 def generate_svg_with_markers(image_path, characteristics):
+
+    # 🔥 Bild in Base64 umwandeln
+    with open(image_path, "rb") as img_file:
+        base64_image = base64.b64encode(img_file.read()).decode("utf-8")
 
     svg = []
 
     svg.append(f'''
     <svg xmlns="http://www.w3.org/2000/svg"
-         width="2000"
-         height="1200"
-         viewBox="0 0 100 100">
+         viewBox="0 0 100 100"
+         preserveAspectRatio="none">
 
-        <image href="{image_path}"
+        <image href="data:image/jpeg;base64,{base64_image}"
                x="0" y="0"
-               width="100" height="100"
-               preserveAspectRatio="none"/>
+               width="100" height="100"/>
     ''')
 
     for c in sorted(characteristics, key=lambda x: x.sort_order or 0):
@@ -183,7 +189,6 @@ def generate_svg_with_markers(image_path, characteristics):
     svg.append("</svg>")
 
     return "".join(svg)
-
 
 
 def render_svg_to_png(svg_string):
