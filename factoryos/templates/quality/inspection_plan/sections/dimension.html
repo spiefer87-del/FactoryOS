@@ -29,7 +29,7 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
 {% if section.drawing_path %}
 
 <div class="drawing-wrapper">
-    <div class="drawing-stage">
+    <div class="drawing-stage" style="aspect-ratio: {{ section.image_width }}/{{ section.image_height }}">
 
         <img
             src="{{ url_for('static', filename=section.drawing_path) }}"
@@ -39,7 +39,7 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
 
         <svg class="marker-layer"
              viewBox="0 0 {{ section.image_width }} {{ section.image_height }}"
-             preserveAspectRatio="xMidYMid meet">
+             preserveAspectRatio="none">
 
             {% for c in section.characteristics %}
             {% if c.pos_x is not none and c.pos_y is not none %}
