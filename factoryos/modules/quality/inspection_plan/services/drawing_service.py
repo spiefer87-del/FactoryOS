@@ -43,23 +43,35 @@ def upload_drawing(section, file):
 
     
 
+    from PIL import Image as PILImage
+
+    TARGET_WIDTH = 1600  # 🔥 hier steuerst du alles!
+    
+    # ================================
+    # PREVIEW ERZEUGEN + NORMALISIEREN
+    # ================================
+    
     if ext == "pdf":
-
+    
         pages = convert_from_path(save_path, dpi=300)
-        pages[0].save(preview_path, "PNG")
-
-    elif ext in ["tif", "tiff"]:
-
-        img = PILImage.open(save_path)
-        img.seek(0)
-        img.convert("RGB").save(preview_path, "PNG")
-
+        img = pages[0]
+    
     else:
-
+    
         img = PILImage.open(save_path)
-        img.convert("RGB").save(preview_path, "PNG")
-
-    # NACH dem PNG speichern!
+    
+    # 🔥 IMMER RGB
+    img = img.convert("RGB")
+    
+    # 🔥 SKALIEREN (SEHR WICHTIG)
+    ratio = TARGET_WIDTH / img.width
+    new_height = int(img.height * ratio)
+    
+    img = img.resize((TARGET_WIDTH, new_height), PILImage.LANCZOS)
+    
+    # 🔥 SPEICHERN
+    img.save(preview_path, "PNG")
+    
     img = PILImage.open(preview_path)
     
     section.image_width = img.width
