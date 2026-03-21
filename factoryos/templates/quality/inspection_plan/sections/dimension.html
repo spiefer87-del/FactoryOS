@@ -37,11 +37,14 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
         data-section="{{ section.id }}"
         data-status="{{ version.status }}">
 
-        <svg class="marker-layer"
-             viewBox="0 0 100 {{ 100 * (section.image_height / section.image_width) }}"
-             preserveAspectRatio="xMidYMid meet">
-        
+        {% set ratio = 1 %}
+        {% if section.image_width and section.image_height %}
             {% set ratio = section.image_height / section.image_width %}
+        {% endif %}
+        
+        <svg class="marker-layer"
+             viewBox="0 0 100 {{ 100 * ratio }}"
+             preserveAspectRatio="xMidYMid meet">
         
             {% for c in section.characteristics %}
             {% if c.pos_x is not none and c.pos_y is not none %}
@@ -49,13 +52,13 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
             <g class="marker"
                data-id="{{ c.id }}"
                data-status="{{ version.status }}"
-               transform="translate({{ c.pos_x * 100 }} {{ c.pos_y * 100 * ratio }})">
+               transform="translate({{ c.pos_x * 100 }} {{ c.pos_y * 100 }})">
         
                 <circle r="1.8" class="marker-circle"></circle>
         
                 <text class="marker-text"
                       text-anchor="middle"
-                      dominant-baseline="central">
+                      dominant-baseline="middle">
                     {{ c.sort_order }}
                 </text>
         
@@ -65,7 +68,6 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
             {% endfor %}
         
         </svg>
-
     </div>
 </div>
 
