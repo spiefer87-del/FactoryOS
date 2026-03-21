@@ -144,49 +144,45 @@ def reorder_characteristics(section_id):
 
 def generate_svg_with_markers(image_path, characteristics):
 
-    from PIL import Image as PILImage
     import base64
+    from PIL import Image as PILImage
 
     img = PILImage.open(image_path)
     width, height = img.size
-    ratio = height / width
 
-    with open(image_path, "rb") as img_file:
-        base64_image = base64.b64encode(img_file.read()).decode("utf-8")
+    with open(image_path, "rb") as f:
+        base64_image = base64.b64encode(f.read()).decode("utf-8")
 
     svg = []
 
     svg.append(f'''
     <svg xmlns="http://www.w3.org/2000/svg"
-         viewBox="0 0 100 {100 * ratio}"
-         preserveAspectRatio="xMidYMid meet">
+         width="{width}"
+         height="{height}">
 
         <image href="data:image/jpeg;base64,{base64_image}"
                x="0" y="0"
-               width="100"
-               height="{100 * ratio}"/>
+               width="{width}"
+               height="{height}"/>
     ''')
 
-    for c in sorted(characteristics, key=lambda x: x.sort_order or 0):
+    for c in characteristics:
 
         if c.pos_x is None or c.pos_y is None:
             continue
 
-        x = c.pos_x * 100
-        y = c.pos_y * 100 * ratio   # 🔥 FIX
-
         svg.append(f'''
-        <g transform="translate({x} {y})">
+        <g transform="translate({c.pos_x} {c.pos_y})">
 
-            <circle r="1.8"
-                    fill="rgb(220,0,0)"
+            <circle r="15"
+                    fill="red"
                     stroke="black"
-                    stroke-width="0.3"/>
+                    stroke-width="2"/>
 
             <text text-anchor="middle"
-                  dominant-baseline="central"
+                  dominant-baseline="middle"
                   fill="white"
-                  font-size="2.5">
+                  font-size="18">
                 {c.sort_order}
             </text>
 
@@ -196,7 +192,6 @@ def generate_svg_with_markers(image_path, characteristics):
     svg.append("</svg>")
 
     return "".join(svg)
-
 
 def render_svg_to_png(svg_string):
 
