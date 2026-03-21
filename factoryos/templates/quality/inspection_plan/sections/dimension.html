@@ -45,10 +45,8 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
              data-id="{{ c.id }}"
              data-status="{{ version.status }}"
              style="
-                position:absolute;
-                left: {{ c.pos_x * section.image_width }}px;
-                top: {{ c.pos_y * section.image_height }}px;
-                transform: translate(-50%, -50%);
+             left: {{ c.pos_x * 100 }}%;
+             top: {{ c.pos_y * 100 }}%;
              ">
 
             <div class="marker-circle">{{ c.sort_order }}</div>
