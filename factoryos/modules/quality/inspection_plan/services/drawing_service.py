@@ -41,11 +41,7 @@ def upload_drawing(section, file):
     preview_filename = unique + ".png"
     preview_path = os.path.join(upload_folder, preview_filename)
 
-    # NACH dem PNG speichern!
-    img = PILImage.open(preview_path)
     
-    section.image_width = img.width
-    section.image_height = img.height
 
     if ext == "pdf":
 
@@ -62,6 +58,12 @@ def upload_drawing(section, file):
 
         img = PILImage.open(save_path)
         img.convert("RGB").save(preview_path, "PNG")
+
+    # NACH dem PNG speichern!
+    img = PILImage.open(preview_path)
+    
+    section.image_width = img.width
+    section.image_height = img.height
 
     section.drawing_path = f"qm_drawings/{preview_filename}"
 
