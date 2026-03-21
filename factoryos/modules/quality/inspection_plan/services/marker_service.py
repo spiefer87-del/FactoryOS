@@ -142,9 +142,17 @@ def reorder_characteristics(section_id):
 
 
 
-def generate_svg_with_markers(image_path, characteristics):
+def generate_svg_with_markers(image_path, section):
 
-    # 🔥 Bild in Base64 umwandeln
+    import base64
+
+    # fallback falls keine Dimensionen vorhanden
+    if section.image_width and section.image_height:
+        ratio = section.image_height / section.image_width
+    else:
+        ratio = 1
+
+    # Bild laden
     with open(image_path, "rb") as img_file:
         base64_image = base64.b64encode(img_file.read()).decode("utf-8")
 
@@ -152,21 +160,21 @@ def generate_svg_with_markers(image_path, characteristics):
 
     svg.append(f'''
     <svg xmlns="http://www.w3.org/2000/svg"
-         viewBox="0 0 100 100"
-         preserveAspectRatio="none">
+         viewBox="0 0 100 {100 * ratio}"
+         preserveAspectRatio="xMidYMid meet">
 
         <image href="data:image/jpeg;base64,{base64_image}"
                x="0" y="0"
-               width="100" height="100"/>
+               width="100" height="{100 * ratio}"/>
     ''')
 
-    for c in sorted(characteristics, key=lambda x: x.sort_order or 0):
+    for c in sorted(section.characteristics, key=lambda x: x.sort_order or 0):
 
         if c.pos_x is None or c.pos_y is None:
             continue
 
         x = c.pos_x * 100
-        y = c.pos_y * 100
+        y = c.pos_y * 100  # ❗ KEIN ratio hier
 
         svg.append(f'''
         <g transform="translate({x} {y})">
@@ -177,7 +185,7 @@ def generate_svg_with_markers(image_path, characteristics):
                     stroke-width="0.3"/>
 
             <text text-anchor="middle"
-                  dominant-baseline="central"
+                  dominant-baseline="middle"
                   fill="white"
                   font-size="2.5">
                 {c.sort_order}
@@ -197,7 +205,8 @@ def render_svg_to_png(svg_string):
 
     cairosvg.svg2png(
         bytestring=svg_string.encode("utf-8"),
-        write_to=png_output
+        write_to=png_output,
+        output_width=2000  # 🔥 wichtig für Qualität
     )
 
     png_output.seek(0)
