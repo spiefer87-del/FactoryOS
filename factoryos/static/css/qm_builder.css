@@ -78,9 +78,15 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 }
 
 .drawing-stage {
-    position: relative;
     width: 100%;
     max-width: 900px;
+    margin: auto;
+}
+
+.drawing-svg {
+    width: 100%;
+    height: auto;
+    display: block;
 }
 
 .drawing-img {
