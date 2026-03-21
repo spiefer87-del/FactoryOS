@@ -56,7 +56,7 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
             <g class="marker"
                data-id="{{ c.id }}"
                data-status="{{ version.status }}"
-               transform="translate({{ c.pos_x * section.image_width }} {{ c.pos_y * section.image_height }})">
+               transform="translate({{ c.pos_x }} {{ c.pos_y * section.image_height }})"
 
                <circle cx="200" cy="200" r="20" fill="blue"></circle>
 
