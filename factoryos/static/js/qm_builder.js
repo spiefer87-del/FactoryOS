@@ -1,3 +1,6 @@
+let offsetX = 0
+let offsetY = 0
+
 function getDrawingCoordinates(wrapper, clientX, clientY){
 
     const stage = wrapper.querySelector(".drawing-stage")
@@ -88,77 +91,89 @@ unit:document.getElementById("charUnit").value
 
 /* ================= DRAG START ================= */
 
-document.querySelectorAll(".marker").forEach(function(marker){
+marker.addEventListener("mousedown", function(e){
 
-marker.addEventListener("mousedown",function(e){
+    if(marker.dataset.status !== "draft") return
 
-if(marker.dataset.status !== "draft") return
+    activeMarker = marker
+    isDragging = true
 
-activeMarker = marker
-isDragging = true
+    const wrapper = marker.closest(".drawing-wrapper")
+    const svg = wrapper.querySelector(".marker-layer")
 
-document.body.style.userSelect = "none"
+    const coords = getDrawingCoordinates(wrapper, e.clientX, e.clientY)
 
-e.stopPropagation()
+    const viewBox = svg.viewBox.baseVal
+    const ratio = viewBox.height / 100
 
-})
+    const transform = marker.getAttribute("transform")
+    const match = transform.match(/translate\(([^ ]+) ([^ ]+)\)/)
 
+    if(match){
+        offsetX = parseFloat(match[1]) / 100 - coords.x
+        offsetY = (parseFloat(match[2]) / (100 * ratio)) - coords.y
+    }
+
+    document.body.style.userSelect = "none"
+    e.stopPropagation()
 })
 
 /* ================= DRAG MOVE ================= */
 
-document.addEventListener("mousemove",function(e){
+document.addEventListener("mousemove", function(e){
 
-if(!activeMarker) return
+    if(!activeMarker) return
 
-const wrapper = activeMarker.closest(".drawing-wrapper")
+    const wrapper = activeMarker.closest(".drawing-wrapper")
+    const svg = wrapper.querySelector(".marker-layer")
 
-const coords = getDrawingCoordinates(wrapper, e.clientX, e.clientY)
+    const coords = getDrawingCoordinates(wrapper, e.clientX, e.clientY)
 
-let x = Math.max(0, Math.min(1, coords.x))
-let y = Math.max(0, Math.min(1, coords.y))
+    const viewBox = svg.viewBox.baseVal
+    const ratio = viewBox.height / 100
 
-activeMarker.setAttribute(
-"transform",
-`translate(${x*100} ${y*100})`
-)
+    let x = coords.x + offsetX
+    let y = coords.y + offsetY
 
+    x = Math.max(0, Math.min(1, x))
+    y = Math.max(0, Math.min(1, y))
+
+    activeMarker.setAttribute(
+        "transform",
+        `translate(${x * 100} ${y * 100 * ratio})`
+    )
 })
 
 /* ================= DRAG END ================= */
 
-document.addEventListener("mouseup",function(){
+document.addEventListener("mouseup", function(){
 
-if(!activeMarker) return
+    if(!activeMarker) return
 
-const transform = activeMarker.getAttribute("transform")
+    const wrapper = activeMarker.closest(".drawing-wrapper")
+    const svg = wrapper.querySelector(".marker-layer")
 
-const match = transform.match(/translate\(([^ ]+) ([^ ]+)\)/)
+    const viewBox = svg.viewBox.baseVal
+    const ratio = viewBox.height / 100
 
-if(match){
+    const transform = activeMarker.getAttribute("transform")
+    const match = transform.match(/translate\(([^ ]+) ([^ ]+)\)/)
 
-fetch("/quality/inspection-plans/update_characteristic_position",{
+    if(match){
+        fetch("/quality/inspection-plans/update_characteristic_position",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                id: activeMarker.dataset.id,
+                x: parseFloat(match[1]) / 100,
+                y: (parseFloat(match[2]) / 100) / ratio
+            })
+        })
+    }
 
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-
-id: activeMarker.dataset.id,
-x: parseFloat(match[1]) / 100,
-y: parseFloat(match[2]) / 100
-
-})
-
-})
-
-}
-
-activeMarker = null
-
-document.body.style.userSelect = ""
-
-setTimeout(()=>{ isDragging = false }, 50)
-
+    activeMarker = null
+    document.body.style.userSelect = ""
+    setTimeout(()=>{ isDragging = false }, 50)
 })
 
 /* ================= DELETE ================= */
