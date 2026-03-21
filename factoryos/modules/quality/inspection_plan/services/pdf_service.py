@@ -181,7 +181,7 @@ def build_dimension_section(section):
 
             svg = generate_svg_with_markers(
                 img_path,
-                section
+                section.characteristics
             )
             
             image_with_markers = render_svg_to_png(svg)
