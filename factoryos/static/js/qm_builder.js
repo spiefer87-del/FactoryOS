@@ -4,34 +4,31 @@ let activeMarker = null
 let offsetX = 0
 let offsetY = 0
 
-function getImageCoordinates(wrapper, clientX, clientY){
+function getSVGCoordinates(svg, clientX, clientY){
 
-    const img = wrapper.querySelector(".drawing-img")
-    const rect = img.getBoundingClientRect()
+    const rect = svg.getBoundingClientRect()
 
-    const scaleX = img.naturalWidth / rect.width
-    const scaleY = img.naturalHeight / rect.height
+    const x = (clientX - rect.left) / rect.width
+    const y = (clientY - rect.top) / rect.height
 
-    return {
-        x: (clientX - rect.left) * scaleX,
-        y: (clientY - rect.top) * scaleY
-    }
+    return { x, y }
 }
 
 /* ================= CLICK → MARKER ================= */
 
-document.querySelectorAll(".drawing-wrapper").forEach(wrapper => {
+document.querySelectorAll(".drawing-svg").forEach(function(svg){
 
-    wrapper.addEventListener("click", function(e){
+    svg.addEventListener("click", function(e){
 
-        const img = wrapper.querySelector(".drawing-img")
-        if(img.dataset.status !== "draft") return
+        if(isDragging) return
 
-        const coords = getImageCoordinates(wrapper, e.clientX, e.clientY)
+        if(svg.dataset.status !== "draft") return
+
+        const coords = getSVGCoordinates(svg, e.clientX, e.clientY)
 
         document.getElementById("posX").value = coords.x
         document.getElementById("posY").value = coords.y
-        document.getElementById("sectionID").value = img.dataset.section
+        document.getElementById("sectionID").value = svg.dataset.section
 
         document.getElementById("characteristicModal").style.display = "block"
 
