@@ -29,22 +29,27 @@ def upload_drawing(section, file):
 
     save_path = os.path.join(upload_folder, unique)
 
-    # 🔥 Datei speichern (Original)
     file.save(save_path)
+
+    # 🔥 HIER EINFÜGEN (GANZ WICHTIG!)
+    from PIL import Image as PILImage
+
+    
+
+    # =============================
 
     preview_filename = unique + ".png"
     preview_path = os.path.join(upload_folder, preview_filename)
 
-    # ===============================
-    # PREVIEW GENERIEREN
-    # ===============================
+    # NACH dem PNG speichern!
+    img = PILImage.open(preview_path)
+    
+    section.image_width = img.width
+    section.image_height = img.height
+
     if ext == "pdf":
 
-        pages = convert_from_path(
-            save_path,
-            dpi=300
-        )
-
+        pages = convert_from_path(save_path, dpi=300)
         pages[0].save(preview_path, "PNG")
 
     elif ext in ["tif", "tiff"]:
@@ -58,17 +63,6 @@ def upload_drawing(section, file):
         img = PILImage.open(save_path)
         img.convert("RGB").save(preview_path, "PNG")
 
-    # ===============================
-    # 🔥 NEU: DIMENSIONEN SETZEN
-    # ===============================
-    preview_img = PILImage.open(preview_path)
-
-    section.image_width = preview_img.width
-    section.image_height = preview_img.height
-
-    # ===============================
-    # PATH SPEICHERN
-    # ===============================
     section.drawing_path = f"qm_drawings/{preview_filename}"
 
     section.version.is_dirty = True
