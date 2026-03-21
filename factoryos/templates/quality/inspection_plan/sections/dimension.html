@@ -29,18 +29,21 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
 {% if section.drawing_path %}
 
 <div class="drawing-wrapper">
-    <div class="drawing-stage" style="aspect-ratio: {{ section.image_width }}/{{ section.image_height }}">
+    <div class="drawing-stage">
 
-        <img
-            src="{{ url_for('static', filename=section.drawing_path) }}"
-            class="drawing-img"
-            data-section="{{ section.id }}"
-            data-status="{{ version.status }}">
-
-        <svg class="marker-layer"
+        <svg class="drawing-svg"
              viewBox="0 0 {{ section.image_width }} {{ section.image_height }}"
-             preserveAspectRatio="none">
+             preserveAspectRatio="xMidYMid meet">
 
+            <!-- 🔥 BILD IM SVG -->
+            <image
+                href="{{ url_for('static', filename=section.drawing_path) }}"
+                x="0"
+                y="0"
+                width="{{ section.image_width }}"
+                height="{{ section.image_height }}" />
+
+            <!-- 🔥 MARKER -->
             {% for c in section.characteristics %}
             {% if c.pos_x is not none and c.pos_y is not none %}
 
