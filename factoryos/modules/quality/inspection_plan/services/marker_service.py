@@ -144,12 +144,14 @@ def reorder_characteristics(section_id):
 
 def generate_svg_with_markers(image_path, characteristics):
 
-    import base64
     from PIL import Image as PILImage
+    import base64
 
+    # Bildgröße holen
     img = PILImage.open(image_path)
-    width, height = img.size
+    width, height = img.width, img.height
 
+    # Base64
     with open(image_path, "rb") as f:
         base64_image = base64.b64encode(f.read()).decode("utf-8")
 
@@ -157,13 +159,12 @@ def generate_svg_with_markers(image_path, characteristics):
 
     svg.append(f'''
     <svg xmlns="http://www.w3.org/2000/svg"
-         width="{width}"
-         height="{height}">
+         viewBox="0 0 {width} {height}"
+         preserveAspectRatio="none">
 
-        <image href="data:image/jpeg;base64,{base64_image}"
+        <image href="data:image/png;base64,{base64_image}"
                x="0" y="0"
-               width="{width}"
-               height="{height}"/>
+               width="{width}" height="{height}" />
     ''')
 
     for c in characteristics:
@@ -171,10 +172,13 @@ def generate_svg_with_markers(image_path, characteristics):
         if c.pos_x is None or c.pos_y is None:
             continue
 
-        svg.append(f'''
-        <g transform="translate({c.pos_x} {c.pos_y})">
+        x = c.pos_x * width
+        y = c.pos_y * height
 
-            <circle r="15"
+        svg.append(f'''
+        <g transform="translate({x} {y})">
+
+            <circle r="12"
                     fill="red"
                     stroke="black"
                     stroke-width="2"/>
@@ -182,7 +186,7 @@ def generate_svg_with_markers(image_path, characteristics):
             <text text-anchor="middle"
                   dominant-baseline="middle"
                   fill="white"
-                  font-size="18">
+                  font-size="20">
                 {c.sort_order}
             </text>
 
@@ -192,7 +196,7 @@ def generate_svg_with_markers(image_path, characteristics):
     svg.append("</svg>")
 
     return "".join(svg)
-
+    
 def render_svg_to_png(svg_string):
 
     png_output = BytesIO()
