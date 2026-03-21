@@ -139,21 +139,24 @@ def draw_markers_on_image(image_path, characteristics):
 
     img = PILImage.open(image_path).convert("RGB")
 
+    # stabile Größe (wichtig!)
+    base_width = 2000
+    ratio = base_width / img.width
+    img = img.resize((base_width, int(img.height * ratio)))
+
     width, height = img.size
     draw = ImageDraw.Draw(img)
 
-    font_size = int(height * 0.022)
+    # Marker Größe wie im SVG (1.8%)
+    r = int(width * 0.018)
+
+    # Schrift proportional zum Marker
+    font_size = int(r * 1.4)
 
     try:
         font = ImageFont.truetype("DejaVuSans-Bold.ttf", font_size)
     except:
         font = ImageFont.load_default()
-
-    # entspricht SVG r="1.8"
-    r = int(width * 0.018)
-    
-    # Schrift proportional zum Marker
-    font_size = int(r * 1.4)
 
     for c in sorted(characteristics, key=lambda x: x.sort_order or 0):
 
@@ -165,19 +168,22 @@ def draw_markers_on_image(image_path, characteristics):
 
         # Kreis
         draw.ellipse(
-            (x-r, y-r, x+r, y+r),
+            (x - r, y - r, x + r, y + r),
             fill=(220, 0, 0),
             outline=(0, 0, 0),
-            width=2
+            width=max(2, int(r * 0.15))
         )
 
-        # Text (zentriert)
+        # 🔥 Text EXAKT zentrieren (wichtig!)
+        bbox = draw.textbbox((0, 0), str(c.sort_order), font=font)
+        text_w = bbox[2] - bbox[0]
+        text_h = bbox[3] - bbox[1]
+
         draw.text(
-            (x, y),
+            (x - text_w / 2, y - text_h / 2),
             str(c.sort_order),
             fill=(255, 255, 255),
-            font=font,
-            anchor="mm"
+            font=font
         )
 
     output = BytesIO()
