@@ -142,54 +142,53 @@ def reorder_characteristics(section_id):
 
 
 
-def generate_svg_with_markers(image_path, section):
+def generate_svg_with_markers(image_path, characteristics):
 
+    from PIL import Image as PILImage
     import base64
 
-    # Bild laden
-    with open(image_path, "rb") as img_file:
-        base64_image = base64.b64encode(img_file.read()).decode("utf-8")
+    # 🔥 echte Bildgröße holen
+    img = PILImage.open(image_path)
+    width, height = img.size
 
-    # 🔥 Verhältnis berechnen
-    if section.image_width and section.image_height:
-        ratio = section.image_height / section.image_width
-    else:
-        ratio = 1
+    with open(image_path, "rb") as f:
+        base64_image = base64.b64encode(f.read()).decode("utf-8")
 
     svg = []
 
     svg.append(f'''
     <svg xmlns="http://www.w3.org/2000/svg"
-         viewBox="0 0 100 {100 * ratio}"
-         preserveAspectRatio="xMidYMid meet">
+         viewBox="0 0 {width} {height}"
+         width="{width}"
+         height="{height}">
 
         <image href="data:image/png;base64,{base64_image}"
                x="0" y="0"
-               width="100"
-               height="{100 * ratio}"/>
+               width="{width}"
+               height="{height}"/>
     ''')
 
-    for c in sorted(section.characteristics, key=lambda x: x.sort_order or 0):
+    for c in characteristics:
 
         if c.pos_x is None or c.pos_y is None:
             continue
 
-        # 🔥 WICHTIG: exakt wie im HTML
-        x = c.pos_x * 100
-        y = c.pos_y * 100 * ratio
+        # 🔥 gleiche Logik wie UI
+        x = c.pos_x * width
+        y = c.pos_y * height
 
         svg.append(f'''
         <g transform="translate({x} {y})">
 
-            <circle r="1.8"
+            <circle r="{width * 0.018}"
                     fill="rgb(220,0,0)"
                     stroke="black"
-                    stroke-width="0.3"/>
+                    stroke-width="{width * 0.002}"/>
 
             <text text-anchor="middle"
-                  dominant-baseline="central"
+                  dominant-baseline="middle"
                   fill="white"
-                  font-size="2.5">
+                  font-size="{width * 0.03}">
                 {c.sort_order}
             </text>
 
