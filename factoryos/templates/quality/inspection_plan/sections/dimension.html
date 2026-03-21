@@ -32,15 +32,14 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
     <div class="drawing-stage">
 
         <img
-        src="{{ url_for('static', filename=section.drawing_path) }}"
-        class="drawing-img"
-        data-section="{{ section.id }}"
-        data-status="{{ version.status }}">
+            src="{{ url_for('static', filename=section.drawing_path) }}"
+            class="drawing-img"
+            data-section="{{ section.id }}"
+            data-status="{{ version.status }}">
 
-        <!-- 🔥 KEIN RATIO MEHR -->
         <svg class="marker-layer"
-             viewBox="0 0 100 100"
-             preserveAspectRatio="none">
+             viewBox="0 0 {{ section.image_width }} {{ section.image_height }}"
+             preserveAspectRatio="xMidYMid meet">
 
             {% for c in section.characteristics %}
             {% if c.pos_x is not none and c.pos_y is not none %}
@@ -48,9 +47,9 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
             <g class="marker"
                data-id="{{ c.id }}"
                data-status="{{ version.status }}"
-               transform="translate({{ c.pos_x * 100 }} {{ c.pos_y * 100 }})">
+               transform="translate({{ c.pos_x * section.image_width }} {{ c.pos_y * section.image_height }})">
 
-                <circle r="1.8" class="marker-circle"></circle>
+                <circle r="12" class="marker-circle"></circle>
 
                 <text class="marker-text"
                       text-anchor="middle"
@@ -67,7 +66,6 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
 
     </div>
 </div>
-
 
 <!-- ===== Bohrungen erkennen ===== -->
 
