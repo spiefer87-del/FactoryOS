@@ -32,8 +32,9 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
     <div class="drawing-stage">
 
         <svg class="drawing-svg"
-             viewBox="0 0 {{ section.image_width }} {{ section.image_height }}"
-             preserveAspectRatio="xMidYMid meet">
+             data-section="{{ section.id }}"
+             data-status="{{ version.status }}"
+             viewBox="0 0 {{ section.image_width }} {{ section.image_height }}">
 
             <!-- 🔥 BILD IM SVG -->
             <image
