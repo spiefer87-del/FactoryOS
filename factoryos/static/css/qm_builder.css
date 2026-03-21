@@ -77,11 +77,7 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
     justify-content: center;
 }
 
-.drawing-stage {
-    width: 100%;
-    max-width: 900px;
-    margin: auto;
-}
+
 
 .drawing-svg {
     width: 100%;
@@ -107,21 +103,7 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
     pointer-events: all;
 }
 
-.marker {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    background: red;
-    color: white;
-    border-radius: 50%;
-    width: 22px;
-    height: 22px;
-    text-align: center;
-    line-height: 22px;
-    font-size: 12px;
-    cursor: pointer;
-    user-select: none;
-    pointer-events: all;
-}
+
 
 
 
@@ -132,10 +114,26 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 
 
 
+.drawing-stage {
+    position: relative;
+}
+
+.marker {
+    position: absolute;
+    cursor: pointer;
+}
+
 .marker-circle {
-    fill: red;
-    stroke: black;
-    stroke-width: 2;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: red;
+    color: white;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid black;
 }
 
 .marker-text{
