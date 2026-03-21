@@ -6,6 +6,9 @@ from ..models import QualityInspectionCharacteristic
 from PIL import Image as PILImage, ImageDraw, ImageFont
 from io import BytesIO
 
+import cairosvg
+from io import BytesIO
+
 from factoryos.modules.quality.inspection_plan.services.change_log_service import log_change
 
 
@@ -135,59 +138,63 @@ def reorder_characteristics(section_id):
 
 
 
-def draw_markers_on_image(image_path, characteristics):
+def generate_svg_with_markers(image_path, characteristics):
 
-    img = PILImage.open(image_path).convert("RGB")
+    svg = []
 
-    # stabile Größe (wichtig!)
-    base_width = 2000
-    ratio = base_width / img.width
-    img = img.resize((base_width, int(img.height * ratio)))
+    svg.append(f'''
+    <svg xmlns="http://www.w3.org/2000/svg"
+         width="2000"
+         height="1200"
+         viewBox="0 0 100 100">
 
-    width, height = img.size
-    draw = ImageDraw.Draw(img)
-
-    # Marker Größe wie im SVG (1.8%)
-    r = int(width * 0.018)
-
-    # Schrift proportional zum Marker
-    font_size = int(r * 1.4)
-
-    try:
-        font = ImageFont.truetype("DejaVuSans-Bold.ttf", font_size)
-    except:
-        font = ImageFont.load_default()
+        <image href="{image_path}"
+               x="0" y="0"
+               width="100" height="100"
+               preserveAspectRatio="none"/>
+    ''')
 
     for c in sorted(characteristics, key=lambda x: x.sort_order or 0):
 
         if c.pos_x is None or c.pos_y is None:
             continue
 
-        x = int(c.pos_x * width)
-        y = int(c.pos_y * height)
+        x = c.pos_x * 100
+        y = c.pos_y * 100
 
-        # Kreis
-        draw.ellipse(
-            (x - r, y - r, x + r, y + r),
-            fill=(220, 0, 0),
-            outline=(0, 0, 0),
-            width=max(2, int(r * 0.15))
-        )
+        svg.append(f'''
+        <g transform="translate({x} {y})">
 
-        # 🔥 Text EXAKT zentrieren (wichtig!)
-        bbox = draw.textbbox((0, 0), str(c.sort_order), font=font)
-        text_w = bbox[2] - bbox[0]
-        text_h = bbox[3] - bbox[1]
+            <circle r="1.8"
+                    fill="rgb(220,0,0)"
+                    stroke="black"
+                    stroke-width="0.3"/>
 
-        draw.text(
-            (x - text_w / 2, y - text_h / 2),
-            str(c.sort_order),
-            fill=(255, 255, 255),
-            font=font
-        )
+            <text text-anchor="middle"
+                  dominant-baseline="central"
+                  fill="white"
+                  font-size="2.5">
+                {c.sort_order}
+            </text>
 
-    output = BytesIO()
-    img.save(output, format="PNG")
-    output.seek(0)
+        </g>
+        ''')
 
-    return output
+    svg.append("</svg>")
+
+    return "".join(svg)
+
+
+
+def render_svg_to_png(svg_string):
+
+    png_output = BytesIO()
+
+    cairosvg.svg2png(
+        bytestring=svg_string.encode("utf-8"),
+        write_to=png_output
+    )
+
+    png_output.seek(0)
+
+    return png_output
