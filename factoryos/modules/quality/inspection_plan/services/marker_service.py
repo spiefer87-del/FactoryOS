@@ -149,7 +149,11 @@ def draw_markers_on_image(image_path, characteristics):
     except:
         font = ImageFont.load_default()
 
-    r = int(height * 0.014)
+    # entspricht SVG r="1.8"
+    r = int(width * 0.018)
+    
+    # Schrift proportional zum Marker
+    font_size = int(r * 1.4)
 
     for c in sorted(characteristics, key=lambda x: x.sort_order or 0):
 
