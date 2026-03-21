@@ -187,11 +187,14 @@ def build_dimension_section(section):
             image_with_markers = render_svg_to_png(svg)
 
             img = Image(image_with_markers)
-            
-            ratio = section.image_height / section.image_width
 
-            img.drawWidth = 16 * cm
-            img.drawHeight = 16 * cm * ratio
+            # 🔥 echtes Verhältnis aus DB!
+            ratio = section.image_height / section.image_width
+            
+            target_width = 16 * cm
+            
+            img.drawWidth = target_width
+            img.drawHeight = target_width * ratio
 
             block.append(img)
             block.append(Spacer(1, 10))
