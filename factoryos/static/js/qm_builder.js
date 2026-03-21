@@ -1,17 +1,18 @@
 document.addEventListener("DOMContentLoaded", function(){
 
 let activeMarker = null
-let offsetX = 0
-let offsetY = 0
+let isDragging = false
+
+/* ================= COORDINATES ================= */
 
 function getSVGCoordinates(svg, clientX, clientY){
 
     const rect = svg.getBoundingClientRect()
 
-    const x = (clientX - rect.left) / rect.width
-    const y = (clientY - rect.top) / rect.height
-
-    return { x, y }
+    return {
+        x: (clientX - rect.left) / rect.width,
+        y: (clientY - rect.top) / rect.height
+    }
 }
 
 /* ================= CLICK → MARKER ================= */
@@ -21,7 +22,6 @@ document.querySelectorAll(".drawing-svg").forEach(function(svg){
     svg.addEventListener("click", function(e){
 
         if(isDragging) return
-
         if(svg.dataset.status !== "draft") return
 
         const coords = getSVGCoordinates(svg, e.clientX, e.clientY)
@@ -36,7 +36,7 @@ document.querySelectorAll(".drawing-svg").forEach(function(svg){
 
 })
 
-/* ================= DRAG ================= */
+/* ================= DRAG START ================= */
 
 document.querySelectorAll(".marker").forEach(marker => {
 
@@ -45,11 +45,7 @@ document.querySelectorAll(".marker").forEach(marker => {
         if(marker.dataset.status !== "draft") return
 
         activeMarker = marker
-
-        const rect = marker.getBoundingClientRect()
-
-        offsetX = e.clientX - rect.left
-        offsetY = e.clientY - rect.top
+        isDragging = true
 
         document.body.style.userSelect = "none"
         e.stopPropagation()
@@ -57,37 +53,64 @@ document.querySelectorAll(".marker").forEach(marker => {
 
 })
 
+/* ================= DRAG MOVE ================= */
+
 document.addEventListener("mousemove", function(e){
 
     if(!activeMarker) return
 
-    const wrapper = activeMarker.closest(".drawing-wrapper")
-    const coords = getImageCoordinates(wrapper, e.clientX, e.clientY)
+    const svg = activeMarker.closest(".drawing-svg")
 
-    activeMarker.style.left = coords.x + "px"
-    activeMarker.style.top = coords.y + "px"
+    const coords = getSVGCoordinates(svg, e.clientX, e.clientY)
+
+    const width = svg.viewBox.baseVal.width
+    const height = svg.viewBox.baseVal.height
+
+    const x = coords.x * width
+    const y = coords.y * height
+
+    activeMarker.setAttribute(
+        "transform",
+        `translate(${x} ${y})`
+    )
 
 })
+
+/* ================= DRAG END ================= */
 
 document.addEventListener("mouseup", function(){
 
     if(!activeMarker) return
 
-    const x = parseFloat(activeMarker.style.left)
-    const y = parseFloat(activeMarker.style.top)
+    const svg = activeMarker.closest(".drawing-svg")
 
-    fetch("/quality/inspection-plans/update_characteristic_position",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-            id: activeMarker.dataset.id,
-            x: x,
-            y: y
+    const width = svg.viewBox.baseVal.width
+    const height = svg.viewBox.baseVal.height
+
+    const transform = activeMarker.getAttribute("transform")
+    const match = transform.match(/translate\(([^ ]+) ([^ ]+)\)/)
+
+    if(match){
+
+        const x = parseFloat(match[1]) / width
+        const y = parseFloat(match[2]) / height
+
+        fetch("/quality/inspection-plans/update_characteristic_position",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                id: activeMarker.dataset.id,
+                x: x,
+                y: y
+            })
         })
-    })
+    }
 
     activeMarker = null
     document.body.style.userSelect = ""
+
+    setTimeout(()=>{ isDragging = false }, 50)
+
 })
 
 })
