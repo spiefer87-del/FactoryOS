@@ -87,6 +87,9 @@ class QualityInspectionSection(db.Model):
         order_by="QualityInspectionIdentificationImage.uploaded_at.asc()"
     )
 
+    image_width = db.Column(db.Integer)
+    image_height = db.Column(db.Integer)
+
     snippets = db.relationship(
         "QualityInspectionDimensionSnippet",
         back_populates="section",
