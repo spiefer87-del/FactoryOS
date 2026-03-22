@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function(){
 
+let isDragging = false
 let activeMarker = null
 let offsetX = 0
 let offsetY = 0
@@ -46,13 +47,14 @@ document.querySelectorAll(".marker").forEach(marker => {
     marker.addEventListener("mousedown", function(e){
 
         if(marker.dataset.status !== "draft") return
-
+    
         activeMarker = marker
-
+        isDragging = true   // 🔥 wichtig
+    
         const rect = marker.getBoundingClientRect()
         offsetX = e.clientX - rect.left
         offsetY = e.clientY - rect.top
-
+    
         document.body.style.userSelect = "none"
         e.stopPropagation()
     })
@@ -101,6 +103,11 @@ document.addEventListener("mouseup", function(){
 
     activeMarker = null
     document.body.style.userSelect = ""
+
+    // 🔥 wichtig: verzögert zurücksetzen
+    setTimeout(() => {
+        isDragging = false
+    }, 50)
 })
 
 /* ================= DELETE ================= */
