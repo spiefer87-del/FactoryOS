@@ -26,16 +26,18 @@ function getImageCoordinates(wrapper, clientX, clientY){
 document.querySelectorAll(".drawing-wrapper").forEach(wrapper => {
 
     wrapper.addEventListener("click", function(e){
-
+    
+        if(isDragging) return   // 🔥 DAS ist der Fix
+    
         const img = wrapper.querySelector(".drawing-img")
         if(!img || img.dataset.status !== "draft") return
-
+    
         const coords = getImageCoordinates(wrapper, e.clientX, e.clientY)
-
+    
         document.getElementById("posX").value = coords.relX
         document.getElementById("posY").value = coords.relY
         document.getElementById("sectionID").value = img.dataset.section
-
+    
         document.getElementById("characteristicModal").style.display = "block"
     })
 })
