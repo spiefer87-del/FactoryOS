@@ -50,21 +50,19 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
         {% if c.pos_x is not none and c.pos_y is not none %}
 
         <div class="marker"
-             data-id="{{ c.id }}"
-             data-status="{{ version.status }}"
-             style="
-             left: {{ c.pos_x * 100 }}%;
-             top: {{ c.pos_y * 100 }}%;
-             ">
+            data-id="{{ c.id }}"
+            data-status="{{ version.status }}"
+            style="left: {{ c.pos_x * 100 }}%; top: {{ c.pos_y * 100 }}%;">
 
             <div class="marker-circle">{{ c.sort_order }}</div>
 
         </div>
-        <div class="scroll-hint">← ziehen →</div>
+        
         {% endif %}
         {% endfor %}
 
     </div>
+    <div class="scroll-hint">← ziehen →</div>
 </div>
 
 <!-- ===== Bohrungen erkennen ===== -->
