@@ -159,12 +159,14 @@ def generate_svg_with_markers(image_path, characteristics):
 
     svg.append(f'''
     <svg xmlns="http://www.w3.org/2000/svg"
-         viewBox="0 0 {width} {height}"
-         preserveAspectRatio="none">
+        viewBox="0 0 {width} {height}"
+        width="{width}"
+        height="{height}"
+        preserveAspectRatio="none">
 
         <image href="data:image/png;base64,{base64_image}"
-               x="0" y="0"
-               width="{width}" height="{height}" />
+            x="0" y="0"
+            width="{width}" height="{height}" />
     ''')
 
     for c in characteristics:
