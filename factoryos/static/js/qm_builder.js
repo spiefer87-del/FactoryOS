@@ -78,7 +78,7 @@ document.addEventListener("mousemove", function(e){
 
     activeMarker.style.left = (relX * 100) + "%"
     activeMarker.style.top = (relY * 100) + "%"
-    })
+})
 
 document.addEventListener("mouseup", function(){
 
@@ -89,18 +89,16 @@ document.addEventListener("mouseup", function(){
 
     const rect = img.getBoundingClientRect()
 
-    const relX = parseFloat(activeMarker.style.left) / 100
-    const relY = parseFloat(activeMarker.style.top) / 100
-
-    
+    const x = parseFloat(activeMarker.style.left)
+    const y = parseFloat(activeMarker.style.top)
 
     fetch("/quality/inspection-plans/update_characteristic_position",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
             id: activeMarker.dataset.id,
-            x: relX,
-            y: relY
+            x: x / rect.width,
+            y: y / rect.height
         })
     })
 
