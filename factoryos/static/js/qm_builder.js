@@ -55,10 +55,19 @@ document.addEventListener("DOMContentLoaded", function(){
 
             activeMarker = marker
 
+            const wrapper = marker.closest(".drawing-wrapper")
+            const img = wrapper.querySelector(".drawing-img")
             const rect = img.getBoundingClientRect()
 
             const scaleX = img.naturalWidth / rect.width
             const scaleY = img.naturalHeight / rect.height
+
+            // 🔥 WICHTIG: Offset korrekt berechnen
+            const markerX = parseFloat(marker.style.left)
+            const markerY = parseFloat(marker.style.top)
+
+            offsetX = (e.clientX - rect.left) * scaleX - markerX
+            offsetY = (e.clientY - rect.top) * scaleY - markerY
 
             document.body.style.userSelect = "none"
             e.stopPropagation()
@@ -78,12 +87,13 @@ document.addEventListener("DOMContentLoaded", function(){
         const scaleX = img.naturalWidth / rect.width
         const scaleY = img.naturalHeight / rect.height
 
-        let x = (e.clientX - rect.left) * scaleX - offsetX * scaleX
-        let y = (e.clientY - rect.top) * scaleY - offsetY * scaleY
+        let x = (e.clientX - rect.left) * scaleX - offsetX
+        let y = (e.clientY - rect.top) * scaleY - offsetY
 
         x = Math.max(0, Math.min(img.naturalWidth, x))
         y = Math.max(0, Math.min(img.naturalHeight, y))
 
+        // 🔥 NUR PIXEL (kein % mehr!)
         activeMarker.style.left = x + "px"
         activeMarker.style.top = y + "px"
     })
