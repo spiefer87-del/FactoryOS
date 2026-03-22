@@ -73,8 +73,7 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 
 .qm-drawing-area {
     width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow: auto;
     -webkit-overflow-scrolling: touch;
 }
 
@@ -100,8 +99,8 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 
 .drawing-img {
     display: block;
+    width: auto;
     height: auto;
-    max-width: none; /* 🔥 wichtig */
 }
 
 .marker-layer {
