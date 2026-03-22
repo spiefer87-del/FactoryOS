@@ -55,10 +55,10 @@ document.addEventListener("DOMContentLoaded", function(){
 
             activeMarker = marker
 
-            const rect = marker.getBoundingClientRect()
+            const rect = img.getBoundingClientRect()
 
-            offsetX = e.clientX - rect.left
-            offsetY = e.clientY - rect.top
+            const scaleX = img.naturalWidth / rect.width
+            const scaleY = img.naturalHeight / rect.height
 
             document.body.style.userSelect = "none"
             e.stopPropagation()
