@@ -10,6 +10,8 @@ import cairosvg
 from io import BytesIO
 
 import base64
+import html
+
 
 from factoryos.modules.quality.inspection_plan.services.change_log_service import log_change
 
@@ -153,7 +155,7 @@ def generate_svg_with_markers(image_path, characteristics):
 
     # Base64
     with open(image_path, "rb") as f:
-        base64_image = base64.b64encode(f.read()).decode("utf-8")
+        base64_image = base64.b64encode(f.read()).decode("utf-8").replace("\n", "")
 
     svg = []
 
@@ -176,6 +178,9 @@ def generate_svg_with_markers(image_path, characteristics):
         x = c.pos_x * width
         y = c.pos_y * height
 
+        # 🔥 HIER FIX 3
+        text = html.escape(str(c.sort_order))
+
         svg.append(f'''
         <g transform="translate({x} {y})">
             <circle r="12"
@@ -191,7 +196,7 @@ def generate_svg_with_markers(image_path, characteristics):
                 y="0"
                 fill="white"
                 font-size="20">
-                {c.sort_order}
+                {text}
             </text>
 
         </g>
