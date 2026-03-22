@@ -155,7 +155,7 @@ def generate_svg_with_markers(image_path, characteristics):
 
     # Base64
     with open(image_path, "rb") as f:
-        base64_image = base64.b64encode(f.read()).decode("utf-8").replace("\n", "")
+        base64_image = base64.b64encode(f.read()).decode("ascii").replace("\n", "").replace("\r", "")
 
     svg = []
 
@@ -163,7 +163,7 @@ def generate_svg_with_markers(image_path, characteristics):
     <svg xmlns="http://www.w3.org/2000/svg"
         xmlns:xlink="http://www.w3.org/1999/xlink"
         viewBox="0 0 {width} {height}"
-        preserveAspectRatio="xMidYMid meet"">
+        preserveAspectRatio="xMidYMid meet">
 
         <image xlink:href="data:image/png;base64,{base64_image}"
                x="0" y="0"
@@ -201,9 +201,9 @@ def generate_svg_with_markers(image_path, characteristics):
 
         </g>
         ''')
-
+    
     svg.append("</svg>")
-
+    print(svg[:500])
     return "".join(svg)
     
 def render_svg_to_png(svg_string):
