@@ -6,7 +6,11 @@ class QualityInspectionPlan(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    article_id = db.Column(db.Integer, db.ForeignKey("article.id"), nullable=False)
+    article_id = db.Column(
+        db.Integer,
+        db.ForeignKey("article.id"),   # 👈 MUSS exakt so sein!
+        nullable=False
+    )
 
     # optional behalten
     tool_id = db.Column(db.Integer, db.ForeignKey("tool.id"), nullable=True)
