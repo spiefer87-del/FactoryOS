@@ -132,6 +132,61 @@ document.querySelectorAll(".marker").forEach(marker => {
         })
         .then(()=>location.reload())
 
+/* ================= Zoom ================= */
+
+document.querySelectorAll(".drawing-stage").forEach(stage => {
+
+    const img = stage.querySelector(".drawing-img")
+    const svg = stage.querySelector(".marker-layer")
+
+    let scale = 1
+    let originalWidth = 0
+    let originalHeight = 0
+
+    function init(){
+
+        originalWidth = img.naturalWidth
+        originalHeight = img.naturalHeight
+
+        applyZoom()
+    }
+
+    function applyZoom(){
+
+        const newWidth = originalWidth * scale
+
+        stage.style.width = newWidth + "px"
+
+        img.style.width = "100%"
+        img.style.height = "auto"
+    }
+
+    // 🔥 WICHTIG: warten bis Bild geladen
+    if(img.complete){
+        init()
+    } else {
+        img.onload = init
+    }
+
+    const wrapper = stage.closest(".qm-drawing-area")
+
+    wrapper.querySelector(".zoom-in").addEventListener("click", () => {
+        scale = Math.min(scale + 0.2, 3)
+        applyZoom()
+    })
+
+    wrapper.querySelector(".zoom-out").addEventListener("click", () => {
+        scale = Math.max(scale - 0.2, 0.5)
+        applyZoom()
+    })
+
+    wrapper.querySelector(".zoom-reset").addEventListener("click", () => {
+        scale = 1
+        applyZoom()
+    })
+
+})
+
     })
 
 })
