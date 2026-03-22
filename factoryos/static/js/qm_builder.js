@@ -146,8 +146,9 @@ document.querySelectorAll(".drawing-stage").forEach(stage => {
     }
 
     function applyZoom(){
-        const newWidth = originalWidth * scale
-        stage.style.width = newWidth + "px"
+
+        stage.style.transform = `scale(${scale})`
+        stage.style.transformOrigin = "top left"
     }
 
     if(img.complete){
