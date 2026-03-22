@@ -1,25 +1,29 @@
 document.addEventListener("DOMContentLoaded", function(){
 
-let isDragging = false
-let activeMarker = null
-let offsetX = 0
-let offsetY = 0
+    let isDragging = false
+    let activeMarker = null
+    let offsetX = 0
+    let offsetY = 0
 
-function getImageCoordinates(wrapper, clientX, clientY){
+document.querySelectorAll(".drawing-img").forEach(img => {
+        img.addEventListener("dragstart", e => e.preventDefault())
+    })
 
-    const img = wrapper.querySelector(".drawing-img")
-    const rect = img.getBoundingClientRect()
-
-    const x = (clientX - rect.left)
-    const y = (clientY - rect.top)
-
-    return {
-        x: x,
-        y: y,
-        relX: x / rect.width,
-        relY: y / rect.height
+    function getImageCoordinates(wrapper, clientX, clientY){
+    
+        const img = wrapper.querySelector(".drawing-img")
+        const rect = img.getBoundingClientRect()
+    
+        const x = (clientX - rect.left)
+        const y = (clientY - rect.top)
+    
+        return {
+            x: x,
+            y: y,
+            relX: x / rect.width,
+            relY: y / rect.height
+        }
     }
-}
 
 /* ================= CLICK ================= */
 
