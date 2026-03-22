@@ -101,10 +101,17 @@ def generate_inspection_plan_pdf(version_id):
     # ===============================
     tool = version.plan.tool
 
+
+    tool_no = tool.tool_no if tool else "-"
+    article = plan.article
+
+    article_no = article.article_no if article else "-"
+    article_name = article.article_name if article else "-"
+
     meta = [
-        ["Werkzeug", tool.tool_no or "-"],
-        ["Artikel", version.plan.article.article_name or "-"],
-        ["Artikelnummer", version.plan.article.article_no or "-"],
+        ["Werkzeug", tool_no],
+        ["Artikel", article_name],
+        ["Artikelnummer", article_no],
         ["Status", version.status]
     ]
 
