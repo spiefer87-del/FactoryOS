@@ -103,8 +103,6 @@ document.addEventListener("mouseup", function(){
     document.body.style.userSelect = ""
 })
 
-})
-
 /* ================= DELETE ================= */
 
 document.querySelectorAll(".marker").forEach(marker => {
@@ -118,50 +116,40 @@ document.querySelectorAll(".marker").forEach(marker => {
 
         const id = marker.dataset.id
 
-        // UI sofort entfernen
         marker.remove()
 
         const row = document.querySelector(`.characteristic-row[data-id="${id}"]`)
         if(row) row.remove()
 
-        // Backend löschen
         fetch("/quality/inspection-plans/delete_characteristic_marker",{
             method:"POST",
             headers:{"Content-Type":"application/json"},
             body:JSON.stringify({ id: id })
-        })
-        .then(()=>location.reload())
+        }).then(()=>location.reload())
 
-/* ================= Zoom ================= */
+    })
+
+})
+
+/* ================= ZOOM ================= */
 
 document.querySelectorAll(".drawing-stage").forEach(stage => {
 
     const img = stage.querySelector(".drawing-img")
-    const svg = stage.querySelector(".marker-layer")
 
     let scale = 1
     let originalWidth = 0
-    let originalHeight = 0
 
     function init(){
-
         originalWidth = img.naturalWidth
-        originalHeight = img.naturalHeight
-
         applyZoom()
     }
 
     function applyZoom(){
-
         const newWidth = originalWidth * scale
-
         stage.style.width = newWidth + "px"
-
-        img.style.width = "100%"
-        img.style.height = "auto"
     }
 
-    // 🔥 WICHTIG: warten bis Bild geladen
     if(img.complete){
         init()
     } else {
@@ -186,7 +174,5 @@ document.querySelectorAll(".drawing-stage").forEach(stage => {
     })
 
 })
-
-    })
 
 })
