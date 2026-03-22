@@ -110,10 +110,14 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 }
 
 .drawing-img {
+    user-drag: none;
+    -webkit-user-drag: none;
+    pointer-events: auto;
     display: block;
     width: auto;
     height: auto;
 }
+
 
 .marker-layer {
     position: absolute;
