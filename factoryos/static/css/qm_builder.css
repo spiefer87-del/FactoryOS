@@ -74,16 +74,30 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 .qm-drawing-area {
     width: 100%;
     overflow: auto;
+    cursor: grab;
     -webkit-overflow-scrolling: touch;
 }
 
+.qm-drawing-area:active {
+    cursor: grabbing;
+}
+
 .qm-drawing-area::-webkit-scrollbar {
-    height: 6px;
+    height: 12px;   /* 🔥 dicker */
+}
+
+.qm-drawing-area::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 6px;
 }
 
 .qm-drawing-area::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 3px;
+    background: linear-gradient(180deg, #aaa, #777);
+    border-radius: 6px;
+}
+
+.qm-drawing-area::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }
 
 
@@ -121,7 +135,12 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
     margin-bottom: 8px;
 }
 
-
+.scroll-hint {
+    font-size: 12px;
+    color: #888;
+    text-align: center;
+    margin-bottom: 5px;
+}
     
 
 .drawing-stage {
