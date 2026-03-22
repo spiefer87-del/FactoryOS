@@ -4,39 +4,35 @@ let activeMarker = null
 let offsetX = 0
 let offsetY = 0
 
-function getImageCoordinates(wrapper, clientX, clientY){
+function getSVGPoint(svg, clientX, clientY){
 
-    const img = wrapper.querySelector(".drawing-img")
-    const rect = img.getBoundingClientRect()
+    const pt = svg.createSVGPoint()
+    pt.x = clientX
+    pt.y = clientY
 
-    const x = (clientX - rect.left)
-    const y = (clientY - rect.top)
+    const screenCTM = svg.getScreenCTM()
 
-    return {
-        x: x,
-        y: y,
-        relX: x / rect.width,
-        relY: y / rect.height
-    }
+    return pt.matrixTransform(screenCTM.inverse())
 }
 
 /* ================= CLICK ================= */
 
-document.querySelectorAll(".drawing-wrapper").forEach(wrapper => {
+svg.addEventListener("click", function(e){
 
-    wrapper.addEventListener("click", function(e){
+    if(isDragging) return
+    if(svg.dataset.status !== "draft") return
 
-        const img = wrapper.querySelector(".drawing-img")
-        if(!img || img.dataset.status !== "draft") return
+    const pt = getSVGPoint(svg, e.clientX, e.clientY)
 
-        const coords = getImageCoordinates(wrapper, e.clientX, e.clientY)
+    const x = pt.x / 100
+    const y = pt.y / 100
 
-        document.getElementById("posX").value = coords.relX
-        document.getElementById("posY").value = coords.relY
-        document.getElementById("sectionID").value = img.dataset.section
+    document.getElementById("posX").value = x
+    document.getElementById("posY").value = y
+    document.getElementById("sectionID").value = svg.dataset.section
 
-        document.getElementById("characteristicModal").style.display = "block"
-    })
+    document.getElementById("characteristicModal").style.display = "block"
+
 })
 
 /* ================= DRAG ================= */
@@ -48,62 +44,68 @@ document.querySelectorAll(".marker").forEach(marker => {
         if(marker.dataset.status !== "draft") return
 
         activeMarker = marker
+        isDragging = true
 
-        const rect = marker.getBoundingClientRect()
-        offsetX = e.clientX - rect.left
-        offsetY = e.clientY - rect.top
+        const svg = marker.closest("svg")
 
-        document.body.style.userSelect = "none"
+        const pt = getSVGPoint(svg, e.clientX, e.clientY)
+
+        const transform = marker.getAttribute("transform")
+        const match = transform.match(/translate\(([^ ]+) ([^ ]+)\)/)
+
+        if(match){
+            offsetX = parseFloat(match[1]) - pt.x
+            offsetY = parseFloat(match[2]) - pt.y
+        }
+
         e.stopPropagation()
     })
+
 })
 
 document.addEventListener("mousemove", function(e){
 
     if(!activeMarker) return
 
-    const wrapper = activeMarker.closest(".drawing-wrapper")
-    const img = wrapper.querySelector(".drawing-img")
+    const svg = activeMarker.closest("svg")
+    const pt = getSVGPoint(svg, e.clientX, e.clientY)
 
-    const rect = stage.getBoundingClientRect()
+    let x = pt.x + offsetX
+    let y = pt.y + offsetY
 
-    let x = e.clientX - rect.left - offsetX
-    let y = e.clientY - rect.top - offsetY
+    x = Math.max(0, Math.min(100, x))
+    y = Math.max(0, Math.min(100, y))
 
-    x = Math.max(0, Math.min(rect.width, x))
-    y = Math.max(0, Math.min(rect.height, y))
-
-    activeMarker.style.left = x + "px"
-    activeMarker.style.top = y + "px"
+    activeMarker.setAttribute(
+        "transform",
+        `translate(${x} ${y})`
+    )
 })
 
 document.addEventListener("mouseup", function(){
 
     if(!activeMarker) return
 
-    const wrapper = activeMarker.closest(".drawing-wrapper")
-    const img = wrapper.querySelector(".drawing-img")
+    const transform = activeMarker.getAttribute("transform")
+    const match = transform.match(/translate\(([^ ]+) ([^ ]+)\)/)
 
-    const rect = img.getBoundingClientRect()
+    if(match){
 
-    const x = parseFloat(activeMarker.style.left)
-    const y = parseFloat(activeMarker.style.top)
-
-    fetch("/quality/inspection-plans/update_characteristic_position",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-            id: activeMarker.dataset.id,
-            x: x / rect.width,
-            y: y / rect.height
+        fetch("/quality/inspection-plans/update_characteristic_position",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                id: activeMarker.dataset.id,
+                x: parseFloat(match[1]) / 100,
+                y: parseFloat(match[2]) / 100
+            })
         })
-    })
+    }
 
     activeMarker = null
-    document.body.style.userSelect = ""
+    isDragging = false
 })
 
-})
 
 /* ================= DELETE ================= */
 
