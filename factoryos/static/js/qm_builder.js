@@ -73,11 +73,8 @@ document.addEventListener("mousemove", function(e){
     x = Math.max(0, Math.min(rect.width, x))
     y = Math.max(0, Math.min(rect.height, y))
 
-    const relX = x / rect.width
-    const relY = y / rect.height
-
-    activeMarker.style.left = (relX * 100) + "%"
-    activeMarker.style.top = (relY * 100) + "%"
+    activeMarker.style.left = x + "px"
+    activeMarker.style.top = y + "px"
 })
 
 document.addEventListener("mouseup", function(){
