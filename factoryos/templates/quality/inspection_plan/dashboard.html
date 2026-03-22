@@ -40,8 +40,8 @@
     plan_id=plan.id,
     version_id=latest.id if latest else 0) ~ '">' ~ plan.tool.tool_no ~ '</a>',
 
-plan.tool.article_no or "-",
-plan.tool.article_name or "-",
+plan.article.article_no or "-",
+plan.article.article_name or "-",
 
 latest.revision if latest else "-",
 
