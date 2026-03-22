@@ -146,7 +146,7 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
     display: inline-block;
     width: max-content; /* 🔥 wichtig */
     cursor: grab;
-    min-width: 700px;
+    min-width: 100%;
     transform-origin: top left;
 }
 
@@ -156,8 +156,14 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 
 .marker {
     position: absolute;
+    width: 30px;
+    height: 30px;
     cursor: pointer;
     transform: translate(-50%, -50%);
+}
+
+.marker:hover .marker-circle {
+    transform: scale(1.2);
 }
 
 .marker-circle {
