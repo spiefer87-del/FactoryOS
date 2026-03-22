@@ -65,7 +65,7 @@ document.addEventListener("mousemove", function(e){
     const wrapper = activeMarker.closest(".drawing-wrapper")
     const img = wrapper.querySelector(".drawing-img")
 
-    const rect = img.getBoundingClientRect()
+    const rect = stage.getBoundingClientRect()
 
     let x = e.clientX - rect.left - offsetX
     let y = e.clientY - rect.top - offsetY
@@ -133,5 +133,140 @@ document.querySelectorAll(".marker").forEach(marker => {
         .then(()=>location.reload())
 
     })
+
+})
+
+/* ================= ZOOM + PAN ================= */
+
+document.querySelectorAll(".drawing-stage").forEach(stage => {
+
+    let scale = 1
+    let translateX = 0
+    let translateY = 0
+
+    let startX = 0
+    let startY = 0
+
+    let isPanning = false
+
+    let lastTouchDistance = null
+
+    function updateTransform(){
+        stage.style.transform =
+            `translate(${translateX}px, ${translateY}px) scale(${scale})`
+    }
+
+    /* ================= DESKTOP ZOOM ================= */
+
+    stage.addEventListener("wheel", function(e){
+
+        e.preventDefault()
+
+        const zoomIntensity = 0.001
+        const delta = e.deltaY
+
+        const newScale = scale - delta * zoomIntensity
+
+        scale = Math.min(Math.max(0.5, newScale), 4)
+
+        updateTransform()
+
+    }, { passive:false })
+
+    /* ================= PAN (MOUSE) ================= */
+
+    stage.addEventListener("mousedown", function(e){
+        isPanning = true
+        startX = e.clientX - translateX
+        startY = e.clientY - translateY
+    })
+
+    document.addEventListener("mousemove", function(e){
+        if(!isPanning) return
+
+        translateX = e.clientX - startX
+        translateY = e.clientY - startY
+
+        updateTransform()
+    })
+
+    document.addEventListener("mouseup", function(){
+        isPanning = false
+    })
+
+    /* ================= TOUCH START ================= */
+
+    stage.addEventListener("touchstart", function(e){
+
+        if(e.touches.length === 1){
+            isPanning = true
+            startX = e.touches[0].clientX - translateX
+            startY = e.touches[0].clientY - translateY
+        }
+
+        if(e.touches.length === 2){
+            lastTouchDistance = getTouchDistance(e.touches)
+        }
+
+    })
+
+    /* ================= TOUCH MOVE ================= */
+
+    stage.addEventListener("touchmove", function(e){
+
+        e.preventDefault()
+
+        // PAN
+        if(e.touches.length === 1 && isPanning){
+
+            translateX = e.touches[0].clientX - startX
+            translateY = e.touches[0].clientY - startY
+
+            updateTransform()
+        }
+
+        // PINCH ZOOM
+        if(e.touches.length === 2){
+
+            const distance = getTouchDistance(e.touches)
+
+            if(lastTouchDistance){
+
+                const delta = distance - lastTouchDistance
+                const zoomFactor = delta * 0.005
+
+                scale = Math.min(Math.max(0.5, scale + zoomFactor), 4)
+
+                updateTransform()
+            }
+
+            lastTouchDistance = distance
+        }
+
+    }, { passive:false })
+
+    /* ================= TOUCH END ================= */
+
+    stage.addEventListener("touchend", function(e){
+
+        if(e.touches.length < 2){
+            lastTouchDistance = null
+        }
+
+        if(e.touches.length === 0){
+            isPanning = false
+        }
+
+    })
+
+    /* ================= HELPERS ================= */
+
+    function getTouchDistance(touches){
+
+        const dx = touches[0].clientX - touches[1].clientX
+        const dy = touches[0].clientY - touches[1].clientY
+
+        return Math.sqrt(dx*dx + dy*dy)
+    }
 
 })
