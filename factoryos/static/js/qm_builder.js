@@ -35,7 +35,12 @@ document.addEventListener("DOMContentLoaded", function(){
 
         wrapper.addEventListener("click", function(e){
 
-            if(isDragging || hasMoved) return   // 🔥 DAS ist der Fix
+            if(isDragging) return
+
+            if(hasMoved){
+                hasMoved = false   // 🔥 direkt resetten
+                return
+            }
 
             const img = wrapper.querySelector(".drawing-img")
             if(!img || img.dataset.status !== "draft") return
@@ -132,6 +137,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
         setTimeout(() => {
             isDragging = false
+            hasMoved = false   // ✅ DAS hat gefehlt
         }, 50)
     })
 
