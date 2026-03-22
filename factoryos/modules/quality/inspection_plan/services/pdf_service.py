@@ -23,6 +23,7 @@ from flask import current_app
 from factoryos.modules.quality.inspection_plan.services.marker_service import render_svg_to_png, generate_svg_with_markers
 
 from ..models import QualityInspectionPlanVersion
+from ..models import article
 
 
 # ===============================
@@ -101,9 +102,9 @@ def generate_inspection_plan_pdf(version_id):
     tool = version.plan.tool
 
     meta = [
-        ["Werkzeug", tool.tool_no],
-        ["Artikel", tool.article_name or "-"],
-        ["Artikelnummer", tool.article_no or "-"],
+        ["Werkzeug", tool.tool_no or "-"],
+        ["Artikel", article.article_name],
+        ["Artikelnummer", article.article_no or "-"],
         ["Status", version.status]
     ]
 
