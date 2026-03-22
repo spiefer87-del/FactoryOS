@@ -160,7 +160,7 @@ def generate_svg_with_markers(image_path, characteristics):
     svg.append(f'''
     <svg xmlns="http://www.w3.org/2000/svg"
          viewBox="0 0 {width} {height}"
-         preserveAspectRatio="none">
+         preserveAspectRatio="xMidYMid meet"">
 
         <image href="data:image/png;base64,{base64_image}"
                x="0" y="0"
@@ -177,16 +177,19 @@ def generate_svg_with_markers(image_path, characteristics):
 
         svg.append(f'''
         <g transform="translate({x} {y})">
-
             <circle r="12"
+                    cx="0"
+                    cy="0"
                     fill="red"
                     stroke="black"
                     stroke-width="2"/>
 
             <text text-anchor="middle"
-                  dominant-baseline="middle"
-                  fill="white"
-                  font-size="20">
+                dominant-baseline="middle"
+                x="0"
+                y="0"
+                fill="white"
+                font-size="20">
                 {c.sort_order}
             </text>
 
