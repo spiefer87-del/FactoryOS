@@ -55,6 +55,15 @@ def quality_create():
         )
 
         db.session.add(plan)
+        db.session.flush()  # 🔥 wichtig!
+
+        # 👉 ERSTE VERSION ERZEUGEN
+        version = QualityInspectionPlanVersion(
+            plan_id=plan.id,
+            version_number=1
+        )
+
+        db.session.add(version)
         db.session.commit()
 
         return redirect(url_for("inspection.quality_version_edit", plan_id=plan.id, version_id=1))
