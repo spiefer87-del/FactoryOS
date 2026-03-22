@@ -116,16 +116,26 @@ document.querySelectorAll(".marker").forEach(marker => {
 
         const id = marker.dataset.id
 
-        marker.remove()
-
-        const row = document.querySelector(`.characteristic-row[data-id="${id}"]`)
-        if(row) row.remove()
-
         fetch("/quality/inspection-plans/delete_characteristic_marker",{
             method:"POST",
             headers:{"Content-Type":"application/json"},
             body:JSON.stringify({ id: id })
-        }).then(()=>location.reload())
+        })
+        .then(res => {
+            if(!res.ok) throw new Error("Delete failed")
+
+            // 🔥 ERST JETZT UI anpassen
+            marker.remove()
+
+            const row = document.querySelector(`.characteristic-row[data-id="${id}"]`)
+            if(row) row.remove()
+
+            console.log("Marker gelöscht")
+        })
+        .catch(err => {
+            console.error(err)
+            alert("Fehler beim Löschen")
+        })
 
     })
 
