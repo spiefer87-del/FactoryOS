@@ -10,8 +10,6 @@ import cairosvg
 from io import BytesIO
 
 import base64
-import html
-
 
 from factoryos.modules.quality.inspection_plan.services.change_log_service import log_change
 
@@ -155,17 +153,16 @@ def generate_svg_with_markers(image_path, characteristics):
 
     # Base64
     with open(image_path, "rb") as f:
-        base64_image = base64.b64encode(f.read()).decode("ascii").replace("\n", "").replace("\r", "")
+        base64_image = base64.b64encode(f.read()).decode("utf-8")
 
     svg = []
 
     svg.append(f'''
     <svg xmlns="http://www.w3.org/2000/svg"
-        xmlns:xlink="http://www.w3.org/1999/xlink"
-        viewBox="0 0 {width} {height}"
-        preserveAspectRatio="xMidYMid meet">
+         viewBox="0 0 {width} {height}"
+         preserveAspectRatio="none">
 
-        <image xlink:href="data:image/png;base64,{base64_image}"
+        <image href="data:image/png;base64,{base64_image}"
                x="0" y="0"
                width="{width}" height="{height}" />
     ''')
@@ -178,32 +175,26 @@ def generate_svg_with_markers(image_path, characteristics):
         x = c.pos_x * width
         y = c.pos_y * height
 
-        # 🔥 HIER FIX 3
-        text = html.escape(str(c.sort_order))
-
         svg.append(f'''
         <g transform="translate({x} {y})">
+
             <circle r="12"
-                    cx="0"
-                    cy="0"
                     fill="red"
                     stroke="black"
                     stroke-width="2"/>
 
             <text text-anchor="middle"
-                dominant-baseline="middle"
-                x="0"
-                y="0"
-                fill="white"
-                font-size="20">
-                {text}
+                  dominant-baseline="middle"
+                  fill="white"
+                  font-size="20">
+                {c.sort_order}
             </text>
 
         </g>
         ''')
-    
+
     svg.append("</svg>")
-    print(svg[:500])
+
     return "".join(svg)
     
 def render_svg_to_png(svg_string):
