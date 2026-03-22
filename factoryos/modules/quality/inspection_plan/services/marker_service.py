@@ -172,8 +172,8 @@ def generate_svg_with_markers(image_path, characteristics):
         if c.pos_x is None or c.pos_y is None:
             continue
 
-        x = c.pos_x * width
-        y = c.pos_y * height
+        x = c.pos_x
+        y = c.pos_y
 
         svg.append(f'''
         <g transform="translate({x} {y})">

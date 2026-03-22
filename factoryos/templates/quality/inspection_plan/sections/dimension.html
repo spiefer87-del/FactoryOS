@@ -52,7 +52,10 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
         <div class="marker"
             data-id="{{ c.id }}"
             data-status="{{ version.status }}"
-            style="left: {{ c.pos_x * 100 }}%; top: {{ c.pos_y * 100 }}%;">
+            style="
+            left: {{ c.pos_x }}px;
+            top: {{ c.pos_y }}px;
+            ">
 
             <div class="marker-circle">{{ c.sort_order }}</div>
 
