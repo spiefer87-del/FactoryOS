@@ -13,7 +13,7 @@ class QualityInspectionPlan(db.Model):
     )
 
     # optional behalten
-    tool_id = db.Column(db.Integer, db.ForeignKey("tool.id"), nullable=True)
+    tool_id = db.Column(db.Integer, db.ForeignKey("tools.id"), nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     created_by_id = db.Column(db.Integer, db.ForeignKey("users.id"))
