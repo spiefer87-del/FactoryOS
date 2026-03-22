@@ -1,197 +1,179 @@
 document.addEventListener("DOMContentLoaded", function(){
 
-    let activeMarker = null
-    let offsetX = 0
-    let offsetY = 0
-    let isDragging = false
+let activeMarker = null
+let offsetX = 0
+let offsetY = 0
 
-    /* ================= IMAGE DRAG DISABLE ================= */
+function getImageCoordinates(wrapper, clientX, clientY){
 
-    document.querySelectorAll(".drawing-img").forEach(img => {
-        img.addEventListener("dragstart", e => e.preventDefault())
-    })
+    const img = wrapper.querySelector(".drawing-img")
+    const rect = img.getBoundingClientRect()
 
-    /* ================= HELPER ================= */
+    const x = (clientX - rect.left)
+    const y = (clientY - rect.top)
 
-    function getImageCoordinates(wrapper, clientX, clientY){
-
-        const img = wrapper.querySelector(".drawing-img")
-        const rect = img.getBoundingClientRect()
-
-        const scaleX = img.naturalWidth / rect.width
-        const scaleY = img.naturalHeight / rect.height
-
-        const x = (clientX - rect.left) * scaleX
-        const y = (clientY - rect.top) * scaleY
-
-        return {
-            x: x,
-            y: y,
-            relX: x / img.naturalWidth,
-            relY: y / img.naturalHeight
-        }
+    return {
+        x: x,
+        y: y,
+        relX: x / rect.width,
+        relY: y / rect.height
     }
+}
 
-    /* ================= CLICK ================= */
+/* ================= CLICK ================= */
 
-    document.querySelectorAll(".drawing-wrapper").forEach(wrapper => {
+document.querySelectorAll(".drawing-wrapper").forEach(wrapper => {
 
-        wrapper.addEventListener("click", function(e){
+    wrapper.addEventListener("click", function(e){
 
-            if(isDragging) return
-
-            const img = wrapper.querySelector(".drawing-img")
-            if(!img || img.dataset.status !== "draft") return
-
-            const coords = getImageCoordinates(wrapper, e.clientX, e.clientY)
-
-            document.getElementById("posX").value = coords.relX
-            document.getElementById("posY").value = coords.relY
-            document.getElementById("sectionID").value = img.dataset.section
-
-            document.getElementById("characteristicModal").style.display = "block"
-        })
-    })
-
-    /* ================= DRAG START ================= */
-
-    document.querySelectorAll(".marker").forEach(marker => {
-
-        marker.addEventListener("mousedown", function(e){
-
-            if(marker.dataset.status !== "draft") return
-
-            activeMarker = marker
-            isDragging = true
-
-            const wrapper = marker.closest(".drawing-wrapper")
-            const img = wrapper.querySelector(".drawing-img")
-            const rect = img.getBoundingClientRect()
-
-            const scaleX = img.naturalWidth / rect.width
-            const scaleY = img.naturalHeight / rect.height
-
-            const markerRect = marker.getBoundingClientRect()
-
-            offsetX = (e.clientX - markerRect.left) * scaleX
-            offsetY = (e.clientY - markerRect.top) * scaleY
-
-            document.body.style.userSelect = "none"
-            e.stopPropagation()
-        })
-    })
-
-    /* ================= DRAG MOVE ================= */
-
-    document.addEventListener("mousemove", function(e){
-
-        if(!activeMarker) return
-
-        const wrapper = activeMarker.closest(".drawing-wrapper")
         const img = wrapper.querySelector(".drawing-img")
-        const rect = img.getBoundingClientRect()
+        if(!img || img.dataset.status !== "draft") return
 
-        const scaleX = img.naturalWidth / rect.width
-        const scaleY = img.naturalHeight / rect.height
+        const coords = getImageCoordinates(wrapper, e.clientX, e.clientY)
 
-        let x = (e.clientX - rect.left) * scaleX - offsetX
-        let y = (e.clientY - rect.top) * scaleY - offsetY
+        document.getElementById("posX").value = coords.relX
+        document.getElementById("posY").value = coords.relY
+        document.getElementById("sectionID").value = img.dataset.section
 
-        x = Math.max(0, Math.min(img.naturalWidth, x))
-        y = Math.max(0, Math.min(img.naturalHeight, y))
+        document.getElementById("characteristicModal").style.display = "block"
+    })
+})
 
-        const relX = x / img.naturalWidth
-        const relY = y / img.naturalHeight
+/* ================= DRAG ================= */
 
-        activeMarker.style.left = (relX * 100) + "%"
-        activeMarker.style.top = (relY * 100) + "%"
+document.querySelectorAll(".marker").forEach(marker => {
+
+    marker.addEventListener("mousedown", function(e){
+
+        if(marker.dataset.status !== "draft") return
+
+        activeMarker = marker
+
+        const rect = marker.getBoundingClientRect()
+        offsetX = e.clientX - rect.left
+        offsetY = e.clientY - rect.top
+
+        document.body.style.userSelect = "none"
+        e.stopPropagation()
+    })
+})
+
+document.addEventListener("mousemove", function(e){
+
+    if(!activeMarker) return
+
+    const wrapper = activeMarker.closest(".drawing-wrapper")
+    const img = wrapper.querySelector(".drawing-img")
+
+    const rect = img.getBoundingClientRect()
+
+    let x = e.clientX - rect.left - offsetX
+    let y = e.clientY - rect.top - offsetY
+
+    x = Math.max(0, Math.min(rect.width, x))
+    y = Math.max(0, Math.min(rect.height, y))
+
+    activeMarker.style.left = x + "px"
+    activeMarker.style.top = y + "px"
+})
+
+document.addEventListener("mouseup", function(){
+
+    if(!activeMarker) return
+
+    const wrapper = activeMarker.closest(".drawing-wrapper")
+    const img = wrapper.querySelector(".drawing-img")
+
+    const rect = img.getBoundingClientRect()
+
+    const x = parseFloat(activeMarker.style.left)
+    const y = parseFloat(activeMarker.style.top)
+
+    fetch("/quality/inspection-plans/update_characteristic_position",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+            id: activeMarker.dataset.id,
+            x: x / rect.width,
+            y: y / rect.height
+        })
     })
 
-    /* ================= DRAG END ================= */
+    activeMarker = null
+    document.body.style.userSelect = ""
+})
 
-    document.addEventListener("mouseup", function(){
+/* ================= DELETE ================= */
 
-        if(!activeMarker) return
+document.querySelectorAll(".marker").forEach(marker => {
 
-        const relX = parseFloat(activeMarker.style.left) / 100
-        const relY = parseFloat(activeMarker.style.top) / 100
+    marker.addEventListener("contextmenu", function(e){
 
-        fetch("/quality/inspection-plans/update_characteristic_position",{
+        e.preventDefault()
+
+        if(marker.dataset.status !== "draft") return
+        if(!confirm("Marker und Merkmal löschen?")) return
+
+        const id = marker.dataset.id
+
+        marker.remove()
+
+        const row = document.querySelector(`.characteristic-row[data-id="${id}"]`)
+        if(row) row.remove()
+
+        fetch("/quality/inspection-plans/delete_characteristic_marker",{
             method:"POST",
             headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({
-                id: activeMarker.dataset.id,
-                x: relX,
-                y: relY
-            })
-        })
+            body:JSON.stringify({ id: id })
+        }).then(()=>location.reload())
 
-        activeMarker = null
-        document.body.style.userSelect = ""
-
-        setTimeout(()=>{ isDragging = false }, 50)
     })
 
-    /* ================= DELETE ================= */
+})
 
-    document.querySelectorAll(".marker").forEach(marker => {
+/* ================= ZOOM ================= */
 
-        marker.addEventListener("contextmenu", function(e){
+document.querySelectorAll(".drawing-stage").forEach(stage => {
 
-            e.preventDefault()
+    const img = stage.querySelector(".drawing-img")
 
-            if(marker.dataset.status !== "draft") return
-            if(!confirm("Marker und Merkmal löschen?")) return
+    let scale = 1
+    let originalWidth = 0
 
-            const id = marker.dataset.id
+    function init(){
+        originalWidth = img.naturalWidth
+        applyZoom()
+    }
 
-            fetch("/quality/inspection-plans/delete_characteristic_marker",{
-                method:"POST",
-                headers:{"Content-Type":"application/json"},
-                body:JSON.stringify({ id: id })
-            })
-            .then(res => {
-                if(!res.ok) throw new Error("Delete failed")
+    function applyZoom(){
 
-                marker.remove()
+        stage.style.transform = `scale(${scale})`
+        stage.style.transformOrigin = "top left"
+    }
 
-                const row = document.querySelector(`.characteristic-row[data-id="${id}"]`)
-                if(row) row.remove()
-            })
-            .catch(err => {
-                console.error(err)
-                alert("Fehler beim Löschen")
-            })
-        })
+    if(img.complete){
+        init()
+    } else {
+        img.onload = init
+    }
+
+    const wrapper = stage.closest(".qm-drawing-area")
+
+    wrapper.querySelector(".zoom-in").addEventListener("click", () => {
+        scale = Math.min(scale + 0.2, 3)
+        applyZoom()
     })
 
-    /* ================= ZOOM ================= */
-
-    document.querySelectorAll(".drawing-stage").forEach(stage => {
-
-        let scale = 1
-
-        function applyZoom(){
-            stage.style.transform = `scale(${scale})`
-            stage.style.transformOrigin = "top left"
-        }
-
-        const wrapper = stage.closest(".qm-drawing-area")
-
-        wrapper.querySelector(".zoom-in").addEventListener("click", () => {
-            scale = Math.min(scale + 0.2, 3)
-            applyZoom()
-        })
-
-        wrapper.querySelector(".zoom-out").addEventListener("click", () => {
-            scale = Math.max(scale - 0.2, 0.5)
-            applyZoom()
-        })
-
-        wrapper.querySelector(".zoom-reset").addEventListener("click", () => {
-            scale = 1
-            applyZoom()
-        })
+    wrapper.querySelector(".zoom-out").addEventListener("click", () => {
+        scale = Math.max(scale - 0.2, 0.5)
+        applyZoom()
     })
+
+    wrapper.querySelector(".zoom-reset").addEventListener("click", () => {
+        scale = 1
+        applyZoom()
+    })
+
+})
 
 })
