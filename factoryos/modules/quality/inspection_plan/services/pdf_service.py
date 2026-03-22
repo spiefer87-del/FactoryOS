@@ -103,7 +103,7 @@ def generate_inspection_plan_pdf(version_id):
 
 
     tool_no = tool.tool_no if tool else "-"
-    article = plan.article
+    article = version.plan.article
 
     article_no = article.article_no if article else "-"
     article_name = article.article_name if article else "-"
