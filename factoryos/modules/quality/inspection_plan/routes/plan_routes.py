@@ -60,9 +60,8 @@ def quality_create():
         # 👉 ERSTE VERSION ERZEUGEN
         version = QualityInspectionPlanVersion(
             plan_id=plan.id,
-            version_number=1
+            revision="1.0",
         )
-
         db.session.add(version)
         db.session.commit()
 
