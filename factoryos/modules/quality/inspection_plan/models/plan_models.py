@@ -8,7 +8,7 @@ class QualityInspectionPlan(db.Model):
 
     article_id = db.Column(
         db.Integer,
-        db.ForeignKey("article.id"),   # 👈 MUSS exakt so sein!
+        db.ForeignKey("articles.id"),   
         nullable=False
     )
 
