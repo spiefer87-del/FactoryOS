@@ -79,9 +79,6 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
     -webkit-overflow-scrolling: touch;
 }
 
-.qm-drawing-area:active {
-    cursor: grabbing;
-}
 
 .qm-drawing-area::-webkit-scrollbar {
     height: 12px;   /* 🔥 dicker */
