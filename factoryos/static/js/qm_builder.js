@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function(){
     let activeMarker = null
     let offsetX = 0
     let offsetY = 0
-    let isDragging = false   // 🔥 Click-Schutz
+    let isDragging = false
 
     /* ================= IMAGE DRAG DISABLE ================= */
 
@@ -18,14 +18,17 @@ document.addEventListener("DOMContentLoaded", function(){
         const img = wrapper.querySelector(".drawing-img")
         const rect = img.getBoundingClientRect()
 
-        const x = (clientX - rect.left)
-        const y = (clientY - rect.top)
+        const scaleX = img.naturalWidth / rect.width
+        const scaleY = img.naturalHeight / rect.height
+
+        const x = (clientX - rect.left) * scaleX
+        const y = (clientY - rect.top) * scaleY
 
         return {
             x: x,
             y: y,
-            relX: x / rect.width,
-            relY: y / rect.height
+            relX: x / img.naturalWidth,
+            relY: y / img.naturalHeight
         }
     }
 
@@ -35,7 +38,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
         wrapper.addEventListener("click", function(e){
 
-            if(isDragging) return   // 🔥 verhindert Ghost-Click nach Drag
+            if(isDragging) return
 
             const img = wrapper.querySelector(".drawing-img")
             if(!img || img.dataset.status !== "draft") return
@@ -61,13 +64,17 @@ document.addEventListener("DOMContentLoaded", function(){
             activeMarker = marker
             isDragging = true
 
-            const stage = marker.closest(".drawing-stage")
-            const scale = stage._scale || 1
+            const wrapper = marker.closest(".drawing-wrapper")
+            const img = wrapper.querySelector(".drawing-img")
+            const rect = img.getBoundingClientRect()
 
-            const rect = marker.getBoundingClientRect()
+            const scaleX = img.naturalWidth / rect.width
+            const scaleY = img.naturalHeight / rect.height
 
-            offsetX = e.clientX - rect.left
-            offsetY = e.clientY - rect.top
+            const markerRect = marker.getBoundingClientRect()
+
+            offsetX = (e.clientX - markerRect.left) * scaleX
+            offsetY = (e.clientY - markerRect.top) * scaleY
 
             document.body.style.userSelect = "none"
             e.stopPropagation()
@@ -82,22 +89,23 @@ document.addEventListener("DOMContentLoaded", function(){
 
         const wrapper = activeMarker.closest(".drawing-wrapper")
         const img = wrapper.querySelector(".drawing-img")
-        const stage = wrapper.querySelector(".drawing-stage")
-
         const rect = img.getBoundingClientRect()
 
-        let x = e.clientX - rect.left - offsetX
-        let y = e.clientY - rect.top - offsetY
+        const scaleX = img.naturalWidth / rect.width
+        const scaleY = img.naturalHeight / rect.height
 
-        x = Math.max(0, Math.min(rect.width, x))
-        y = Math.max(0, Math.min(rect.height, y))
+        let x = (e.clientX - rect.left) * scaleX - offsetX
+        let y = (e.clientY - rect.top) * scaleY - offsetY
 
-        const relX = x / rect.width
-        const relY = y / rect.height
+        x = Math.max(0, Math.min(img.naturalWidth, x))
+        y = Math.max(0, Math.min(img.naturalHeight, y))
+
+        const relX = x / img.naturalWidth
+        const relY = y / img.naturalHeight
 
         activeMarker.style.left = (relX * 100) + "%"
         activeMarker.style.top = (relY * 100) + "%"
-            })
+    })
 
     /* ================= DRAG END ================= */
 
@@ -121,7 +129,6 @@ document.addEventListener("DOMContentLoaded", function(){
         activeMarker = null
         document.body.style.userSelect = ""
 
-        // 🔥 wichtig für Click-Schutz
         setTimeout(()=>{ isDragging = false }, 50)
     })
 
@@ -162,20 +169,11 @@ document.addEventListener("DOMContentLoaded", function(){
 
     document.querySelectorAll(".drawing-stage").forEach(stage => {
 
-        const img = stage.querySelector(".drawing-img")
-
         let scale = 1
 
         function applyZoom(){
             stage.style.transform = `scale(${scale})`
             stage.style.transformOrigin = "top left"
-            stage._scale = scale   // 🔥 wichtig für Drag
-        }
-
-        if(img.complete){
-            applyZoom()
-        } else {
-            img.onload = applyZoom
         }
 
         const wrapper = stage.closest(".qm-drawing-area")
@@ -194,7 +192,6 @@ document.addEventListener("DOMContentLoaded", function(){
             scale = 1
             applyZoom()
         })
-
     })
 
 })
