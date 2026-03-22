@@ -174,10 +174,9 @@ def generate_svg_with_markers(image_path, characteristics):
         if c.pos_x is None or c.pos_y is None:
             continue
 
-        scale = 2000 / width   # exakt wie in svg2png!
 
-        x = c.pos_x * scale
-        y = c.pos_y * scale
+        x = c.pos_x
+        y = c.pos_y
 
         svg.append(f'''
         <g transform="translate({x} {y})">
@@ -207,8 +206,7 @@ def render_svg_to_png(svg_string):
 
     cairosvg.svg2png(
         bytestring=svg_string.encode("utf-8"),
-        write_to=png_output,
-        output_width=2000  # 🔥 wichtig für Qualität
+        write_to=png_output
     )
 
     png_output.seek(0)
