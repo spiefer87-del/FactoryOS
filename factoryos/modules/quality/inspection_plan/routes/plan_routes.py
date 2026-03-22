@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 
 from factoryos.extensions import db
-from factoryos.models.tools import Tool
+from factoryos.modules.masterdata.articles.models import Article
 
 from factoryos.core.auth import role_required
 
@@ -35,46 +35,33 @@ def quality_inspection_plan():
 @role_required("qm", "admin")
 def quality_create():
 
-    tools = Tool.query.order_by(Tool.tool_no).all()
+    articles = Article.query.all()
 
     if request.method == "POST":
+        article_id = request.form.get("article_id")
 
-        tool_id = request.form.get("tool_id")
+        if not article_id:
+            flash("Bitte Artikel auswählen", "error")
+            return redirect(request.url)
+        
+        article = Article.query.get(article_id)
 
-        if not tool_id:
-            flash("Bitte Werkzeug auswählen", "warning")
-            return redirect(url_for("inspection.quality_create"))
+        if not article:
+            abort(400, "Artikel existiert nicht")
 
-        # Plan erstellen
         plan = QualityInspectionPlan(
-            tool_id=tool_id,
-            created_by_id=current_user.id
+            article_id=article_id,
+            tool_id=request.form.get("tool_id") or None
         )
 
         db.session.add(plan)
-        db.session.flush()
-
-        # Version erstellen
-        version = QualityInspectionPlanVersion(
-            plan_id=plan.id,
-            revision="1.0",
-            status="draft"
-        )
-
-        db.session.add(version)
         db.session.commit()
 
-        return redirect(
-            url_for(
-                "inspection.quality_version_edit",
-                plan_id=plan.id,
-                version_id=version.id
-            )
-        )
+        return redirect(url_for("inspection.quality_version_edit", plan_id=plan.id, version_id=1))
 
     return render_template(
         "quality/inspection_plan/create_tool_select.html",
-        tools=tools
+        articles=articles
     )
 
 
