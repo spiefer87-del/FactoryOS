@@ -75,8 +75,10 @@ document.addEventListener("mousemove", function(e){
 
     const rect = img.getBoundingClientRect()
 
-    let x = e.clientX - rect.left - offsetX
-    let y = e.clientY - rect.top - offsetY
+    const scale = stage._scale || 1
+
+    let x = (e.clientX - rect.left - offsetX) / scale
+    let y = (e.clientY - rect.top - offsetY) / scale
 
     x = Math.max(0, Math.min(rect.width, x))
     y = Math.max(0, Math.min(rect.height, y))
@@ -172,6 +174,7 @@ document.querySelectorAll(".drawing-stage").forEach(stage => {
 
         stage.style.transform = `scale(${scale})`
         stage.style.transformOrigin = "top left"
+        stage._scale = scale 
     }
 
     if(img.complete){
