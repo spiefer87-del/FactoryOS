@@ -162,7 +162,7 @@ def generate_svg_with_markers(image_path, characteristics):
         viewBox="0 0 {width} {height}"
         width="{width}"
         height="{height}"
-        preserveAspectRatio="none">
+        preserveAspectRatio="xMidYMid meet">
 
         <image href="data:image/png;base64,{base64_image}"
             x="0" y="0"
