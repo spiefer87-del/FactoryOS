@@ -1,3 +1,6 @@
+let isDragging = false
+let hasMoved = false
+
 document.addEventListener("DOMContentLoaded", function(){
 
     let activeMarker = null
@@ -32,6 +35,8 @@ document.addEventListener("DOMContentLoaded", function(){
 
         wrapper.addEventListener("click", function(e){
 
+            if(isDragging || hasMoved) return   // 🔥 DAS ist der Fix
+
             const img = wrapper.querySelector(".drawing-img")
             if(!img || img.dataset.status !== "draft") return
 
@@ -54,6 +59,9 @@ document.addEventListener("DOMContentLoaded", function(){
             if(marker.dataset.status !== "draft") return
 
             activeMarker = marker
+
+            isDragging = true       
+            hasMoved = false         
 
             const wrapper = marker.closest(".drawing-wrapper")
             const img = wrapper.querySelector(".drawing-img")
@@ -79,6 +87,8 @@ document.addEventListener("DOMContentLoaded", function(){
     document.addEventListener("mousemove", function(e){
 
         if(!activeMarker) return
+
+        hasMoved = true
 
         const wrapper = activeMarker.closest(".drawing-wrapper")
         const img = wrapper.querySelector(".drawing-img")
@@ -119,6 +129,10 @@ document.addEventListener("DOMContentLoaded", function(){
 
         activeMarker = null
         document.body.style.userSelect = ""
+
+        setTimeout(() => {
+            isDragging = false
+        }, 50)
     })
 
     /* ================= DELETE ================= */
