@@ -6,11 +6,16 @@ class QualityInspectionPlan(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    tool_id = db.Column(db.Integer, db.ForeignKey("tools.id"), nullable=False)
+    article_id = db.Column(db.Integer, db.ForeignKey("article.id"), nullable=False)
+
+    # optional behalten
+    tool_id = db.Column(db.Integer, db.ForeignKey("tool.id"), nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     created_by_id = db.Column(db.Integer, db.ForeignKey("users.id"))
 
+
+    article = db.relationship("Article")
     tool = db.relationship("Tool")
     created_by = db.relationship("User")
 
