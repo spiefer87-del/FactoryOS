@@ -17,21 +17,25 @@ function getSVGPoint(svg, clientX, clientY){
 
 /* ================= CLICK ================= */
 
-svg.addEventListener("click", function(e){
+document.querySelectorAll(".marker-layer").forEach(function(svg){
 
-    if(isDragging) return
-    if(svg.dataset.status !== "draft") return
+    svg.addEventListener("click", function(e){
 
-    const pt = getSVGPoint(svg, e.clientX, e.clientY)
+        if(isDragging) return
+        if(svg.dataset.status !== "draft") return
 
-    const x = pt.x / 100
-    const y = pt.y / 100
+        const pt = getSVGPoint(svg, e.clientX, e.clientY)
 
-    document.getElementById("posX").value = x
-    document.getElementById("posY").value = y
-    document.getElementById("sectionID").value = svg.dataset.section
+        const x = pt.x / 100
+        const y = pt.y / 100
 
-    document.getElementById("characteristicModal").style.display = "block"
+        document.getElementById("posX").value = x
+        document.getElementById("posY").value = y
+        document.getElementById("sectionID").value = svg.dataset.section
+
+        document.getElementById("characteristicModal").style.display = "block"
+
+    })
 
 })
 
