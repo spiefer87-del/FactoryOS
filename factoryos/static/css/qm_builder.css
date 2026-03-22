@@ -121,8 +121,16 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 .drawing-stage {
     position: relative;
     display: inline-block;
-    width: max-content; /* 🔥 wichtig */
+    width: max-content;
     min-width: 700px;
+
+    transform-origin: 0 0; /* 🔥 wichtig */
+    touch-action: none;     /* 🔥 für gestures */
+    cursor: grab;
+}
+
+.drawing-stage:active {
+    cursor: grabbing;
 }
 
 .marker {
