@@ -86,20 +86,18 @@ document.addEventListener("DOMContentLoaded", function(){
 
         const rect = img.getBoundingClientRect()
 
-        const scale = stage._scale || 1
+        let x = e.clientX - rect.left - offsetX
+        let y = e.clientY - rect.top - offsetY
 
-        let x = (e.clientX - rect.left - offsetX) / scale
-        let y = (e.clientY - rect.top - offsetY) / scale
+        x = Math.max(0, Math.min(rect.width, x))
+        y = Math.max(0, Math.min(rect.height, y))
 
-        x = Math.max(0, Math.min(img.naturalWidth, x))
-        y = Math.max(0, Math.min(img.naturalHeight, y))
-
-        const relX = x / img.naturalWidth
-        const relY = y / img.naturalHeight
+        const relX = x / rect.width
+        const relY = y / rect.height
 
         activeMarker.style.left = (relX * 100) + "%"
         activeMarker.style.top = (relY * 100) + "%"
-    })
+            })
 
     /* ================= DRAG END ================= */
 
