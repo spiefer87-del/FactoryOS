@@ -44,7 +44,7 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
         class="drawing-img"
         data-section="{{ section.id }}"
         data-status="{{ version.status }}"
-        style="display:block; max-width:100%; height:auto;">
+        style="display:block; height:auto;">
 
         {% for c in section.characteristics %}
         {% if c.pos_x is not none and c.pos_y is not none %}
