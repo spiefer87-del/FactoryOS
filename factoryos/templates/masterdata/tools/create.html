@@ -1,62 +1,29 @@
-{% extends "layout/base.html" %}
-
-{% block content %}
-
-<h2 style="margin-bottom:25px">Werkzeug anlegen</h2>
-
-<div class="form-card">
-
-<form method="POST">
-
-<div class="form-grid">
-
 <div class="form-group">
-<label>Werkzeugnummer</label>
-<input type="text" name="tool_no" required>
+    <label>Werkzeugname</label>
+    <input type="text" name="name">
+</div>
+
+<div class="form-group full">
+    <label>Beschreibung</label>
+    <textarea name="description"></textarea>
 </div>
 
 <div class="form-group">
-<label>Artikelnummer</label>
-<input type="text" name="article_no">
+    <label>Schussgewicht (g)</label>
+    <input type="number" step="0.01" name="shot_weight_g">
 </div>
 
 <div class="form-group">
-<label>Artikelname</label>
-<input type="text" name="article_name">
+    <label>Zykluszeit (s)</label>
+    <input type="number" step="0.01" name="cycle_time_s">
 </div>
 
 <div class="form-group">
-<label>Lagerort</label>
-<input type="text" name="location">
+    <label>Kavitäten</label>
+    <input type="number" name="cavities">
 </div>
 
 <div class="form-group">
-<label>Status</label>
-<select name="tool_status">
-
-<option value="aktiv">Aktiv</option>
-<option value="wartung">Wartung</option>
-<option value="defekt">Defekt</option>
-
-</select>
+    <label>Verpackungseinheit</label>
+    <input type="number" name="pack_unit">
 </div>
-
-</div>
-
-<div class="form-actions">
-
-<button class="btn-primary">
-Werkzeug speichern
-</button>
-
-<a href="{{ url_for('tools.list_tools') }}" class="btn-secondary">
-Abbrechen
-</a>
-
-</div>
-
-</form>
-
-</div>
-
-{% endblock %}

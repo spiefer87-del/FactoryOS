@@ -6,10 +6,14 @@ def create_tool(data):
 
     tool = Tool(
         tool_no=data.get("tool_no"),
-        article_no=data.get("article_no"),
-        article_name=data.get("article_name"),
+        name=data.get("name"),
+        description=data.get("description"),
         location=data.get("location"),
-        tool_status=data.get("tool_status")
+        tool_status=data.get("tool_status"),
+        shot_weight_g=data.get("shot_weight_g") or None,
+        cycle_time_s=data.get("cycle_time_s") or None,
+        cavities=data.get("cavities") or None,
+        pack_unit=data.get("pack_unit") or None
     )
 
     db.session.add(tool)
@@ -21,10 +25,15 @@ def create_tool(data):
 def update_tool(tool, data):
 
     tool.tool_no = data.get("tool_no")
-    tool.article_no = data.get("article_no")
-    tool.article_name = data.get("article_name")
+    tool.name = data.get("name")
+    tool.description = data.get("description")
     tool.location = data.get("location")
     tool.tool_status = data.get("tool_status")
+
+    tool.shot_weight_g = data.get("shot_weight_g") or None
+    tool.cycle_time_s = data.get("cycle_time_s") or None
+    tool.cavities = data.get("cavities") or None
+    tool.pack_unit = data.get("pack_unit") or None
 
     db.session.commit()
 
