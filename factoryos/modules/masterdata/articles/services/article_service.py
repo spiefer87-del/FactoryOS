@@ -3,6 +3,16 @@ from ..models import Article
 
 from factoryos.modules.masterdata.tools.models import Tool
 
+def to_float(value):
+    if value in ("", None):
+        return None
+    return float(value)
+
+def to_int(value):
+    if value in ("", None):
+        return None
+    return int(value)
+
 def create_article(form):
 
     tool_ids = form.getlist("tool_ids")
@@ -13,9 +23,9 @@ def create_article(form):
         description=form.get("description"),
         status=form.get("status"),
 
-        shot_weight_g=form.get("shot_weight_g"),
-        cycle_time_s=form.get("cycle_time_s"),
-        pack_unit=form.get("pack_unit"),
+        shot_weight_g=to_float(form.get("shot_weight_g")),
+        cycle_time_s=to_float(form.get("cycle_time_s")),
+        pack_unit=to_int(form.get("pack_unit")),
     )
 
     # 🔥 Tools verknüpfen
@@ -35,9 +45,9 @@ def update_article(article, form):
     article.article_name = form.get("article_name")
     article.description = form.get("description")
     article.status = form.get("status")
-    article.shot_weight_g = form.get("shot_weight_g")
-    article.cycle_time_s = form.get("cycle_time_s")
-    article.pack_unit = form.get("pack_unit")
+    article.shot_weight_g = to_float(form.get("shot_weight_g"))
+    article.cycle_time_s = to_float(form.get("cycle_time_s"))
+    article.pack_unit = to_int(form.get("pack_unit"))
 
     db.session.commit()
 
