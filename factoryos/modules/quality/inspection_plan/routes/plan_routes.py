@@ -1,5 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
+from flask import abort
 
 from factoryos.extensions import db
 from factoryos.modules.masterdata.articles.models import Article
@@ -49,11 +50,20 @@ def quality_create():
         if not article:
             abort(400, "Artikel existiert nicht")
 
-        existing = QualityInspectionPlan.query.filter_by(article_id=article_id).first()
-
         if existing:
-            return redirect(url_for("inspection.quality_version_edit", plan_id=existing.id))
-            
+            if not existing.versions:
+                flash("Plan hat keine Version!", "danger")
+                return redirect(url_for("inspection.quality_inspection_plan"))
+
+            latest_version = existing.versions[0]
+
+            return redirect(url_for(
+                "inspection.quality_version_edit",
+                plan_id=existing.id,
+                version_id=latest_version.id
+            ))
+
+        
         plan = QualityInspectionPlan(
             article_id=article_id,
             tool_id=request.form.get("tool_id") or None
@@ -70,7 +80,7 @@ def quality_create():
         db.session.add(version)
         db.session.commit()
 
-        return redirect(url_for("inspection.quality_version_edit", plan_id=plan.id, version_id=1))
+        return redirect(url_for("inspection.quality_version_edit", plan_id=plan.id, version_id=version.id))
 
     return render_template(
         "quality/inspection_plan/create_tool_select.html",
