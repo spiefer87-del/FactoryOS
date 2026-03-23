@@ -49,6 +49,11 @@ def quality_create():
         if not article:
             abort(400, "Artikel existiert nicht")
 
+        existing = QualityInspectionPlan.query.filter_by(article_id=article_id).first()
+
+        if existing:
+            return redirect(url_for("inspection.quality_version_edit", plan_id=existing.id))
+            
         plan = QualityInspectionPlan(
             article_id=article_id,
             tool_id=request.form.get("tool_id") or None
