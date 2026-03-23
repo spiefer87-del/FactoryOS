@@ -1,4 +1,4 @@
-from factoryos.models.tools import Tool
+from factoryos.modules.masterdata.tools.models import Tool
 
 
 def get_tools(search, status, location):

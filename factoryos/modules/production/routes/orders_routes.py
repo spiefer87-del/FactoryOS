@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required
 
-from factoryos.models.tools import Tool
+from factoryos.modules.masterdata.tools.models import Tool
 from factoryos.core.auth import role_required
 
 from factoryos.modules.production.services.order_service import (
