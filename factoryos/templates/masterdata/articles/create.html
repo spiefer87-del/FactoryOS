@@ -21,6 +21,19 @@
 </div>
 
 <div class="form-group full">
+    <label>Werkzeuge</label>
+
+    <div class="checkbox-list">
+        {% for tool in tools %}
+            <label>
+                <input type="checkbox" name="tool_ids" value="{{ tool.id }}">
+                {{ tool.tool_no }} - {{ tool.name or "-" }}
+            </label>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="form-group full">
 <label>Beschreibung</label>
 <textarea name="description" rows="3"></textarea>
 </div>
