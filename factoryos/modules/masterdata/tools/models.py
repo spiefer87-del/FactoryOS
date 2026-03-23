@@ -9,28 +9,30 @@ class Tool(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     # Identifikation
-    tool_no = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    tool_no = db.Column(db.String(100), unique=True, nullable=False)
+
     name = db.Column(db.String(100))
     description = db.Column(db.Text)
 
-    # Produktionsdaten
-    shot_weight_g = db.Column(db.Float, nullable=True)
-    cycle_time_s = db.Column(db.Float, nullable=True)
+    # 🔧 Werkzeugdaten
+    cavities = db.Column(db.Integer)
 
-    cavities = db.Column(db.Integer, nullable=True)
-    pack_unit = db.Column(db.Integer, nullable=True)
+    tool_weight_kg = db.Column(db.Float)
+    tool_length_mm = db.Column(db.Float)
+    tool_width_mm = db.Column(db.Float)
+    tool_height_mm = db.Column(db.Float)
 
-    location = db.Column(db.String(100), nullable=True, index=True)
+    centering_type = db.Column(db.String(50))  # z.B. HASCO, Eigenbau
 
-    # Status
-    tool_status = db.Column(db.String(50), nullable=False, default="OK")
+    location = db.Column(db.String(100))
 
-    # Audit
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    tool_status = db.Column(db.String(50), default="OK")
+
+    created_at = db.Column(db.DateTime)
     created_by_id = db.Column(db.Integer, db.ForeignKey("users.id"))
-    created_by = db.relationship("User", foreign_keys=[created_by_id])
 
-    # 🔗 Beziehung zu Artikeln (NEU)
+    created_by = db.relationship("User")
+
     articles = db.relationship(
         "Article",
         secondary=article_tools,

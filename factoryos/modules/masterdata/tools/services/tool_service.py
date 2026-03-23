@@ -29,11 +29,8 @@ def update_tool(tool, data):
     tool.description = data.get("description")
     tool.location = data.get("location")
     tool.tool_status = data.get("tool_status")
-
-    tool.shot_weight_g = data.get("shot_weight_g") or None
-    tool.cycle_time_s = data.get("cycle_time_s") or None
     tool.cavities = data.get("cavities") or None
-    tool.pack_unit = data.get("pack_unit") or None
+
 
     db.session.commit()
 

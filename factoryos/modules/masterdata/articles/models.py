@@ -16,6 +16,11 @@ class Article(db.Model):
 
     status = db.Column(db.String(20), default="active")
 
+    shot_weight_g = db.Column(db.Float)
+    cycle_time_s = db.Column(db.Float)
+    pack_unit = db.Column(db.Integer)
+
+
     tools = db.relationship(
         "Tool",
         secondary=article_tools,
