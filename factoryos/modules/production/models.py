@@ -1,6 +1,6 @@
 from datetime import datetime
 from factoryos.extensions import db
-from factoryos.models.tools import Tool
+from factoryos.modules.masterdata.tools.models import Tool
 
 
 class DowntimeReason(db.Model):
