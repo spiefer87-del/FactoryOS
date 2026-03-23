@@ -50,6 +50,8 @@ def quality_create():
         if not article:
             abort(400, "Artikel existiert nicht")
 
+        existing = QualityInspectionPlan.query.filter_by(article_id=article_id).first()
+        
         if existing:
             if not existing.versions:
                 flash("Plan hat keine Version!", "danger")
