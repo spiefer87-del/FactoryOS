@@ -10,10 +10,7 @@ def create_tool(data):
         description=data.get("description"),
         location=data.get("location"),
         tool_status=data.get("tool_status"),
-        shot_weight_g=data.get("shot_weight_g") or None,
-        cycle_time_s=data.get("cycle_time_s") or None,
         cavities=data.get("cavities") or None,
-        pack_unit=data.get("pack_unit") or None
     )
 
     db.session.add(tool)
