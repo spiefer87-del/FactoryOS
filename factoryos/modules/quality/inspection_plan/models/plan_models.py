@@ -4,6 +4,10 @@ from factoryos.extensions import db
 class QualityInspectionPlan(db.Model):
     __tablename__ = "qm_plans"
 
+    __table_args__ = (
+        db.UniqueConstraint('article_id', name='uq_qm_plan_article'),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
 
     article_id = db.Column(
