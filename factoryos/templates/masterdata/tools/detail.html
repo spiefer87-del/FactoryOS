@@ -8,46 +8,83 @@
 
 <div class="detail-grid">
 
-<div class="detail-item">
-<label>Werkzeugnummer</label>
-<div>{{ tool.tool_no }}</div>
+    <div class="detail-item">
+        <label>Werkzeugnummer</label>
+        <div>{{ tool.tool_no }}</div>
+    </div>
+
+    <div class="detail-item">
+        <label>Name</label>
+        <div>{{ tool.name or "-" }}</div>
+    </div>
+
+    <div class="detail-item full">
+        <label>Beschreibung</label>
+        <div>{{ tool.description or "-" }}</div>
+    </div>
+
+    <div class="detail-item">
+        <label>Schussgewicht (g)</label>
+        <div>{{ tool.shot_weight_g or "-" }}</div>
+    </div>
+
+    <div class="detail-item">
+        <label>Zykluszeit (s)</label>
+        <div>{{ tool.cycle_time_s or "-" }}</div>
+    </div>
+
+    <div class="detail-item">
+        <label>Kavitäten</label>
+        <div>{{ tool.cavities or "-" }}</div>
+    </div>
+
+    <div class="detail-item">
+        <label>Verpackungseinheit</label>
+        <div>{{ tool.pack_unit or "-" }}</div>
+    </div>
+
+    <div class="detail-item">
+        <label>Lagerort</label>
+        <div>{{ tool.location or "-" }}</div>
+    </div>
+
+    <div class="detail-item">
+        <label>Status</label>
+        <span class="status-badge status-{{ tool.tool_status }}">
+            {{ tool.tool_status }}
+        </span>
+    </div>
+
 </div>
 
-<div class="detail-item">
-<label>Artikelnummer</label>
-<div>{{ tool.article_no or "-" }}</div>
-</div>
+<hr style="margin:30px 0">
 
-<div class="detail-item">
-<label>Artikelname</label>
-<div>{{ tool.article_name or "-" }}</div>
-</div>
+<!-- 🔗 Zugeordnete Artikel -->
+<div>
+    <h3 style="margin-bottom:15px">Zugeordnete Artikel</h3>
 
-<div class="detail-item">
-<label>Lagerort</label>
-<div>{{ tool.location or "-" }}</div>
-</div>
-
-<div class="detail-item">
-<label>Status</label>
-
-<span class="status-badge status-{{ tool.tool_status }}">
-{{ tool.tool_status }}
-</span>
-
-</div>
-
+    {% if tool.articles %}
+        <ul>
+            {% for article in tool.articles %}
+                <li>
+                    <strong>{{ article.article_no }}</strong> - {{ article.article_name }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p style="color:#888">Keine Artikel zugeordnet</p>
+    {% endif %}
 </div>
 
 <div class="form-actions">
 
-<a href="{{ url_for('tools.edit', tool_id=tool.id) }}" class="btn-primary">
-Werkzeug bearbeiten
-</a>
+    <a href="{{ url_for('tools.edit', tool_id=tool.id) }}" class="btn-primary">
+        Werkzeug bearbeiten
+    </a>
 
-<a href="{{ url_for('tools.list_tools') }}" class="btn-secondary">
-Zurück zur Liste
-</a>
+    <a href="{{ url_for('tools.list_tools') }}" class="btn-secondary">
+        Zurück zur Liste
+    </a>
 
 </div>
 
