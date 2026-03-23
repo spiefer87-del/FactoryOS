@@ -1,5 +1,5 @@
 from factoryos.extensions import db
-from factoryos.models.tools import Tool
+from factoryos.modules.masterdata.tools.models import Tool
 
 
 def create_tool(data):

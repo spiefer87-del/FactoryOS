@@ -1,5 +1,5 @@
 from factoryos.extensions import db
-from .article_tool import article_tools
+from factoryos.modules.masterdata.shared.models.article_tool import article_tools
 
 
 class Article(db.Model):
@@ -15,8 +15,9 @@ class Article(db.Model):
     description = db.Column(db.Text)
 
     status = db.Column(db.String(20), default="active")
-        tools = db.relationship(
+
+    tools = db.relationship(
         "Tool",
         secondary=article_tools,
         back_populates="articles"
-        )
+    )

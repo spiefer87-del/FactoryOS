@@ -2,7 +2,7 @@ from flask import render_template
 from flask_login import login_required
 
 from . import bp
-from factoryos.models.tools import Tool
+from factoryos.modules.masterdata.tools.models import Tool
 
 
 @bp.route("/<int:tool_id>")

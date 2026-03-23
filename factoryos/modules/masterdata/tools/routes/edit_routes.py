@@ -3,7 +3,7 @@ from flask_login import login_required
 
 from . import bp
 from ..services.tool_service import update_tool
-from factoryos.models.tools import Tool
+from factoryos.modules.masterdata.tools.models import Tool
 
 
 @bp.route("/edit/<int:tool_id>", methods=["GET", "POST"])
