@@ -630,6 +630,28 @@ max-width:700px;
     color: #aaa;
 }
 
+.article-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.article-line a {
+    text-decoration: none;
+    color: inherit;
+    font-size: 13px;
+}
+
+.article-line a:hover {
+    color: #6366f1;
+}
+
+.article-name {
+    color: #666;
+    margin-left: 6px;
+    font-size: 12px;
+}
+
 /* Mobile */
 @media (max-width: 768px) {
     .form-grid {
