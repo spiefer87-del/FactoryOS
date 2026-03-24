@@ -63,7 +63,11 @@ data-table-search="tools-table"
 {% if tool.articles %}
     <div class="article-list">
     {% for article in tool.articles %}
-        <div>{{ article.article_name }}</div>
+        <div>
+            <a href="{{ url_for('articles.detail', article_id=article.id) }}">
+                {{ article.article_no }}
+            </a>
+        </div>
     {% endfor %}
     </div>
 {% else %}
