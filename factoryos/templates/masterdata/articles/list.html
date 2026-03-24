@@ -7,7 +7,7 @@
 {% set columns = [
 "Artikelnummer",
 "Artikelname",
-"Beschreibung",
+"Werkzeuge",
 "Status",
 "Aktionen"
 ] %}
@@ -16,13 +16,34 @@
 
 {% for article in articles %}
 
+{% set tools_html = "" %}
+
+{% if article.tools %}
+
+    {% for tool in article.tools[:3] %}
+        {% set tools_html = tools_html +
+        '<a class="tool-badge" href="' ~ url_for("tools.detail", tool_id=tool.id) ~ '">' ~ tool.tool_no ~ '</a> ' %}
+    {% endfor %}
+
+    {% if article.tools|length > 3 %}
+        {% set tools_html = tools_html +
+        '<span class="tool-more">+' ~ (article.tools|length - 3) ~ '</span>' %}
+    {% endif %}
+
+{% else %}
+
+    {% set tools_html = '<span class="empty-state">-</span>' %}
+
+{% endif %}
+
+
 {% set row = [
 
 '<a href="' ~ url_for("articles.detail", article_id=article.id) ~ '">' ~ article.article_no ~ '</a>',
 
 article.article_name,
 
-article.description,
+tools_html,
 
 '<span class="status-badge status-' ~ article.status ~ '">' ~ article.status ~ '</span>',
 
