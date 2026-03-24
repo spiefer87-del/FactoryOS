@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<h2>Werkzeugliste</h2>
+<h2>Artikelübersicht</h2>
 
 <div class="fos-table-wrapper">
 
@@ -11,20 +11,19 @@
 type="text"
 class="fos-search"
 placeholder="Suchen..."
-data-table-search="tools-table"
+data-table-search="articles-table"
 >
 </div>
 
 <div class="fos-table-container">
 
-<table class="fos-table" id="tools-table">
+<table class="fos-table" id="articles-table">
 
 <thead>
 <tr>
-<th>Werkzeugnr</th>
 <th>Artikelnummer</th>
 <th>Artikelname</th>
-<th>Standort</th>
+<th>Werkzeuge</th>
 <th>Status</th>
 <th>Aktionen</th>
 </tr>
@@ -32,71 +31,66 @@ data-table-search="tools-table"
 
 <tbody>
 
-{% for tool in tools %}
+{% for article in articles %}
 
 <tr>
 
 <td>
-<a href="{{ url_for('tools.detail', tool_id=tool.id) }}">
-{{ tool.tool_no }}
+<a href="{{ url_for('articles.detail', article_id=article.id) }}">
+{{ article.article_no }}
 </a>
 </td>
 
-<!-- Artikelnummer -->
+<td>
+{{ article.article_name }}
+</td>
+
 <td>
 
-{% if tool.articles %}
-    <div class="article-list">
-    {% for article in tool.articles %}
-        <div>{{ article.article_no }}</div>
+{% if article.tools %}
+
+    <div class="tool-list">
+
+    {% for tool in article.tools[:3] %}
+        <a class="tool-badge"
+           href="{{ url_for('tools.detail', tool_id=tool.id) }}">
+            {{ tool.tool_no }}
+        </a>
     {% endfor %}
+
+    {% if article.tools|length > 3 %}
+        <span class="tool-more">
+            +{{ article.tools|length - 3 }}
+        </span>
+    {% endif %}
+
     </div>
+
 {% else %}
+
     <span class="empty-state">-</span>
+
 {% endif %}
 
 </td>
 
-<!-- Artikelname -->
 <td>
-
-{% if tool.articles %}
-    <div class="article-list">
-    {% for article in tool.articles %}
-        <div>{{ article.article_name }}</div>
-    {% endfor %}
-    </div>
-{% else %}
-    <span class="empty-state">-</span>
-{% endif %}
-
-</td>
-
-<td>
-{{ tool.location or "-" }}
-</td>
-
-<td>
-<span class="status-badge status-{{ tool.tool_status }}">
-{{ tool.tool_status }}
+<span class="status-badge status-{{ article.status }}">
+{{ article.status }}
 </span>
 </td>
 
 <td>
 
-<div class="table-actions">
-
 <a class="btn-small btn-edit"
-   href="{{ url_for('tools.edit', tool_id=tool.id) }}">
+   href="{{ url_for('articles.edit', article_id=article.id) }}">
    Bearbeiten
 </a>
 
 <a class="btn-small btn-delete"
-   href="{{ url_for('tools.delete', tool_id=tool.id) }}">
+   href="{{ url_for('articles.delete', article_id=article.id) }}">
    Löschen
 </a>
-
-</div>
 
 </td>
 
@@ -110,7 +104,7 @@ data-table-search="tools-table"
 
 </div>
 
-<div class="fos-pagination" data-table="tools-table"></div>
+<div class="fos-pagination" data-table="articles-table"></div>
 
 </div>
 
