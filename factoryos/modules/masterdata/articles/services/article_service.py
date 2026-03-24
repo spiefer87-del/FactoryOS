@@ -41,6 +41,7 @@ def create_article(form):
 
 def update_article(article, form):
 
+    # Basisdaten
     article.article_no = form.get("article_no")
     article.article_name = form.get("article_name")
     article.description = form.get("description")
@@ -49,15 +50,41 @@ def update_article(article, form):
     article.cycle_time_s = to_float(form.get("cycle_time_s"))
     article.pack_unit = to_int(form.get("pack_unit"))
 
-    # 🔗 Tools aktualisieren
+    # =========================
+    # 🔗 TOOL VERKNÜPFUNG (SMART)
+    # =========================
+
+    old_tools = set(article.tools)
+
     tool_ids = form.getlist("tools")
-    tools = Tool.query.filter(Tool.id.in_(tool_ids)).all()
-    article.tools = tools
-    
+
+    if tool_ids:
+        new_tools = set(
+            Tool.query.filter(Tool.id.in_(tool_ids)).all()
+        )
+    else:
+        new_tools = set()
+
+    # Unterschiede erkennen
+    added_tools = new_tools - old_tools
+    removed_tools = old_tools - new_tools
+
+    # Beziehung setzen
+    article.tools = list(new_tools)
+
+    # =========================
+    # 📝 CHANGELOG (optional)
+    # =========================
+
+    for tool in added_tools:
+        print(f"[LOG] Tool hinzugefügt: {tool.tool_no}")
+
+    for tool in removed_tools:
+        print(f"[LOG] Tool entfernt: {tool.tool_no}")
+
     db.session.commit()
 
     return article
-
 
 def delete_article(article):
 
