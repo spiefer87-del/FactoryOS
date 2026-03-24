@@ -36,6 +36,7 @@ data-table-search="tools-table"
 
 <tr>
 
+<!-- Werkzeug -->
 <td>
 <a href="{{ url_for('tools.detail', tool_id=tool.id) }}">
 {{ tool.tool_no }}
@@ -44,22 +45,6 @@ data-table-search="tools-table"
 
 <!-- Artikelnummer -->
 <td>
-
-{% if tool.articles %}
-    <div class="article-list">
-    {% for article in tool.articles %}
-        <div>{{ article.article_no }}</div>
-    {% endfor %}
-    </div>
-{% else %}
-    <span class="empty-state">-</span>
-{% endif %}
-
-</td>
-
-<!-- Artikelname -->
-<td>
-
 {% if tool.articles %}
     <div class="article-list">
     {% for article in tool.articles %}
@@ -73,21 +58,37 @@ data-table-search="tools-table"
 {% else %}
     <span class="empty-state">-</span>
 {% endif %}
-
 </td>
 
+<!-- Artikelname -->
+<td>
+{% if tool.articles %}
+    <div class="article-list">
+    {% for article in tool.articles %}
+        <div>
+            {{ article.article_name }}
+        </div>
+    {% endfor %}
+    </div>
+{% else %}
+    <span class="empty-state">-</span>
+{% endif %}
+</td>
+
+<!-- Standort -->
 <td>
 {{ tool.location or "-" }}
 </td>
 
+<!-- Status -->
 <td>
 <span class="status-badge status-{{ tool.tool_status }}">
 {{ tool.tool_status }}
 </span>
 </td>
 
+<!-- Aktionen -->
 <td>
-
 <div class="table-actions">
 
 <a class="btn-small btn-edit"
@@ -101,7 +102,6 @@ data-table-search="tools-table"
 </a>
 
 </div>
-
 </td>
 
 </tr>
