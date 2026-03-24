@@ -13,7 +13,23 @@
                value="{{ article.article_name if article else '' }}"
                required>
     </div>
+    <div class="form-group full">
+    <label>Werkzeuge</label>
 
+    <select name="tools" multiple size="6">
+        {% for tool in tools %}
+            <option value="{{ tool.id }}"
+                {% if article and tool in article.tools %}selected{% endif %}>
+                {{ tool.tool_no }}{% if tool.name %} - {{ tool.name }}{% endif %}
+            </option>
+        {% endfor %}
+    </select>
+
+    <small style="color:#777">
+        STRG / CMD gedrückt halten für Mehrfachauswahl
+    </small>
+    </div>
+    
     <div class="form-group full">
         <label>Beschreibung</label>
         <textarea name="description" rows="3">{{ article.description if article else '' }}</textarea>
