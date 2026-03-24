@@ -2,69 +2,27 @@
 
 {% block content %}
 
-<h2>Artikel bearbeiten</h2>
+<p style="color:#666;margin-bottom:20px">
+Artikel-ID: <strong>{{ article.id }}</strong>
+</p>
 
-<div class="form-container">
+<h2 style="margin-bottom:25px">Artikel bearbeiten</h2>
+
+<div class="form-card">
 
 <form method="POST">
 
-<div class="form-grid">
+    {% include "masterdata/articles/_form.html" %}
 
-<div class="form-group">
-<label>Artikelnummer</label>
-<input type="text"
-       name="article_no"
-       value="{{ article.article_no }}"
-       required>
-</div>
+    <div class="form-actions">
+        <button class="btn-primary">
+            Änderungen speichern
+        </button>
 
-<div class="form-group">
-<label>Artikelname</label>
-<input type="text"
-       name="article_name"
-       value="{{ article.article_name }}"
-       required>
-</div>
-
-<div class="form-group full">
-<label>Beschreibung</label>
-<textarea name="description" rows="3">{{ article.description }}</textarea>
-</div>
-
-<div class="form-group">
-<label>Status</label>
-
-<select name="status">
-
-<option value="active"
-{% if article.status == "active" %}selected{% endif %}>
-Aktiv
-</option>
-
-<option value="inactive"
-{% if article.status == "inactive" %}selected{% endif %}>
-Inaktiv
-</option>
-
-</select>
-
-</div>
-
-</div>
-
-
-<div class="form-actions">
-
-<button type="submit" class="btn-primary">
-Änderungen speichern
-</button>
-
-<a href="{{ url_for('articles.detail', article_id=article.id) }}"
-   class="btn-secondary">
-Zurück
-</a>
-
-</div>
+        <a href="{{ url_for('articles.list') }}" class="btn-secondary">
+            Abbrechen
+        </a>
+    </div>
 
 </form>
 
