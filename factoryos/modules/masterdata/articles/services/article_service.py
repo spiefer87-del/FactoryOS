@@ -49,6 +49,11 @@ def update_article(article, form):
     article.cycle_time_s = to_float(form.get("cycle_time_s"))
     article.pack_unit = to_int(form.get("pack_unit"))
 
+    # 🔗 Tools aktualisieren
+    tool_ids = form.getlist("tools")
+    tools = Tool.query.filter(Tool.id.in_(tool_ids)).all()
+    article.tools = tools
+    
     db.session.commit()
 
     return article
