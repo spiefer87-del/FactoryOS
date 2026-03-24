@@ -36,10 +36,12 @@ def quality_inspection_plan():
 @role_required("qm", "admin")
 def quality_create():
 
-    articles = Article.query.all()
+    articles = Article.query.order_by(Article.article_no).all()
+    tools = Tool.query.order_by(Tool.tool_no).all()   # 🔥 NEU
 
     if request.method == "POST":
         article_id = request.form.get("article_id")
+        tool_id = request.form.get("tool_id") or None   # 🔥 NEU
 
         if not article_id:
             flash("Bitte Artikel auswählen", "error")
@@ -50,6 +52,7 @@ def quality_create():
         if not article:
             abort(400, "Artikel existiert nicht")
 
+        # 🔒 Duplicate Check
         existing = QualityInspectionPlan.query.filter_by(article_id=article_id).first()
         
         if existing:
@@ -65,30 +68,35 @@ def quality_create():
                 version_id=latest_version.id
             ))
 
-        
+        # 🆕 Plan erstellen
         plan = QualityInspectionPlan(
             article_id=article_id,
-            tool_id=request.form.get("tool_id") or None
+            tool_id=tool_id   # 🔥 HIER WICHTIG
         )
 
         db.session.add(plan)
-        db.session.flush()  # 🔥 wichtig!
+        db.session.flush()
 
-        # 👉 ERSTE VERSION ERZEUGEN
+        # 🆕 Erste Version
         version = QualityInspectionPlanVersion(
             plan_id=plan.id,
             revision="1.0",
         )
+
         db.session.add(version)
         db.session.commit()
 
-        return redirect(url_for("inspection.quality_version_edit", plan_id=plan.id, version_id=version.id))
+        return redirect(url_for(
+            "inspection.quality_version_edit",
+            plan_id=plan.id,
+            version_id=version.id
+        ))
 
     return render_template(
-        "quality/inspection_plan/create_tool_select.html",
-        articles=articles
+        "quality/inspection_plan/create.html",  # 🔥 dein neuer Name
+        articles=articles,
+        tools=tools   # 🔥 WICHTIG
     )
-
 
 @bp.route("/<int:plan_id>/delete", methods=["POST"])
 @login_required
