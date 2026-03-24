@@ -1,10 +1,12 @@
 from ..models import Article
 
 
-def get_articles():
+from sqlalchemy.orm import joinedload
 
+def get_articles():
     return (
         Article.query
+        .options(joinedload(Article.tools))  # 🔥 DAS IST DER FIX
         .order_by(Article.article_no)
         .all()
     )
