@@ -5,6 +5,8 @@ from . import bp
 from ..queries.article_queries import get_article
 from ..services.article_service import update_article
 
+from factoryos.modules.masterdata.tools.models import Tool
+
 @bp.route("/edit/<int:article_id>", methods=["GET","POST"])
 @login_required
 def edit(article_id):
