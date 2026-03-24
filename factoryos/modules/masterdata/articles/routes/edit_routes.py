@@ -6,6 +6,7 @@ from ..queries.article_queries import get_article
 from ..services.article_service import update_article
 
 from factoryos.modules.masterdata.tools.models import Tool
+from factoryos.modules.masterdata.articles.models import Article
 
 @bp.route("/edit/<int:article_id>", methods=["GET","POST"])
 @login_required
