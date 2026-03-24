@@ -66,3 +66,14 @@
     </div>
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    new TomSelect("#tool-select", {
+        plugins: ['remove_button'],
+        maxItems: null,
+        create: false,
+        placeholder: "Werkzeug suchen..."
+    });
+});
+</script>
