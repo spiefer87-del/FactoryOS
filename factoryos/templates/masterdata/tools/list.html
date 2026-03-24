@@ -22,7 +22,7 @@ data-table-search="tools-table"
 <thead>
 <tr>
 <th>Werkzeugnr</th>
-<th>Artikel</th>
+<th>Artikelnummer</th>
 <th>Standort</th>
 <th>Status</th>
 <th>Aktionen</th>
@@ -45,20 +45,18 @@ data-table-search="tools-table"
 
 {% if tool.articles %}
 
-    <div class="tool-list">
+    <div class="article-list">
 
-    {% for article in tool.articles[:3] %}
-        <a class="tool-badge"
-           href="{{ url_for('articles.detail', article_id=article.id) }}">
-            {{ article.article_no }}
-        </a>
+    {% for article in tool.articles %}
+        <div class="article-line">
+            <a href="{{ url_for('articles.detail', article_id=article.id) }}">
+                <strong>{{ article.article_no }}</strong>
+                <span class="article-name">
+                    {{ article.article_name }}
+                </span>
+            </a>
+        </div>
     {% endfor %}
-
-    {% if tool.articles|length > 3 %}
-        <span class="tool-more">
-            +{{ tool.articles|length - 3 }}
-        </span>
-    {% endif %}
 
     </div>
 
