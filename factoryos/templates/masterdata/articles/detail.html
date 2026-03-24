@@ -35,42 +35,89 @@
 
 <div class="detail-grid">
 
-<div class="detail-item">
+<!-- BASISDATEN -->
 
+<div class="detail-item">
 <label>Artikelnummer</label>
-<div class="detail-value">
-{{ article.article_no }}
+<div class="detail-value">{{ article.article_no }}</div>
 </div>
-
-</div>
-
 
 <div class="detail-item">
-
 <label>Status</label>
-
 <div class="detail-value">
-
 <span class="status-badge status-{{ article.status }}">
 {{ article.status }}
 </span>
-
 </div>
-
 </div>
 
 
 <div class="detail-item full">
-
 <label>Beschreibung</label>
-
 <div class="detail-value">
 {{ article.description or "-" }}
 </div>
+</div>
 
+
+<!-- PRODUKTIONSDATEN -->
+
+<div class="detail-item">
+<label>Schussgewicht (g)</label>
+<div class="detail-value">
+{{ article.shot_weight_g or "-" }}
+</div>
+</div>
+
+<div class="detail-item">
+<label>Zykluszeit (s)</label>
+<div class="detail-value">
+{{ article.cycle_time_s or "-" }}
+</div>
+</div>
+
+<div class="detail-item">
+<label>Verpackungseinheit</label>
+<div class="detail-value">
+{{ article.pack_unit or "-" }}
+</div>
 </div>
 
 </div>
+
+</div>
+
+
+<!-- 🔗 WERKZEUGE -->
+
+<div class="detail-card">
+
+<h3 style="margin-bottom:15px;">Zugeordnete Werkzeuge</h3>
+
+{% if article.tools %}
+
+<div class="tool-list">
+
+{% for tool in article.tools %}
+
+<a href="{{ url_for('tools.detail', tool_id=tool.id) }}"
+   class="tool-badge">
+
+{{ tool.tool_no }}
+
+</a>
+
+{% endfor %}
+
+</div>
+
+{% else %}
+
+<div class="empty-state">
+Keine Werkzeuge zugeordnet
+</div>
+
+{% endif %}
 
 </div>
 
