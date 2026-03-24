@@ -1,0 +1,87 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<h2 style="margin-bottom:25px">Prüfplan erstellen</h2>
+
+<div class="form-card">
+
+<form method="POST">
+
+<div class="form-grid">
+
+<!-- 🔹 Artikel (Pflicht) -->
+<div class="form-group full">
+
+<label>Artikel *</label>
+
+<select name="article_id" id="article-select" required>
+<option value="">Artikel auswählen...</option>
+
+{% for article in articles %}
+<option value="{{ article.id }}">
+{{ article.article_no }} - {{ article.article_name }}
+</option>
+{% endfor %}
+
+</select>
+
+</div>
+
+<!-- 🔹 Werkzeug (optional) -->
+<div class="form-group full">
+
+<label>Werkzeug</label>
+
+<select name="tool_id" id="tool-select">
+
+<option value="">Kein Werkzeug zuweisen</option>
+
+{% for tool in tools %}
+<option value="{{ tool.id }}">
+{{ tool.tool_no }}
+</option>
+{% endfor %}
+
+</select>
+
+</div>
+
+</div>
+
+<div class="form-actions">
+
+<button type="submit" class="btn-primary">
+Prüfplan erstellen
+</button>
+
+<a href="{{ url_for('inspection.dashboard') }}" class="btn-secondary">
+Abbrechen
+</a>
+
+</div>
+
+</form>
+
+</div>
+
+<!-- 🔥 TomSelect -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    new TomSelect("#article-select", {
+        maxItems: 1,
+        create: false,
+        placeholder: "Artikel suchen..."
+    });
+
+    new TomSelect("#tool-select", {
+        maxItems: 1,
+        create: false,
+        placeholder: "Werkzeug suchen..."
+    });
+
+});
+</script>
+
+{% endblock %}
