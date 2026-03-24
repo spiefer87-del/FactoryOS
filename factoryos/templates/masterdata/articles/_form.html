@@ -69,11 +69,38 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    new TomSelect("#tool-select", {
+
+    const originalTools = {{ article.tools|map(attribute='id')|list|tojson if article else '[]' }};
+
+    const select = new TomSelect("#tool-select", {
         plugins: ['remove_button'],
         maxItems: null,
         create: false,
-        placeholder: "Werkzeug suchen..."
+        placeholder: "Werkzeug suchen...",
+
+        onItemRemove: function(value) {
+            if (!confirm("Werkzeug wirklich entfernen?")) {
+                this.addItem(value); // wieder zurück
+            }
+        }
     });
+
+    // =========================
+    // 🚨 Submit Check (zusätzliche Sicherheit)
+    // =========================
+
+    document.querySelector("form").addEventListener("submit", function(e) {
+
+        const current = select.getValue(); // Array
+
+        const removed = originalTools.filter(id => !current.includes(id.toString()));
+
+        if (removed.length > 0) {
+            if (!confirm("Achtung: Es werden Werkzeuge entfernt. Fortfahren?")) {
+                e.preventDefault();
+            }
+        }
+    });
+
 });
 </script>
