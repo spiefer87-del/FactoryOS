@@ -4,6 +4,7 @@ from flask import abort
 
 from factoryos.extensions import db
 from factoryos.modules.masterdata.articles.models import Article
+from factoryos.modules.masterdata.tools.models import Tool
 
 from factoryos.core.auth import role_required
 
