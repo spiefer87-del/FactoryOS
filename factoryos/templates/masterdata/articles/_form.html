@@ -1,1 +1,55 @@
+<div class="form-grid">
 
+    <div class="form-group">
+        <label>Artikelnummer</label>
+        <input type="text" name="article_no"
+               value="{{ article.article_no if article else '' }}"
+               required>
+    </div>
+
+    <div class="form-group">
+        <label>Artikelname</label>
+        <input type="text" name="article_name"
+               value="{{ article.article_name if article else '' }}"
+               required>
+    </div>
+
+    <div class="form-group full">
+        <label>Beschreibung</label>
+        <textarea name="description" rows="3">{{ article.description if article else '' }}</textarea>
+    </div>
+
+    <div class="form-group">
+        <label>Status</label>
+        <select name="status">
+            <option value="active"
+                {% if article and article.status == "active" %}selected{% endif %}>
+                Aktiv
+            </option>
+            <option value="inactive"
+                {% if article and article.status == "inactive" %}selected{% endif %}>
+                Inaktiv
+            </option>
+        </select>
+    </div>
+
+    <!-- Produktionsdaten -->
+    <div class="form-group">
+        <label>Schussgewicht (g)</label>
+        <input type="number" step="0.01" name="shot_weight_g"
+               value="{{ article.shot_weight_g if article else '' }}">
+    </div>
+
+    <div class="form-group">
+        <label>Zykluszeit (s)</label>
+        <input type="number" step="0.01" name="cycle_time_s"
+               value="{{ article.cycle_time_s if article else '' }}">
+    </div>
+
+    <div class="form-group">
+        <label>Verpackungseinheit</label>
+        <input type="number" name="pack_unit"
+               value="{{ article.pack_unit if article else '' }}">
+    </div>
+
+</div>
