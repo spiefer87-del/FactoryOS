@@ -9,15 +9,12 @@
 
 <a href="{{ url_for('inspection.quality_create') }}"
    class="btn-small btn-primary">
-
 + Prüfplan erstellen
-
 </a>
 
 </div>
 
 </div>
-
 
 {% set columns = [
 "Werkzeugnr",
@@ -34,14 +31,38 @@
 
 {% set latest = plan.versions[0] if plan.versions else None %}
 
+<!-- 🔗 Artikelnummern -->
+{% set article_numbers = "" %}
+
+{% if plan.tool and plan.tool.articles %}
+    {% for article in plan.tool.articles %}
+        {% set article_numbers = article_numbers +
+        '<div><a href="' ~ url_for("articles.detail", article_id=article.id) ~ '">' ~ article.article_no ~ '</a></div>' %}
+    {% endfor %}
+{% else %}
+    {% set article_numbers = '<span class="empty-state">-</span>' %}
+{% endif %}
+
+<!-- 🔗 Artikelnamen -->
+{% set article_names = "" %}
+
+{% if plan.tool and plan.tool.articles %}
+    {% for article in plan.tool.articles %}
+        {% set article_names = article_names +
+        '<div>' ~ article.article_name ~ '</div>' %}
+    {% endfor %}
+{% else %}
+    {% set article_names = '<span class="empty-state">-</span>' %}
+{% endif %}
+
 {% set row = [
 
 '<a href="' ~ url_for("inspection.quality_version_edit",
     plan_id=plan.id,
-    version_id=latest.id if latest else 0) ~ '">' ~ plan.tool.tool_no ~ '</a>',
+    version_id=latest.id if latest else 0) ~ '">' ~ (plan.tool.tool_no if plan.tool else "-") ~ '</a>',
 
-plan.article.article_no or "-",
-plan.article.article_name or "-",
+article_numbers,
+article_names,
 
 latest.revision if latest else "-",
 
