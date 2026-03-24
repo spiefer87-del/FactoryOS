@@ -598,6 +598,32 @@ max-width:700px;
     grid-column: span 2;
 }
 
+.tool-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.tool-badge {
+    background: #eef2ff;
+    color: #3730a3;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.tool-badge:hover {
+    background: #6366f1;
+    color: white;
+}
+
+.empty-state {
+    color: #888;
+    font-style: italic;
+}
+
 /* Mobile */
 @media (max-width: 768px) {
     .form-grid {
