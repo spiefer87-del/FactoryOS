@@ -4,58 +4,108 @@
 
 <h2>Artikelübersicht</h2>
 
-{% set columns = [
-"Artikelnummer",
-"Artikelname",
-"Werkzeuge",
-"Status",
-"Aktionen"
-] %}
+<div class="fos-table-wrapper">
 
-{% set rows = [] %}
+<div class="fos-table-toolbar">
+<input
+type="text"
+class="fos-search"
+placeholder="Suchen..."
+data-table-search="articles-table"
+>
+</div>
+
+<div class="fos-table-container">
+
+<table class="fos-table" id="articles-table">
+
+<thead>
+<tr>
+<th>Artikelnummer</th>
+<th>Artikelname</th>
+<th>Werkzeuge</th>
+<th>Status</th>
+<th>Aktionen</th>
+</tr>
+</thead>
+
+<tbody>
 
 {% for article in articles %}
 
-{% set tools_html = "" %}
+<tr>
+
+<td>
+<a href="{{ url_for('articles.detail', article_id=article.id) }}">
+{{ article.article_no }}
+</a>
+</td>
+
+<td>
+{{ article.article_name }}
+</td>
+
+<td>
 
 {% if article.tools %}
 
+    <div class="tool-list">
+
     {% for tool in article.tools[:3] %}
-        {% set tools_html = tools_html +
-        '<a class="tool-badge" href="' ~ url_for("tools.detail", tool_id=tool.id) ~ '">' ~ tool.tool_no ~ '</a> ' %}
+        <a class="tool-badge"
+           href="{{ url_for('tools.detail', tool_id=tool.id) }}">
+            {{ tool.tool_no }}
+        </a>
     {% endfor %}
 
     {% if article.tools|length > 3 %}
-        {% set tools_html = tools_html +
-        '<span class="tool-more">+' ~ (article.tools|length - 3) ~ '</span>' %}
+        <span class="tool-more">
+            +{{ article.tools|length - 3 }}
+        </span>
     {% endif %}
+
+    </div>
 
 {% else %}
 
-    {% set tools_html = '<span class="empty-state">-</span>' %}
+    <span class="empty-state">-</span>
 
 {% endif %}
 
+</td>
 
-{% set row = [
+<td>
+<span class="status-badge status-{{ article.status }}">
+{{ article.status }}
+</span>
+</td>
 
-'<a href="' ~ url_for("articles.detail", article_id=article.id) ~ '">' ~ article.article_no ~ '</a>',
+<td>
 
-article.article_name,
+<a class="btn-small btn-edit"
+   href="{{ url_for('articles.edit', article_id=article.id) }}">
+   Bearbeiten
+</a>
 
-tools_html,
+<a class="btn-small btn-delete"
+   href="{{ url_for('articles.delete', article_id=article.id) }}">
+   Löschen
+</a>
 
-'<span class="status-badge status-' ~ article.status ~ '">' ~ article.status ~ '</span>',
+</td>
 
-'<a class="btn-small btn-edit" href="' ~ url_for("articles.edit", article_id=article.id) ~ '">Bearbeiten</a>
- <a class="btn-small btn-delete" href="' ~ url_for("articles.delete", article_id=article.id) ~ '">Löschen</a>'
-
-] %}
-
-{% set _ = rows.append(row) %}
+</tr>
 
 {% endfor %}
 
-{% include "components/table.html" with context %}
+</tbody>
+
+</table>
+
+</div>
+
+<div class="fos-pagination" data-table="articles-table"></div>
+
+</div>
 
 {% endblock %}
