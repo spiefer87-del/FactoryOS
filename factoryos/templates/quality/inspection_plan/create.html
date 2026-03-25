@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<h2 style="margin-bottom:25px">Prüfplan erstellen</h2>
+<h2>Prüfplan erstellen</h2>
 
 <div class="form-card">
 
@@ -10,48 +10,32 @@
 
 <div class="form-grid">
 
-<!-- 🔹 Artikel (Pflicht) -->
+<!-- Artikel -->
 <div class="form-group full">
-
-<label>Artikel *</label>
-
-<select name="article_id" id="article-select" required>
-<option value="">Artikel auswählen...</option>
-
+<label>Artikel</label>
+<select id="article-select" name="article_id" required>
+<option value="">-- Artikel wählen --</option>
 {% for article in articles %}
 <option value="{{ article.id }}">
 {{ article.article_no }} - {{ article.article_name }}
 </option>
 {% endfor %}
-
 </select>
-
 </div>
 
-<!-- 🔹 Werkzeug (optional) -->
+<!-- Werkzeug -->
 <div class="form-group full">
-
 <label>Werkzeug</label>
-
-<select name="tool_id" id="tool-select">
-
-<option value="">Kein Werkzeug zuweisen</option>
-
-{% for tool in tools %}
-<option value="{{ tool.id }}">
-{{ tool.tool_no }}
-</option>
-{% endfor %}
-
+<select id="tool-select" name="tool_id" required>
+<option value="">-- zuerst Artikel wählen --</option>
 </select>
-
 </div>
 
 </div>
 
 <div class="form-actions">
 
-<button type="submit" class="btn-primary">
+<button class="btn-primary">
 Prüfplan erstellen
 </button>
 
@@ -65,57 +49,43 @@ Abbrechen
 
 </div>
 
-<!-- 🔥 TomSelect -->
+{% endblock %}
+
 <script>
 document.addEventListener("DOMContentLoaded", function() {
 
-    const articleSelect = new TomSelect("#article-select", {
-        maxItems: 1,
-        create: false,
-        placeholder: "Artikel suchen..."
-    });
+    const articleSelect = document.getElementById("article-select");
+    const toolSelect = document.getElementById("tool-select");
 
-    const toolSelect = new TomSelect("#tool-select", {
-        maxItems: 1,
-        create: false,
+    let toolTom = new TomSelect("#tool-select", {
+        valueField: "id",
+        labelField: "text",
+        searchField: "text",
         placeholder: "Werkzeug wählen..."
     });
 
-    // 🔥 Wenn Artikel geändert wird → Tools laden
-    articleSelect.on("change", function(value) {
+    articleSelect.addEventListener("change", function() {
 
-        toolSelect.clear();
-        toolSelect.clearOptions();
+        const articleId = this.value;
 
-        if (!value) {
-            toolSelect.addOption({value: "", text: "Erst Artikel auswählen"});
-            toolSelect.refreshOptions(false);
-            return;
-        }
+        toolTom.clear();
+        toolTom.clearOptions();
 
-        fetch(`/quality/inspection-plans/tools-by-article/${value}`)
-            .then(response => response.json())
+        if (!articleId) return;
+
+        fetch(`/quality/inspection-plans/tools-by-article/${articleId}`)
+            .then(res => res.json())
             .then(data => {
 
-                if (data.tools.length === 0) {
-                    toolSelect.addOption({
-                        value: "",
+                toolTom.addOptions(data);
+
+                if (data.length === 0) {
+                    toolTom.addOption({
+                        id: "",
                         text: "Keine Werkzeuge vorhanden"
                     });
-                } else {
-                    data.tools.forEach(tool => {
-                        toolSelect.addOption({
-                            value: tool.id,
-                            text: tool.tool_no
-                        });
-                    });
                 }
-
-                toolSelect.refreshOptions(false);
             });
-
     });
-
 });
 </script>
-{% endblock %}
