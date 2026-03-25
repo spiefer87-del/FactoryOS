@@ -115,3 +115,21 @@ def quality_delete_plan(plan_id):
     flash("Prüfplan wurde gelöscht", "success")
 
     return redirect(url_for("inspection.quality_inspection_plan"))
+
+@bp.route("/tools-by-article/<int:article_id>")
+@login_required
+def tools_by_article(article_id):
+
+    article = Article.query.get_or_404(article_id)
+
+    tools = article.tools
+
+    return {
+        "tools": [
+            {
+                "id": tool.id,
+                "tool_no": tool.tool_no
+            }
+            for tool in tools
+        ]
+    }
