@@ -69,19 +69,53 @@ Abbrechen
 <script>
 document.addEventListener("DOMContentLoaded", function() {
 
-    new TomSelect("#article-select", {
+    const articleSelect = new TomSelect("#article-select", {
         maxItems: 1,
         create: false,
         placeholder: "Artikel suchen..."
     });
 
-    new TomSelect("#tool-select", {
+    const toolSelect = new TomSelect("#tool-select", {
         maxItems: 1,
         create: false,
-        placeholder: "Werkzeug suchen..."
+        placeholder: "Werkzeug wählen..."
+    });
+
+    // 🔥 Wenn Artikel geändert wird → Tools laden
+    articleSelect.on("change", function(value) {
+
+        toolSelect.clear();
+        toolSelect.clearOptions();
+
+        if (!value) {
+            toolSelect.addOption({value: "", text: "Erst Artikel auswählen"});
+            toolSelect.refreshOptions(false);
+            return;
+        }
+
+        fetch(`/quality/inspection-plans/tools-by-article/${value}`)
+            .then(response => response.json())
+            .then(data => {
+
+                if (data.tools.length === 0) {
+                    toolSelect.addOption({
+                        value: "",
+                        text: "Keine Werkzeuge vorhanden"
+                    });
+                } else {
+                    data.tools.forEach(tool => {
+                        toolSelect.addOption({
+                            value: tool.id,
+                            text: tool.tool_no
+                        });
+                    });
+                }
+
+                toolSelect.refreshOptions(false);
+            });
+
     });
 
 });
 </script>
-
 {% endblock %}
