@@ -5,7 +5,7 @@ class QualityInspectionPlan(db.Model):
     __tablename__ = "qm_plans"
 
     __table_args__ = (
-        db.UniqueConstraint('article_id', name='uq_qm_plan_article'),
+        db.UniqueConstraint('article_id', 'tool_id', name='name='uq_qm_plan_article_tool'),
     )
 
     id = db.Column(db.Integer, primary_key=True)
@@ -17,7 +17,7 @@ class QualityInspectionPlan(db.Model):
     )
 
     # optional behalten
-    tool_id = db.Column(db.Integer, db.ForeignKey("tools.id"), nullable=True)
+    tool_id = db.Column(db.Integer, db.ForeignKey("tools.id"), nullable=False)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     created_by_id = db.Column(db.Integer, db.ForeignKey("users.id"))
