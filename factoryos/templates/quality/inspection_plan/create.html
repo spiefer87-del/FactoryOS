@@ -49,13 +49,11 @@ Abbrechen
 
 </div>
 
-{% endblock %}
-
+{% block scripts %}
 <script>
 document.addEventListener("DOMContentLoaded", function() {
 
     const articleSelect = document.getElementById("article-select");
-    const toolSelect = document.getElementById("tool-select");
 
     let toolTom = new TomSelect("#tool-select", {
         valueField: "id",
@@ -73,7 +71,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if (!articleId) return;
 
-        fetch(`/quality/inspection-plans/tools-by-article/${articleId}`)
+        fetch("/quality/inspection-plans/tools-by-article/" + articleId)
             .then(res => res.json())
             .then(data => {
 
@@ -89,3 +87,6 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 </script>
+
+{% endblock %}
+{% endblock %}
