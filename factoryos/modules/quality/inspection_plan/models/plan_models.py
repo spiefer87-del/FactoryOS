@@ -5,7 +5,7 @@ class QualityInspectionPlan(db.Model):
     __tablename__ = "qm_plans"
 
     __table_args__ = (
-        db.UniqueConstraint('article_id', 'tool_id', name='name='uq_qm_plan_article_tool'),
+        db.UniqueConstraint('article_id', 'tool_id', name='uq_qm_plan_article_tool'),
     )
 
     id = db.Column(db.Integer, primary_key=True)
