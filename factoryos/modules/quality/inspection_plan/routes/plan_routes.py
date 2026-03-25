@@ -38,30 +38,37 @@ def quality_inspection_plan():
 def quality_create():
 
     articles = Article.query.order_by(Article.article_no).all()
-    tools = Tool.query.order_by(Tool.tool_no).all()   # 🔥 NEU
 
     if request.method == "POST":
         article_id = request.form.get("article_id")
-        tool_id = request.form.get("tool_id") or None   # 🔥 NEU
+        tool_id = request.form.get("tool_id")
 
         if not article_id:
             flash("Bitte Artikel auswählen", "error")
             return redirect(request.url)
-        
+
+        if not tool_id:
+            flash("Bitte Werkzeug auswählen", "error")
+            return redirect(request.url)
+
         article = Article.query.get(article_id)
+        tool = Tool.query.get(tool_id)
 
-        if not article:
-            abort(400, "Artikel existiert nicht")
+        if not article or not tool:
+            abort(400, "Ungültige Auswahl")
 
-        # 🔒 Duplicate Check
-        existing = QualityInspectionPlan.query.filter_by(article_id=article_id).first()
-        
+        # ✅ KORREKT: Artikel + Werkzeug prüfen
+        existing = QualityInspectionPlan.query.filter_by(
+            article_id=article_id,
+            tool_id=tool_id
+        ).first()
+
         if existing:
-            if not existing.versions:
-                flash("Plan hat keine Version!", "danger")
-                return redirect(url_for("inspection.quality_inspection_plan"))
+            latest_version = existing.versions[0] if existing.versions else None
 
-            latest_version = existing.versions[0]
+            if not latest_version:
+                flash("Plan hat keine Version!", "danger")
+                return redirect(url_for("inspection.dashboard"))
 
             return redirect(url_for(
                 "inspection.quality_version_edit",
@@ -72,16 +79,16 @@ def quality_create():
         # 🆕 Plan erstellen
         plan = QualityInspectionPlan(
             article_id=article_id,
-            tool_id=tool_id   # 🔥 HIER WICHTIG
+            tool_id=tool_id
         )
 
         db.session.add(plan)
         db.session.flush()
 
-        # 🆕 Erste Version
         version = QualityInspectionPlanVersion(
             plan_id=plan.id,
             revision="1.0",
+            status="draft"
         )
 
         db.session.add(version)
@@ -94,9 +101,8 @@ def quality_create():
         ))
 
     return render_template(
-        "quality/inspection_plan/create.html",  # 🔥 dein neuer Name
-        articles=articles,
-        tools=tools   # 🔥 WICHTIG
+        "quality/inspection_plan/create.html",
+        articles=articles
     )
 
 @bp.route("/<int:plan_id>/delete", methods=["POST"])
@@ -122,14 +128,10 @@ def tools_by_article(article_id):
 
     article = Article.query.get_or_404(article_id)
 
-    tools = article.tools
-
-    return {
-        "tools": [
-            {
-                "id": tool.id,
-                "tool_no": tool.tool_no
-            }
-            for tool in tools
-        ]
-    }
+    return [
+        {
+            "id": t.id,
+            "text": f"{t.tool_no} ({t.name or ''})"
+        }
+        for t in article.tools
+    ]
