@@ -128,10 +128,15 @@ def tools_by_article(article_id):
 
     article = Article.query.get_or_404(article_id)
 
-    return [
-        {
+    data = []
+
+    for t in article.tools:
+        name = t.name if t.name else ""
+        text = f"{t.tool_no} ({name})"
+
+        data.append({
             "id": t.id,
-            "text": f"{t.tool_no} ({t.name or ''})"
-        }
-        for t in article.tools
-    ]
+            "text": text
+        })
+
+    return data
