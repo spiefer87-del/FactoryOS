@@ -23,6 +23,7 @@ def create_tool(data):
     log_change(
         entity_type="tool",
         entity_id=tool.id,
+        entity_name=tool.tool_no,
         action="create",
         changes={
             "tool_no": {"old": None, "new": tool.tool_no}
