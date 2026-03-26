@@ -80,6 +80,7 @@ def create_article(form):
         log_change(
             entity_type="article",
             entity_id=article.id,
+            entity_name=article.article_no,
             action="link_tools",
             changes={
                 "tools": tool_ids
@@ -147,7 +148,7 @@ def update_article(article, form):
         log_change(
             entity_type="article",
             entity_id=article.id,
-            entity_name=entity_name,
+            entity_name=article.article_no,
             action="update",
             changes=changes,
             category="masterdata"
@@ -167,7 +168,7 @@ def delete_article(article):
     log_change(
         entity_type="article",
         entity_id=article.id,
-        entity_name=entity_name,
+        entity_name=article.article_no,
         action="delete",
         changes={
             "article_no": article.article_no,
