@@ -1,4 +1,6 @@
 from ..models import Article
+from factoryos.core.models.change_log import ChangeLog   # 🔥 DAS FEHLT
+
 
 
 from sqlalchemy.orm import joinedload
