@@ -28,15 +28,33 @@
 {{ field }}
 </span>
 
-<span class="old">
-{{ values.old or "-" }}
-</span>
+{% if values.added or values.removed %}
 
-<span class="arrow">→</span>
+    {% if values.added %}
+        <div class="change-added">
+            + {{ values.added | join(", ") }}
+        </div>
+    {% endif %}
 
-<span class="new">
-{{ values.new or "-" }}
-</span>
+    {% if values.removed %}
+        <div class="change-removed">
+            − {{ values.removed | join(", ") }}
+        </div>
+    {% endif %}
+
+{% else %}
+
+    <span class="old">
+        {{ values.old or "-" }}
+    </span>
+
+    <span class="arrow">→</span>
+
+    <span class="new">
+        {{ values.new or "-" }}
+    </span>
+
+{% endif %}
 
 </div>
 
