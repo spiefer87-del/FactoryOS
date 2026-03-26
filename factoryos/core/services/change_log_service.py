@@ -8,6 +8,7 @@ def log_change(entity_type, entity_id, action, changes=None, category=None):
     log = ChangeLog(
         entity_type=entity_type,
         entity_id=entity_id,
+        entity_name=entity_name,
         action=action,
         changes=changes or {},
         category=category,
