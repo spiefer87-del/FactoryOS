@@ -2,91 +2,128 @@
 
 {% block content %}
 
-<h2 style="margin-bottom:25px">Werkzeug Details</h2>
+<div class="page-header">
 
-<div class="form-card">
+<h2>Werkzeug</h2>
+
+<div class="page-actions">
+
+<a class="btn-small btn-edit"
+   href="{{ url_for('tools.edit', tool_id=tool.id) }}">
+   ✏ Bearbeiten
+</a>
+
+<a class="btn-small btn-delete"
+   href="{{ url_for('tools.delete', tool_id=tool.id) }}">
+   🗑 Löschen
+</a>
+
+</div>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- 🔧 BASISDATEN -->
+<!-- ========================= -->
+
+<div class="detail-card">
+
+<div class="detail-title">
+
+<h3>{{ tool.tool_no }}</h3>
+<span class="detail-subtitle">{{ tool.name or "-" }}</span>
+
+</div>
+
 
 <div class="detail-grid">
 
-    <div class="detail-item">
-        <label>Werkzeugnummer</label>
-        <div>{{ tool.tool_no }}</div>
-    </div>
+<div class="detail-item">
+<label>Werkzeugnummer</label>
+<div>{{ tool.tool_no }}</div>
+</div>
 
-    <div class="detail-item">
-        <label>Name</label>
-        <div>{{ tool.name or "-" }}</div>
-    </div>
+<div class="detail-item">
+<label>Name</label>
+<div>{{ tool.name or "-" }}</div>
+</div>
 
-    <div class="detail-item full">
-        <label>Beschreibung</label>
-        <div>{{ tool.description or "-" }}</div>
-    </div>
+<div class="detail-item full">
+<label>Beschreibung</label>
+<div>{{ tool.description or "-" }}</div>
+</div>
 
-    <div class="detail-item">
-        <label>Schussgewicht (g)</label>
-        <div>{{ tool.shot_weight_g or "-" }}</div>
-    </div>
+<div class="detail-item">
+<label>Kavitäten</label>
+<div>{{ tool.cavities or "-" }}</div>
+</div>
 
-    <div class="detail-item">
-        <label>Zykluszeit (s)</label>
-        <div>{{ tool.cycle_time_s or "-" }}</div>
-    </div>
+<div class="detail-item">
+<label>Lagerort</label>
+<div>{{ tool.location or "-" }}</div>
+</div>
 
-    <div class="detail-item">
-        <label>Kavitäten</label>
-        <div>{{ tool.cavities or "-" }}</div>
-    </div>
-
-    <div class="detail-item">
-        <label>Verpackungseinheit</label>
-        <div>{{ tool.pack_unit or "-" }}</div>
-    </div>
-
-    <div class="detail-item">
-        <label>Lagerort</label>
-        <div>{{ tool.location or "-" }}</div>
-    </div>
-
-    <div class="detail-item">
-        <label>Status</label>
-        <span class="status-badge status-{{ tool.tool_status }}">
-            {{ tool.tool_status }}
-        </span>
-    </div>
+<div class="detail-item">
+<label>Status</label>
+<span class="status-badge status-{{ tool.tool_status }}">
+    {{ tool.tool_status }}
+</span>
+</div>
 
 </div>
 
-<hr style="margin:30px 0">
-
-<!-- 🔗 Zugeordnete Artikel -->
-<div>
-    <h3 style="margin-bottom:15px">Zugeordnete Artikel</h3>
-
-    {% if tool.articles %}
-        <ul>
-            {% for article in tool.articles %}
-                <li>
-                    <strong>{{ article.article_no }}</strong> - {{ article.article_name }}
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p style="color:#888">Keine Artikel zugeordnet</p>
-    {% endif %}
 </div>
 
-<div class="form-actions">
 
-    <a href="{{ url_for('tools.edit', tool_id=tool.id) }}" class="btn-primary">
-        Werkzeug bearbeiten
-    </a>
+<!-- ========================= -->
+<!-- 🔗 ZUGEORDNETE ARTIKEL -->
+<!-- ========================= -->
 
-    <a href="{{ url_for('tools.list_tools') }}" class="btn-secondary">
-        Zurück zur Liste
-    </a>
+<div class="detail-card">
+
+<h3 style="margin-bottom:15px">Zugeordnete Artikel</h3>
+
+{% if tool.articles %}
+
+<div class="tool-list">
+
+{% for article in tool.articles %}
+
+<a href="{{ url_for('articles.detail', article_id=article.id) }}"
+   class="tool-badge">
+
+{{ article.article_no }}
+
+</a>
+
+{% endfor %}
 
 </div>
+
+{% else %}
+
+<div class="empty-state">
+Keine Artikel zugeordnet
+</div>
+
+{% endif %}
+
+</div>
+
+
+<!-- ========================= -->
+<!-- 📝 CHANGELOG -->
+<!-- ========================= -->
+
+{% include "components/changelog.html" %}
+
+
+<div class="detail-footer">
+
+<a href="{{ url_for('tools.list_tools') }}" class="btn-secondary">
+← Zurück zur Liste
+</a>
 
 </div>
 
