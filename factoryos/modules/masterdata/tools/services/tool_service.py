@@ -3,6 +3,7 @@ from factoryos.modules.masterdata.tools.models import Tool
 
 # 🔥 NEU
 from factoryos.core.services.change_log_service import log_change, build_changes
+from factoryos.modules.production.tool_errors.models import ToolError
 
 
 def create_tool(data):
@@ -77,17 +78,20 @@ def update_tool(tool, data):
     return tool
 
 
+
 def delete_tool(tool):
 
-    # 📝 CHANGELOG vor löschen
+    tool_name = tool.tool_no  # 🔥 für Log sichern
+
+    # 🔥 abhängige Fehler löschen
+    ToolError.query.filter_by(tool_id=tool.id).delete()
+
+    # 🔥 ChangeLog schreiben
     log_change(
         entity_type="tool",
         entity_id=tool.id,
-        entity_name=tool.tool_no,
+        entity_name=tool_name,
         action="delete",
-        changes={
-            "tool_no": {"old": tool.tool_no, "new": None}
-        },
         category="masterdata"
     )
 
