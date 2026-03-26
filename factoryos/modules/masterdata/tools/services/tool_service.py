@@ -66,6 +66,7 @@ def update_tool(tool, data):
         log_change(
             entity_type="tool",
             entity_id=tool.id,
+            entity_name=tool.tool_no,
             action="update",
             changes=changes,
             category="masterdata"
@@ -82,6 +83,7 @@ def delete_tool(tool):
     log_change(
         entity_type="tool",
         entity_id=tool.id,
+        entity_name=tool.tool_no,
         action="delete",
         changes={
             "tool_no": {"old": tool.tool_no, "new": None}
