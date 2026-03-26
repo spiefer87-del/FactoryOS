@@ -652,6 +652,54 @@ max-width:700px;
     margin-left: 6px;
     font-size: 12px;
 }
+* ------------------------------------------------ */
+/* Log */
+/* ------------------------------------------------ */
+
+.timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.timeline-item {
+    border-left: 3px solid #ddd;
+    padding-left: 12px;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+}
+
+.timeline-meta {
+    color: #777;
+    font-size: 0.8rem;
+}
+
+.timeline-change {
+    margin-bottom: 4px;
+}
+
+.old-value {
+    color: #c0392b;
+}
+
+.new-value {
+    color: #27ae60;
+}
+
+.change-added {
+    color: #27ae60;
+}
+
+.change-removed {
+    color: #c0392b;
+}
+
 
 /* Mobile */
 @media (max-width: 768px) {
