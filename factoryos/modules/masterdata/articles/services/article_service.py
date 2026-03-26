@@ -66,6 +66,7 @@ def create_article(form):
     log_change(
         entity_type="article",
         entity_id=article.id,
+        entity_name=article.article_no,
         action="create",
         changes={
             "article_no": article.article_no,
