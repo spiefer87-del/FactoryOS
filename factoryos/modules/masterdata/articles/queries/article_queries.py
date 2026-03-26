@@ -10,6 +10,9 @@ def get_articles():
         .order_by(Article.article_no)
         .all()
     )
+    
+def get_article(article_id):
+    return Article.query.get_or_404(article_id)
 
 def search_articles(search=None):
 
