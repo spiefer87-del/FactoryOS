@@ -1,1 +1,1 @@
-from .routes import activity_routes
+from . import activity_routes
