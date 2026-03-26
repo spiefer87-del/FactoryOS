@@ -12,7 +12,6 @@ def delete(tool_id):
 
     tool = Tool.query.get_or_404(tool_id)
 
-    db.session.delete(tool)
-    db.session.commit()
+    delete_tool(tool)
 
     return redirect(url_for("tools.list_tools"))
