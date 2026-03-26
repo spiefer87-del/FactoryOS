@@ -1,0 +1,67 @@
+<div class="changelog-card">
+
+    <div class="changelog-header">
+        <h3>Änderungen</h3>
+    </div>
+
+    {% if logs %}
+
+    <div class="changelog-list">
+
+        {% for log in logs[:5] %}
+        <div class="changelog-item">
+
+            <div class="changelog-main">
+                <span class="changelog-action">{{ log.action }}</span>
+
+                {% if log.field %}
+                <span class="changelog-field">{{ log.field }}</span>
+                {% endif %}
+
+                {% if log.old_value or log.new_value %}
+                <span class="changelog-values">
+                    {{ log.old_value or "-" }} → {{ log.new_value or "-" }}
+                </span>
+                {% endif %}
+            </div>
+
+            <div class="changelog-meta">
+                {{ log.created_at.strftime("%d.%m.%Y %H:%M") }}
+                • {{ log.user.username if log.user else "System" }}
+            </div>
+
+        </div>
+        {% endfor %}
+
+    </div>
+
+    {% if logs|length > 5 %}
+    <div class="changelog-scroll">
+
+        {% for log in logs[5:] %}
+        <div class="changelog-item small">
+
+            <div>
+                {{ log.field }}:
+                {{ log.old_value or "-" }} → {{ log.new_value or "-" }}
+            </div>
+
+            <div class="changelog-meta">
+                {{ log.created_at.strftime("%d.%m.%Y %H:%M") }}
+            </div>
+
+        </div>
+        {% endfor %}
+
+    </div>
+    {% endif %}
+
+    {% else %}
+
+    <div class="empty-state">
+        Keine Änderungen vorhanden
+    </div>
+
+    {% endif %}
+
+</div>
