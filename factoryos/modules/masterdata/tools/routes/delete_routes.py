@@ -4,6 +4,7 @@ from flask_login import login_required
 from . import bp
 from factoryos.extensions import db
 from factoryos.modules.masterdata.tools.models import Tool
+from ..services.tool_service import delete_tool
 
 
 @bp.route("/delete/<int:tool_id>")
