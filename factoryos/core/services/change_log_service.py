@@ -3,7 +3,7 @@ from factoryos.extensions import db
 from factoryos.core.models.change_log import ChangeLog
 
 
-def log_change(entity_type, entity_id, action, changes=None, category=None):
+def log_change(entity_type, entity_id, action, changes=None, category=None, entity_name=None):
 
     log = ChangeLog(
         entity_type=entity_type,
