@@ -1,5 +1,5 @@
 from factoryos.modules.masterdata.tools.models import Tool
-
+from factoryos.core.models.change_log import ChangeLog
 
 def get_tools(search, status, location):
 
@@ -36,3 +36,11 @@ def get_tools(search, status, location):
     locations = [l[0] for l in locations if l[0]]
 
     return tools, statuses, locations
+
+
+
+def get_tool_logs(tool_id):
+    return ChangeLog.query.filter_by(
+        entity_type="tool",
+        entity_id=tool_id
+    ).order_by(ChangeLog.created_at.desc()).all()
