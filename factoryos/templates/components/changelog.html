@@ -1,67 +1,69 @@
 <div class="changelog-card">
 
-    <div class="changelog-header">
-        <h3>Änderungen</h3>
-    </div>
+<h3>Änderungen</h3>
 
-    {% if logs %}
+{% if logs %}
 
-    <div class="changelog-list">
+<div class="changelog-list">
 
-        {% for log in logs[:5] %}
-        <div class="changelog-item">
+{% for log in logs[:5] %}
 
-            <div class="changelog-main">
-                <span class="changelog-action">{{ log.action }}</span>
+<div class="changelog-item">
 
-                {% if log.field %}
-                <span class="changelog-field">{{ log.field }}</span>
-                {% endif %}
+<!-- 🔹 ACTION -->
+<div class="changelog-action">
+    {{ log.action|capitalize }}
+</div>
 
-                {% if log.old_value or log.new_value %}
-                <span class="changelog-values">
-                    {{ log.old_value or "-" }} → {{ log.new_value or "-" }}
-                </span>
-                {% endif %}
-            </div>
+<!-- 🔹 CHANGES -->
+{% if log.changes %}
 
-            <div class="changelog-meta">
-                {{ log.created_at.strftime("%d.%m.%Y %H:%M") }}
-                • {{ log.user.username if log.user else "System" }}
-            </div>
+<div class="changelog-changes">
 
-        </div>
-        {% endfor %}
+{% for field, values in log.changes.items() %}
 
-    </div>
+<div class="changelog-line">
 
-    {% if logs|length > 5 %}
-    <div class="changelog-scroll">
+<span class="log-field">
+{{ field }}
+</span>
 
-        {% for log in logs[5:] %}
-        <div class="changelog-item small">
+<span class="old">
+{{ values.old or "-" }}
+</span>
 
-            <div>
-                {{ log.field }}:
-                {{ log.old_value or "-" }} → {{ log.new_value or "-" }}
-            </div>
+<span class="arrow">→</span>
 
-            <div class="changelog-meta">
-                {{ log.created_at.strftime("%d.%m.%Y %H:%M") }}
-            </div>
+<span class="new">
+{{ values.new or "-" }}
+</span>
 
-        </div>
-        {% endfor %}
+</div>
 
-    </div>
-    {% endif %}
+{% endfor %}
 
-    {% else %}
+</div>
 
-    <div class="empty-state">
-        Keine Änderungen vorhanden
-    </div>
+{% endif %}
 
-    {% endif %}
+<!-- 🔹 META -->
+<div class="changelog-meta">
+{{ log.created_at.strftime("%d.%m.%Y %H:%M") }}
+• {{ log.user.username if log.user else "System" }}
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+{% else %}
+
+<div class="empty-state">
+Keine Änderungen vorhanden
+</div>
+
+{% endif %}
 
 </div>
