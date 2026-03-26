@@ -1,5 +1,4 @@
 {% set field_labels = {
-    
     "tools": "Werkzeuge",
     "cycle_time_s": "Zykluszeit",
     "pack_unit": "Verpackungseinheit",
@@ -18,7 +17,7 @@
 
 <div class="changelog-card">
 
-<h3>Änderungen</h3>
+<h3>Aktivitäten</h3>
 
 {% if logs %}
 
@@ -28,12 +27,32 @@
 
 <div class="changelog-item">
 
-<!-- 🔹 ACTION -->
-<div class="changelog-action">
-    {{ log.action|capitalize }}
+<!-- 🔥 ENTITY HEADER -->
+<div class="changelog-header">
+
+    {% if log.entity_type == "article" %}
+        <div class="changelog-entity">
+            📦 Artikel {{ log.entity_name or log.entity_id }}
+        </div>
+
+    {% elif log.entity_type == "tool" %}
+        <div class="changelog-entity">
+            🔧 Werkzeug {{ log.entity_name or log.entity_id }}
+        </div>
+
+    {% else %}
+        <div class="changelog-entity">
+            {{ log.entity_type }} {{ log.entity_id }}
+        </div>
+    {% endif %}
+
+    <div class="changelog-action">
+        wurde {{ log.action }}
+    </div>
+
 </div>
 
-<!-- 🔹 CHANGES -->
+<!-- 🔥 CHANGES -->
 {% if log.changes %}
 
 <div class="changelog-changes">
@@ -42,11 +61,12 @@
 
 <div class="changelog-line">
 
-<!-- 🔥 Feldname übersetzt -->
-<span class="log-field">
-{{ field_labels.get(field, field) }}
-</span>
+<!-- Feldname -->
+<div class="log-field">
+    {{ field_labels.get(field, field) }}
+</div>
 
+<!-- Werte -->
 <div class="changelog-values">
 
 {% if values.added or values.removed %}
@@ -89,8 +109,8 @@
 
 <!-- 🔹 META -->
 <div class="changelog-meta">
-{{ log.created_at.strftime("%d.%m.%Y %H:%M") }}
-• {{ log.user.username if log.user else "System" }}
+    {{ log.created_at.strftime("%d.%m.%Y %H:%M") }}
+    • {{ log.user.username if log.user else "System" }}
 </div>
 
 </div>
