@@ -1,3 +1,14 @@
+{% set field_labels = {
+    "tools": "Werkzeuge",
+    "cycle_time_s": "Zykluszeit",
+    "pack_unit": "Verpackungseinheit",
+    "article_no": "Artikelnummer",
+    "article_name": "Artikelname",
+    "description": "Beschreibung",
+    "status": "Status",
+    "shot_weight_g": "Schussgewicht"
+} %}
+
 <div class="changelog-card">
 
 <h3>Änderungen</h3>
@@ -24,9 +35,12 @@
 
 <div class="changelog-line">
 
+<!-- 🔥 Feldname übersetzt -->
 <span class="log-field">
-{{ field }}
+{{ field_labels.get(field, field) }}
 </span>
+
+<div class="changelog-values">
 
 {% if values.added or values.removed %}
 
@@ -55,6 +69,8 @@
     </span>
 
 {% endif %}
+
+</div>
 
 </div>
 
