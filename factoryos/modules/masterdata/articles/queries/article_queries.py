@@ -11,12 +11,6 @@ def get_articles():
         .all()
     )
 
-
-def get_article(article_id):
-
-    return Article.query.get_or_404(article_id)
-
-
 def search_articles(search=None):
 
     query = Article.query
@@ -36,3 +30,9 @@ def get_statuses():
         "active",
         "inactive"
     ]
+
+def get_article_logs(article_id):
+    return ChangeLog.query.filter_by(
+        entity_type="article",
+        entity_id=article_id
+    ).order_by(ChangeLog.created_at.desc()).all()
