@@ -1,7 +1,7 @@
 from flask import render_template, request
 from flask_login import login_required
 
-from .import bp
+from ..import bp
 from factoryos.core.models.change_log import ChangeLog
 
 
