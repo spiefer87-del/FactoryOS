@@ -147,6 +147,7 @@ def update_article(article, form):
         log_change(
             entity_type="article",
             entity_id=article.id,
+            entity_name=entity_name,
             action="update",
             changes=changes,
             category="masterdata"
@@ -166,6 +167,7 @@ def delete_article(article):
     log_change(
         entity_type="article",
         entity_id=article.id,
+        entity_name=entity_name,
         action="delete",
         changes={
             "article_no": article.article_no,
