@@ -1,4 +1,4 @@
-from models import ToolError
+from ..models import ToolError
 
 
 def get_tool_errors():
