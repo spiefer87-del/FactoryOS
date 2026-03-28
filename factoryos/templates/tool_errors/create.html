@@ -80,7 +80,7 @@ input.addEventListener("input", function () {
 
     timeout = setTimeout(() => {
 
-        fetch(`/tools/api/search?q=${query}`)
+        fetch(`/masterdata/tools/api/search?q=${query}`)
             .then(res => res.json())
             .then(data => {
 
