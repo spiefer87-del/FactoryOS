@@ -15,7 +15,7 @@
                class="form-control"
                placeholder="Werkzeug suchen..."
                autocomplete="off"
-               required>
+               >
 
         <select name="tool_id"
                 id="toolSelect"
@@ -67,14 +67,28 @@
 const searchInput = document.getElementById("toolSearch");
 const select = document.getElementById("toolSelect");
 
-searchInput.addEventListener("keyup", function () {
-    const filter = this.value.toLowerCase();
-    const options = select.options;
+// 🔥 Original speichern
+const allOptions = Array.from(select.options);
 
-    for (let i = 0; i < options.length; i++) {
-        const text = options[i].text.toLowerCase();
-        options[i].style.display = text.includes(filter) ? "" : "none";
+searchInput.addEventListener("input", function () {
+
+    const filter = this.value.toLowerCase();
+
+    // Select leeren
+    select.innerHTML = "";
+
+    // Gefilterte Optionen neu einfügen
+    const filtered = allOptions.filter(option =>
+        option.text.toLowerCase().includes(filter)
+    );
+
+    filtered.forEach(option => select.appendChild(option));
+
+    // 🔥 optional: erstes Element automatisch wählen
+    if (select.options.length > 0) {
+        select.selectedIndex = 0;
     }
+
 });
 </script>
 
