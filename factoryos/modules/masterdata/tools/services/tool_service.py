@@ -3,7 +3,7 @@ from factoryos.modules.masterdata.tools.models import Tool
 
 # 🔥 NEU
 from factoryos.core.services.change_log_service import log_change, build_changes
-from factoryos.modules.production.tool_errors.models import ToolError
+from factoryos.modules.tool_errors.models import ToolError
 
 
 def create_tool(data):
