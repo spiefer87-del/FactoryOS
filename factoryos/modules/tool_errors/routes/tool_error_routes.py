@@ -16,17 +16,17 @@ from ..services.tool_error_service import (
 
 @bp.route("/list")
 @login_required
-def tool_errors():
+def list():
 
     errors = get_tool_errors()
 
     return render_template(
-        "production/tool_errors/list.html",
+        "/tool_errors/list.html",
         errors=errors
     )
 
 
-@bp.route("/tool-errors/create", methods=["GET", "POST"])
+@bp.route("/create", methods=["GET", "POST"])
 @login_required
 def tool_error_create():
 
@@ -37,23 +37,23 @@ def tool_error_create():
         return redirect(url_for("production.tool_errors"))
 
     return render_template(
-        "production/tool_errors/create.html"
+        "tool_errors/create.html"
     )
 
 
-@bp.route("/tool-errors/<int:error_id>")
+@bp.route("/<int:error_id>")
 @login_required
 def tool_error_detail(error_id):
 
     error = get_tool_error(error_id)
 
     return render_template(
-        "production/tool_errors/detail.html",
+        "tool_errors/detail.html",
         error=error
     )
 
 
-@bp.route("/tool-errors/delete/<int:error_id>")
+@bp.route("/delete/<int:error_id>")
 @login_required
 def tool_error_delete(error_id):
 
@@ -61,4 +61,4 @@ def tool_error_delete(error_id):
 
     delete_tool_error(error)
 
-    return redirect(url_for("production.tool_errors"))
+    return redirect(url_for("tool_errors.list"))
