@@ -13,7 +13,7 @@ from ..services.tool_error_service import (
     delete_tool_error
 )
 
-from factoryos.modules.masterdata.tools.queries import get_tools
+from factoryos.modules.masterdata.tools.queries.tool_queries import get_tools
 
 
 @bp.route("/list")
