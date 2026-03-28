@@ -19,11 +19,32 @@
 
 <h3>Aktivitäten</h3>
 
+<form method="get" class="changelog-filter">
+
+    <!-- bestehende Parameter behalten -->
+    {% for key, value in request.args.items() %}
+        {% if key != "limit" %}
+            <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endif %}
+    {% endfor %}
+
+    <label>Anzeigen:</label>
+
+    <select name="limit" onchange="this.form.submit()">
+        <option value="5" {% if request.args.get('limit', '5') == '5' %}selected{% endif %}>5</option>
+        <option value="15" {% if request.args.get('limit') == '15' %}selected{% endif %}>15</option>
+        <option value="25" {% if request.args.get('limit') == '25' %}selected{% endif %}>25</option>
+        <option value="50" {% if request.args.get('limit') == '50' %}selected{% endif %}>50</option>
+        <option value="all" {% if request.args.get('limit') == 'all' %}selected{% endif %}>Alle</option>
+    </select>
+
+</form>
+
 {% if logs %}
 
 <div class="changelog-list">
 
-{% for log in logs[:5] %}
+{% for log in logs %}
 
 <div class="changelog-item">
 

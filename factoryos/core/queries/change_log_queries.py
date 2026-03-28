@@ -5,14 +5,14 @@ def get_logs(entity_type=None, entity_id=None, limit=None, action=None, search=N
 
     query = ChangeLog.query
 
-    # 🔹 Filter nach Entity
+    # 🔹 Entity Filter
     if entity_type:
         query = query.filter_by(entity_type=entity_type)
 
     if entity_id:
         query = query.filter_by(entity_id=entity_id)
 
-    # 🔹 Filter nach Action
+    # 🔹 Action Filter
     if action:
         query = query.filter_by(action=action)
 
@@ -23,8 +23,17 @@ def get_logs(entity_type=None, entity_id=None, limit=None, action=None, search=N
     # 🔹 Sortierung
     query = query.order_by(ChangeLog.created_at.desc())
 
-    # 🔹 Limit
+    # 🔹 Limit sauber behandeln
     if limit and limit != "all":
-        query = query.limit(int(limit))
+        try:
+            limit = int(limit)
+
+            # 🔒 Schutz vor Unsinn
+            if limit > 0:
+                query = query.limit(limit)
+
+        except (ValueError, TypeError):
+            # fallback → kein limit setzen
+            pass
 
     return query.all()

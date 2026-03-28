@@ -11,10 +11,23 @@ from factoryos.core.queries.change_log_queries import get_logs
 def detail(article_id):
 
     article = get_article(article_id)
+
+    # 🔥 Limit sauber behandeln
+    limit_param = request.args.get("limit", "5")
+
+    if limit_param == "all":
+        limit = None
+    else:
+        try:
+            limit = int(limit_param)
+        except ValueError:
+            limit = 5  # fallback
+
+    # 🔥 Logs laden
     logs = get_logs(
         entity_type="article",
         entity_id=article.id,
-        limit=request.args.get("limit", 5)
+        limit=limit
     )
 
     return render_template(
