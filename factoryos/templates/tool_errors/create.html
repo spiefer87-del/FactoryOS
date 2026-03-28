@@ -2,60 +2,80 @@
 
 {% block content %}
 
-<h2>Tool Error melden</h2>
+<h2>Tool Error erfassen</h2>
 
-<div class="form-container">
+<form method="POST" class="form-container">
 
-<form method="POST">
+    <!-- Werkzeug auswählen -->
+    <div class="form-group">
+        <label for="toolSearch">Werkzeugnummer *</label>
 
-<div class="form-grid">
+        <input type="text"
+               id="toolSearch"
+               class="form-control"
+               placeholder="Werkzeug suchen..."
+               autocomplete="off"
+               required>
 
-<div class="form-group">
-<label>Tool ID</label>
-<input type="number" name="tool_id" required>
-</div>
+        <select name="tool_id"
+                id="toolSelect"
+                class="form-control"
+                size="6"
+                required>
+            {% for tool in tools %}
+                <option value="{{ tool.id }}">
+                    {{ tool.tool_no }} - {{ tool.description or '' }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
 
-<div class="form-group">
-<label>Order ID</label>
-<input type="number" name="order_id">
-</div>
+    <!-- Fehlerart -->
+    <div class="form-group">
+        <label for="error_type">Fehler *</label>
+        <input type="text"
+               name="error_type"
+               id="error_type"
+               class="form-control"
+               required>
+    </div>
 
-<div class="form-group">
-<label>Machine ID</label>
-<input type="number" name="machine_id">
-</div>
+    <!-- Beschreibung -->
+    <div class="form-group">
+        <label for="description">Beschreibung</label>
+        <textarea name="description"
+                  id="description"
+                  class="form-control"
+                  rows="4"></textarea>
+    </div>
 
-<div class="form-group">
-<label>Fehlerart</label>
+    <!-- Submit -->
+    <div class="form-actions">
+        <button type="submit" class="btn-primary">
+            Speichern
+        </button>
 
-<select name="error_type">
-
-<option>Werkzeugbruch</option>
-<option>Werkzeug beschädigt</option>
-<option>Werkzeug verschlissen</option>
-<option>Werkzeugmaß falsch</option>
-
-</select>
-
-</div>
-
-<div class="form-group full">
-<label>Beschreibung</label>
-<textarea name="description"></textarea>
-</div>
-
-</div>
-
-<div class="form-actions">
-
-<button class="btn-primary">
-Fehler melden
-</button>
-
-</div>
+        <a href="{{ url_for('tool_error.list') }}" class="btn-secondary">
+            Abbrechen
+        </a>
+    </div>
 
 </form>
 
-</div>
+<!-- 🔥 Live Filter Script -->
+<script>
+const searchInput = document.getElementById("toolSearch");
+const select = document.getElementById("toolSelect");
+
+searchInput.addEventListener("keyup", function () {
+    const filter = this.value.toLowerCase();
+    const options = select.options;
+
+    for (let i = 0; i < options.length; i++) {
+        const text = options[i].text.toLowerCase();
+        options[i].style.display = text.includes(filter) ? "" : "none";
+    }
+});
+</script>
 
 {% endblock %}

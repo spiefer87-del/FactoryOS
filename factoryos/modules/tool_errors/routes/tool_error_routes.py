@@ -13,6 +13,8 @@ from ..services.tool_error_service import (
     delete_tool_error
 )
 
+from factoryos.modules.masterdata.tools.queries import get_tools
+
 
 @bp.route("/list")
 @login_required
@@ -26,18 +28,20 @@ def list():
     )
 
 
+
 @bp.route("/create", methods=["GET", "POST"])
 @login_required
 def create():
 
     if request.method == "POST":
-
         create_tool_error(request.form, current_user.id)
+        return redirect(url_for("tool_error.list"))
 
-        return redirect(url_for("tool_errors.list"))
+    tools = get_tools()
 
     return render_template(
-        "tool_errors/create.html"
+        "tool_errors/create.html",
+        tools=tools
     )
 
 
