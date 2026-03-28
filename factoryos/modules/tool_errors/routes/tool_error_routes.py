@@ -28,13 +28,13 @@ def list():
 
 @bp.route("/create", methods=["GET", "POST"])
 @login_required
-def tool_error_create():
+def create():
 
     if request.method == "POST":
 
         create_tool_error(request.form, current_user.id)
 
-        return redirect(url_for("production.tool_errors"))
+        return redirect(url_for("tool_errors.list"))
 
     return render_template(
         "tool_errors/create.html"
@@ -43,7 +43,7 @@ def tool_error_create():
 
 @bp.route("/<int:error_id>")
 @login_required
-def tool_error_detail(error_id):
+def detail(error_id):
 
     error = get_tool_error(error_id)
 
@@ -55,7 +55,7 @@ def tool_error_detail(error_id):
 
 @bp.route("/delete/<int:error_id>")
 @login_required
-def tool_error_delete(error_id):
+def delete(error_id):
 
     error = get_tool_error(error_id)
 

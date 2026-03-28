@@ -5,46 +5,52 @@
 <h2>Tool Errors</h2>
 
 <a class="btn-primary"
-   href="{{ url_for('production.tool_error_create') }}">
+   href="{{ url_for('tool_error.create') }}">
    Fehler melden
 </a>
 
-
 {% set columns = [
-"ID",
-"Werkzeug",
-"Fehler",
-"Datum",
-"Aktionen"
+    "ID",
+    "Werkzeug",
+    "Fehler",
+    "Datum",
+    "Aktionen"
 ] %}
-
 
 {% set rows = [] %}
 
-
 {% for error in errors %}
 
+{% set tool_link = 
+    '<a href="' ~ url_for("tools.detail", tool_id=error.tool.id) ~ '">' ~ error.tool.tool_no ~ '</a>'
+    if error.tool else error.tool_id
+%}
+
+{% set actions = '
+<div class="table-actions">
+    <a class="btn-small btn-edit"
+       href="' ~ url_for("tool_error.detail", error_id=error.id) ~ '">
+       Details
+    </a>
+    <a class="btn-small btn-delete"
+       href="' ~ url_for("tool_error.delete", error_id=error.id) ~ '"
+       onclick="return confirm(\'Wirklich löschen?\')">
+       Löschen
+    </a>
+</div>
+' %}
+
 {% set row = [
-
-error.id,
-
-'<a href="' ~ url_for("tools.detail", tool_id=error.tool.id) ~ '">' ~ error.tool.tool_no ~ '</a>' if error.tool else error.tool_id,
-
-error.error_type,
-
-error.created_at.strftime("%d.%m.%Y %H:%M"),
-
-'<div class="table-actions">
-<a class="btn-small btn-edit" href="' ~ url_for("production.tool_error_detail", error_id=error.id) ~ '">Details</a>
-<a class="btn-small btn-delete" href="' ~ url_for("production.tool_error_delete", error_id=error.id) ~ '">Löschen</a>
-</div>'
-
+    error.id,
+    tool_link,
+    error.error_type,
+    error.created_at.strftime("%d.%m.%Y %H:%M"),
+    actions
 ] %}
 
 {% set _ = rows.append(row) %}
 
 {% endfor %}
-
 
 {% include "components/table.html" with context %}
 
