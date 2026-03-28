@@ -4,7 +4,7 @@ from factoryos.models.user import User
 from factoryos.models.machine import Machine
 from factoryos.modules.production.models import DowntimeReason
 from factoryos.modules.orders.models import Order
-from factoryos.modules.production.models import ToolErrorTitlePreset
+from factoryos.modules.production.tool_errors.models import ToolErrorTitlePreset
 
 from factoryos.modules.admin.roles.models import Role
 from factoryos.modules.admin.permissions.models import Permission
