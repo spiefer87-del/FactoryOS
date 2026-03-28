@@ -35,7 +35,7 @@ def list():
 def create():
 
     if request.method == "POST":
-        create_tool_error(request.form, current_user.id)
+        create_tool_error(request.form, request.files, current_user.id)
         return redirect(url_for("tool_error.list"))
 
     tools = get_all_tools()

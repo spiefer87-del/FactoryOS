@@ -4,7 +4,7 @@
 
 <h2>Tool Error erfassen</h2>
 
-<form method="POST" class="form-container">
+<form method="POST" enctype="multipart/form-data" class="form-container">
 
     <!-- Werkzeug auswählen -->
     <div class="form-group">
@@ -59,7 +59,18 @@
                   class="form-control"
                   rows="4"></textarea>
     </div>
+    
+    <!-- Bilder -->
+    <div class="form-group">
+        <label for="images">Bilder</label>
 
+        <input type="file"
+            name="images"
+            id="images"
+            class="form-control"
+            multiple
+            accept="image/*">
+    </div>
     <!-- Submit -->
     <div class="form-actions">
         <button type="submit" class="btn-primary">
