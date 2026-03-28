@@ -36,8 +36,3 @@ def get_statuses():
         "inactive"
     ]
 
-def get_article_logs(article_id):
-    return ChangeLog.query.filter_by(
-        entity_type="article",
-        entity_id=article_id
-    ).order_by(ChangeLog.created_at.desc()).all()

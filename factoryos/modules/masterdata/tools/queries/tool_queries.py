@@ -38,9 +38,3 @@ def get_tools(search, status, location):
     return tools, statuses, locations
 
 
-
-def get_tool_logs(tool_id):
-    return ChangeLog.query.filter_by(
-        entity_type="tool",
-        entity_id=tool_id
-    ).order_by(ChangeLog.created_at.desc()).all()

@@ -2,7 +2,8 @@ from flask import render_template
 from flask_login import login_required
 
 from . import bp
-from ..queries.article_queries import get_article, get_article_logs
+from ..queries.article_queries import get_article
+from factoryos.core.queries.change_log_queries import get_logs
 
 
 @bp.route("/<int:article_id>")
@@ -10,7 +11,11 @@ from ..queries.article_queries import get_article, get_article_logs
 def detail(article_id):
 
     article = get_article(article_id)
-    logs = get_article_logs(article.id)  # 🔥 jetzt aus Query
+    logs = get_logs(
+        entity_type="article",
+        entity_id=article.id,
+        limit=request.args.get("limit", 5)
+    )
 
     return render_template(
         "masterdata/articles/detail.html",
