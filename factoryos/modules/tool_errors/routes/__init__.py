@@ -7,4 +7,4 @@ bp = Blueprint(
 )
 
 # Route Dateien importieren
-from tool_errors.routes import tool_error_routes
+from .tool_error_routes import *
