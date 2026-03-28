@@ -1,6 +1,9 @@
 from factoryos.modules.masterdata.tools.models import Tool
 from factoryos.core.models.change_log import ChangeLog
 
+def get_tool(tool_id):
+    return Tool.query.get_or_404(tool_id)
+
 def get_tools(search, status, location):
 
     query = Tool.query

@@ -4,7 +4,7 @@ from flask_login import login_required
 from . import bp
 from factoryos.modules.masterdata.tools.models import Tool
 from factoryos.core.queries.change_log_queries import get_logs
-from ..queries.tool_queries import get_tools
+from ..queries.tool_queries import get_tool
 
 
 
@@ -12,7 +12,7 @@ from ..queries.tool_queries import get_tools
 @login_required
 def detail(tool_id):
 
-    tool = get_tools(tool_id)
+    tool = get_tool(tool_id)
 
     # 🔥 Limit sauber behandeln
     limit_param = request.args.get("limit", "5")
