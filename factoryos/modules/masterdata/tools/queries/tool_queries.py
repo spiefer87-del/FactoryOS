@@ -42,3 +42,12 @@ def get_tools(search, status, location):
 
 def get_all_tools():
     return Tool.query.order_by(Tool.tool_no).all()
+
+def search_tools(search, limit=20):
+    return (
+        Tool.query
+        .filter(Tool.tool_no.ilike(f"%{search}%"))
+        .order_by(Tool.tool_no)
+        .limit(limit)
+        .all()
+    )
