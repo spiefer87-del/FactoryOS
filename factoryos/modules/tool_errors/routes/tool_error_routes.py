@@ -3,12 +3,12 @@ from flask_login import login_required, current_user
 
 from . import bp
 
-from queries.tool_error_queries import (
+from ..queries.tool_error_queries import (
     get_tool_errors,
     get_tool_error
 )
 
-from services.tool_error_service import (
+from ..services.tool_error_service import (
     create_tool_error,
     delete_tool_error
 )
