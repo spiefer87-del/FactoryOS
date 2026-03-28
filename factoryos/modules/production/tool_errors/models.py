@@ -1,0 +1,50 @@
+from datetime import datetime
+from factoryos.extensions import db
+from factoryos.modules.masterdata.tools.models import Tool
+
+class ToolError(db.Model):
+
+    __tablename__ = "tool_errors"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    tool_id = db.Column(db.Integer, db.ForeignKey("tools.id"), nullable=False)
+
+    error_type = db.Column(db.String(100))
+    description = db.Column(db.Text)
+    reported_by_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    reported_by = db.relationship("User")
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    order_id = db.Column(db.Integer)
+    machine_id = db.Column(db.Integer)
+
+    tool = db.relationship("Tool", backref="errors")
+
+class ToolErrorImage(db.Model):
+
+    __tablename__ = "tool_error_images"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    tool_error_id = db.Column(
+        db.Integer,
+        db.ForeignKey("tool_errors.id"),
+        nullable=False
+    )
+
+    image_path = db.Column(db.String(255))
+
+    tool_error = db.relationship("ToolError", backref="images")
+
+class ToolErrorTitlePreset(db.Model):
+    __tablename__ = "tool_error_title_presets"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    title = db.Column(db.String(200), unique=True, nullable=False)
+    active = db.Column(db.Boolean, default=True)
+
+    sort_order = db.Column(db.Integer, default=0)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
