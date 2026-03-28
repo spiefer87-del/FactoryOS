@@ -40,4 +40,5 @@ def get_tools(search, status, location):
 
     return tools, statuses, locations
 
-
+def get_all_tools():
+    return Tool.query.order_by(Tool.tool_no).all()

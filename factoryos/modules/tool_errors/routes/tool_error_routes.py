@@ -13,7 +13,7 @@ from ..services.tool_error_service import (
     delete_tool_error
 )
 
-from factoryos.modules.masterdata.tools.queries.tool_queries import get_tools
+from factoryos.modules.masterdata.tools.queries.tool_queries import get_all_tools
 
 
 @bp.route("/list")
@@ -37,7 +37,7 @@ def create():
         create_tool_error(request.form, current_user.id)
         return redirect(url_for("tool_error.list"))
 
-    tools = get_tools()
+    tools = get_all_tools()
 
     return render_template(
         "tool_errors/create.html",
