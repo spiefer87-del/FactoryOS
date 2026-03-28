@@ -26,11 +26,29 @@
     <!-- Fehlerart -->
     <div class="form-group">
         <label for="error_type">Fehler *</label>
+
+        <!-- Dropdown Presets -->
+        <select id="errorPreset"
+                class="form-control"
+                style="margin-bottom:5px;">
+
+            <option value="">-- Fehler auswählen --</option>
+
+            {% for p in presets %}
+                <option value="{{ p.title }}">
+                    {{ p.title }}
+                </option>
+            {% endfor %}
+
+        </select>
+
+        <!-- Freitext -->
         <input type="text"
-               name="error_type"
-               id="error_type"
-               class="form-control"
-               required>
+            name="error_type"
+            id="error_type"
+            class="form-control"
+            placeholder="Oder eigenen Fehler eingeben..."
+            required>
     </div>
 
     <!-- Beschreibung -->
@@ -114,6 +132,15 @@ input.addEventListener("input", function () {
             });
 
     }, 300);
+});
+
+const presetSelect = document.getElementById("errorPreset");
+const errorInput = document.getElementById("error_type");
+
+presetSelect.addEventListener("change", function () {
+    if (this.value) {
+        errorInput.value = this.value;
+    }
 });
 </script>
 

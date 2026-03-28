@@ -14,6 +14,7 @@ from ..services.tool_error_service import (
 )
 
 from factoryos.modules.masterdata.tools.queries.tool_queries import get_all_tools
+from factoryos.modules.tool_errors.models import ToolErrorTitlePreset
 
 
 @bp.route("/list")
@@ -39,9 +40,15 @@ def create():
 
     tools = get_all_tools()
 
+    presets = ToolErrorTitlePreset.query\
+        .filter_by(active=True)\
+        .order_by(ToolErrorTitlePreset.sort_order)\
+        .all()
+
     return render_template(
         "tool_errors/create.html",
-        tools=tools
+        tools=tools,
+        presets=presets
     )
 
 
