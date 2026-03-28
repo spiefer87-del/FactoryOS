@@ -61,4 +61,4 @@ def tool_error_delete(error_id):
 
     delete_tool_error(error)
 
-    return redirect(url_for("tool_errors.list"))
+    return redirect(url_for("tool_error.list"))
