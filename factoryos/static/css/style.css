@@ -652,7 +652,7 @@ max-width:700px;
     margin-left: 6px;
     font-size: 12px;
 }
-* ------------------------------------------------ */
+/* ------------------------------------------------ */
 /* Log */
 /* ------------------------------------------------ */
 
@@ -753,6 +753,29 @@ max-width:700px;
     font-size: 0.75rem;
     color: #888;
     margin-top: 3px;
+}
+/* ------------------------------------------------ */
+/* Dropdown */
+/* ------------------------------------------------ */
+
+.dropdown-list {
+    position: relative;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-top: 5px;
+    max-height: 200px;
+    overflow-y: auto;
+    background: white;
+    z-index: 1000;
+}
+
+.dropdown-item {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background-color: #f0f0f0;
 }
 
 /* Mobile */

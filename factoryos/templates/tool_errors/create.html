@@ -10,24 +10,19 @@
     <div class="form-group">
         <label for="toolSearch">Werkzeugnummer *</label>
 
+        <!-- sichtbares Suchfeld -->
         <input type="text"
-               id="toolSearch"
-               class="form-control"
-               placeholder="Werkzeug suchen..."
-               autocomplete="off"
-               >
+            id="toolSearch"
+            class="form-control"
+            placeholder="Werkzeug suchen..."
+            autocomplete="off"
+            required>
 
-        <select name="tool_id"
-                id="toolSelect"
-                class="form-control"
-                size="6"
-                required>
-            {% for tool in tools %}
-                <option value="{{ tool.id }}">
-                    {{ tool.tool_no }} - {{ tool.description or '' }}
-                </option>
-            {% endfor %}
-        </select>
+        <!-- hidden für echte ID -->
+        <input type="hidden" name="tool_id" id="tool_id" required>
+
+        <!-- Dropdown -->
+        <div id="toolDropdown" class="dropdown-list"></div>
     </div>
 
     <!-- Fehlerart -->
@@ -76,12 +71,13 @@ input.addEventListener("input", function () {
 
     const query = this.value;
 
+    hiddenInput.value = ""; // reset
+
     if (query.length < 2) {
         dropdown.innerHTML = "";
         return;
     }
 
-    // 🔥 debounce (wichtig!)
     timeout = setTimeout(() => {
 
         fetch(`/tools/api/search?q=${query}`)
@@ -110,9 +106,9 @@ input.addEventListener("input", function () {
     }, 300);
 });
 
-// 🔥 Klick außerhalb schließt Dropdown
+// Klick außerhalb → schließen
 document.addEventListener("click", function(e) {
-    if (!input.contains(e.target)) {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
         dropdown.innerHTML = "";
     }
 });
