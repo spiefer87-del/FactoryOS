@@ -55,6 +55,9 @@ def create_tool_error(form, files, user_id):
 
     uploaded_files = files.getlist("images")
 
+    marker_x = form.get("marker_x")
+    marker_y = form.get("marker_y")
+    
     for file in uploaded_files:
 
         if file and file.filename:
