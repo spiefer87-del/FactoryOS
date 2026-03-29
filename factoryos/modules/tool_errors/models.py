@@ -20,6 +20,12 @@ class ToolError(db.Model):
     machine_id = db.Column(db.Integer)
 
     tool = db.relationship("Tool", backref="errors")
+    
+    images = db.relationship(
+        "ToolErrorImage",
+        backref="tool_error",
+        cascade="all, delete-orphan"
+    )
 
 class ToolErrorImage(db.Model):
 
