@@ -62,15 +62,19 @@
     
     <!-- Bilder -->
     <div class="form-group">
-        <label for="images">Bilder</label>
+        <label>Bild mit Marker</label>
 
-        <input type="file"
-            name="images"
-            id="images"
-            class="form-control"
-            multiple
-            accept="image/*">
+        <input type="file" id="imageInput" accept="image/*">
+
+        <div style="margin-top:10px;">
+            <img id="previewImage" style="max-width:100%; cursor:crosshair;">
+        </div>
+
+        <!-- Marker hidden -->
+        <input type="hidden" name="marker_x" id="marker_x">
+        <input type="hidden" name="marker_y" id="marker_y">
     </div>
+    
     <!-- Submit -->
     <div class="form-actions">
         <button type="submit" class="btn-primary">
@@ -152,6 +156,62 @@ presetSelect.addEventListener("change", function () {
     if (this.value) {
         errorInput.value = this.value;
     }
+});
+
+const imageInput = document.getElementById("imageInput");
+const preview = document.getElementById("previewImage");
+
+const markerX = document.getElementById("marker_x");
+const markerY = document.getElementById("marker_y");
+
+let currentMarker = null;
+
+
+// 📸 Bild laden
+imageInput.addEventListener("change", function(e) {
+
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(ev) {
+        preview.src = ev.target.result;
+    };
+
+    reader.readAsDataURL(file);
+});
+
+
+// 🎯 Marker setzen
+preview.addEventListener("click", function(e) {
+
+    const rect = preview.getBoundingClientRect();
+
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+
+    markerX.value = x;
+    markerY.value = y;
+
+    // alten Marker löschen
+    if (currentMarker) currentMarker.remove();
+
+    const marker = document.createElement("div");
+    marker.style.position = "absolute";
+    marker.style.width = "10px";
+    marker.style.height = "10px";
+    marker.style.background = "red";
+    marker.style.borderRadius = "50%";
+    marker.style.left = (x * 100) + "%";
+    marker.style.top = (y * 100) + "%";
+    marker.style.transform = "translate(-50%, -50%)";
+
+    preview.parentElement.style.position = "relative";
+    preview.parentElement.appendChild(marker);
+
+    currentMarker = marker;
 });
 </script>
 
