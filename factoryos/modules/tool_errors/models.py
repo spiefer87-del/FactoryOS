@@ -44,7 +44,6 @@ class ToolErrorImage(db.Model):
     marker_x = db.Column(db.Float)
     marker_y = db.Column(db.Float)
 
-    tool_error = db.relationship("ToolError", backref="images")
 
 class ToolErrorTitlePreset(db.Model):
     __tablename__ = "tool_error_title_presets"
