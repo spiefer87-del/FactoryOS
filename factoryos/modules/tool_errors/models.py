@@ -35,6 +35,9 @@ class ToolErrorImage(db.Model):
 
     image_path = db.Column(db.String(255))
 
+    marker_x = db.Column(db.Float)
+    marker_y = db.Column(db.Float)
+
     tool_error = db.relationship("ToolError", backref="images")
 
 class ToolErrorTitlePreset(db.Model):
