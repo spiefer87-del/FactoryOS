@@ -4,6 +4,7 @@ from datetime import datetime
 from flask import current_app
 
 from factoryos.extensions import db
+from factoryos.modules.masterdata.tools.models import Tool
 from factoryos.core.services.change_log_service import log_change, build_changes
 
 from ..models import ToolError, ToolErrorImage
@@ -65,7 +66,9 @@ def create_tool_error(form, files, user_id):
 
             image = ToolErrorImage(
                 tool_error_id=error.id,
-                image_path=f"uploads/tool_errors/{filename}"
+                image_path=f"uploads/tool_errors/{filename}",
+                marker_x=float(marker_x) if marker_x else None,
+                marker_y=float(marker_y) if marker_y else None
             )
 
             db.session.add(image)
