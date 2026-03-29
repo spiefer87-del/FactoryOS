@@ -2,38 +2,47 @@
 
 {% block content %}
 
-<h2>Tool Error</h2>
+<h2>Tool Error #{{ error.id }}</h2>
 
-<div class="detail-card">
+<div class="detail-container">
 
-<div class="detail-grid">
+    <!-- 🔧 Infos -->
+    <div class="detail-card">
+        <h3>Informationen</h3>
 
-<div>
-<label>Tool</label>
-{{ error.tool_id }}
-</div>
+        <p><strong>Werkzeug:</strong> {{ error.tool.tool_no }}</p>
+        <p><strong>Fehler:</strong> {{ error.error_type }}</p>
+        <p><strong>Beschreibung:</strong> {{ error.description }}</p>
+        <p><strong>Datum:</strong> {{ error.created_at.strftime("%d.%m.%Y %H:%M") }}</p>
+    </div>
 
-<div>
-<label>Fehlerart</label>
-{{ error.error_type }}
-</div>
+    <!-- 📸 Bilder -->
+    <div class="detail-card">
+        <h3>Bilder</h3>
 
-<div>
-<label>Machine</label>
-{{ error.machine_id }}
-</div>
+        <div class="image-gallery">
 
-<div>
-<label>Order</label>
-{{ error.order_id }}
-</div>
+            {% for image in error.images %}
 
-<div class="full">
-<label>Beschreibung</label>
-{{ error.description }}
-</div>
+                <div class="image-wrapper">
 
-</div>
+                    <img src="{{ url_for('static', filename=image.image_path) }}">
+
+                    {% if image.marker_x and image.marker_y %}
+                        <div class="marker"
+                             style="
+                                left: {{ image.marker_x * 100 }}%;
+                                top: {{ image.marker_y * 100 }}%;
+                             ">
+                        </div>
+                    {% endif %}
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+    </div>
 
 </div>
 
