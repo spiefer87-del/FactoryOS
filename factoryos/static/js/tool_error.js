@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const input = document.getElementById("toolSearch");
     const dropdown = document.getElementById("toolDropdown");
     const hiddenInput = document.getElementById("tool_id");
+    const form = document.querySelector("form"); 
 
     let timeout = null;
 
@@ -62,71 +63,100 @@ document.addEventListener("DOMContentLoaded", function () {
             }, 300);
         });
 
-        // Klick außerhalb → Dropdown schließen
         document.addEventListener("click", function (e) {
             if (!input.contains(e.target) && !dropdown.contains(e.target)) {
                 dropdown.style.display = "none";
             }
         });
+
+        if (form) {
+            form.addEventListener("submit", function (e) {
+
+                if (!hiddenInput.value) {
+                    e.preventDefault();
+                    alert("Bitte Werkzeug auswählen!");
+                    input.focus();
+                }
+
+            });
+        }
     }
 
     // =========================
-    // 📸 IMAGE PREVIEW + MARKER
+    // 📸 MULTI IMAGE + MARKER
     // =========================
 
     const imageInput = document.getElementById("imageInput");
-    const preview = document.getElementById("previewImage");
+    const container = document.getElementById("imagePreviewContainer");
 
-    const markerX = document.getElementById("marker_x");
-    const markerY = document.getElementById("marker_y");
+    let imageIndex = 0;
 
-    let currentMarker = null;
+    if (imageInput && container) {
 
-    if (imageInput && preview) {
-
-        // 📸 Bild laden
         imageInput.addEventListener("change", function (e) {
 
-            const file = e.target.files[0];
-            if (!file) return;
+            const files = Array.from(e.target.files);
 
-            const reader = new FileReader();
+            files.forEach(file => {
 
-            reader.onload = function (ev) {
-                preview.src = ev.target.result;
-                preview.style.display = "block";
-            };
+                const reader = new FileReader();
 
-            reader.readAsDataURL(file);
-        });
+                reader.onload = function (ev) {
 
-        // 🎯 Marker setzen (PIXEL – wie QM Builder)
-        preview.addEventListener("click", function (e) {
+                    const wrapper = document.createElement("div");
+                    wrapper.classList.add("image-wrapper");
 
-            const container = preview.parentElement;
-            const rect = container.getBoundingClientRect();
+                    const img = document.createElement("img");
+                    img.src = ev.target.result;
 
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+                    // Hidden Inputs pro Bild
+                    const markerX = document.createElement("input");
+                    markerX.type = "hidden";
+                    markerX.name = `marker_x_${imageIndex}`;
 
-            // speichern (Pixel!)
-            markerX.value = Math.round(x);
-            markerY.value = Math.round(y);
+                    const markerY = document.createElement("input");
+                    markerY.type = "hidden";
+                    markerY.name = `marker_y_${imageIndex}`;
 
-            // alten Marker entfernen
-            if (currentMarker) currentMarker.remove();
+                    let currentMarker = null;
 
-            const marker = document.createElement("div");
-            marker.classList.add("marker");
+                    // 🎯 Marker setzen (PIXEL)
+                    img.addEventListener("click", function (e) {
 
-            marker.style.left = x + "px";
-            marker.style.top = y + "px";
+                        const rect = img.getBoundingClientRect();
 
-            container.appendChild(marker);
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
 
-            currentMarker = marker;
+                        markerX.value = Math.round(x);
+                        markerY.value = Math.round(y);
 
-            console.log("Marker gesetzt:", x, y);
+                        if (currentMarker) currentMarker.remove();
+
+                        const marker = document.createElement("div");
+                        marker.classList.add("marker");
+
+                        marker.style.left = x + "px";
+                        marker.style.top = y + "px";
+
+                        wrapper.appendChild(marker);
+                        currentMarker = marker;
+
+                        console.log("Marker gesetzt:", x, y);
+                    });
+
+                    wrapper.appendChild(img);
+                    wrapper.appendChild(markerX);
+                    wrapper.appendChild(markerY);
+
+                    container.appendChild(wrapper);
+
+                    imageIndex++;
+                };
+
+                reader.readAsDataURL(file);
+            });
+
         });
     }
 

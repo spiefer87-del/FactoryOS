@@ -1,5 +1,9 @@
 {% extends "layout/base.html" %}
 
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tool_error.css') }}">
+{% endblock %}
+
 {% block content %}
 
 <h2>Tool Error erfassen</h2>
@@ -53,20 +57,11 @@
 
     <!-- 📸 Bild + Marker -->
     <div class="form-group">
-        <label>Bild mit Marker</label>
+        <label>Bilder mit Marker</label>
 
-        <input type="file"
-               name="images"
-               id="imageInput"
-               class="form-control"
-               accept="image/*">
+        <input type="file" id="imageInput" name="images" multiple accept="image/*">
 
-        <div class="image-preview-container">
-            <img id="previewImage">
-        </div>
-
-        <input type="hidden" name="marker_x" id="marker_x">
-        <input type="hidden" name="marker_y" id="marker_y">
+        <div id="imagePreviewContainer" class="image-preview-container"></div>
     </div>
 
     <!-- ✅ Buttons -->
@@ -83,7 +78,5 @@
 <!-- 🔥 JS -->
 <script src="{{ url_for('static', filename='js/tool_error.js') }}"></script>
 
-<!-- 🎨 CSS -->
-<link rel="stylesheet" href="{{ url_for('static', filename='css/tool_error.css') }}">
 
 {% endblock %}
