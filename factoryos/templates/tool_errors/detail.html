@@ -29,6 +29,15 @@
                     <img src="{{ url_for('static', filename=image.image_path) }}">
 
                     {% if image.marker_x is not none and image.marker_y is not none %}
+    <div class="marker"
+         style="
+            left: {{ image.marker_x }}px;
+            top: {{ image.marker_y }}px;
+         ">
+    </div>
+{% endif %}
+
+                    {% if image.marker_x is not none and image.marker_y is not none %}
                         <div class="marker"
                              style="
                                 left: {{ image.marker_x }}px;
