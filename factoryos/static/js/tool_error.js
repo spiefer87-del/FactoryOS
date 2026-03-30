@@ -1,3 +1,4 @@
+document.addEventListener("DOMContentLoaded", function () {
 // =========================
 // 🔧 TOOL SEARCH
 // =========================
@@ -83,3 +84,4 @@ const imageInput = document.getElementById("imageInput");
 const preview = document.getElementById("previewImage");
 
 const markerX = document.getElementById
+});
