@@ -123,10 +123,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     // 🎯 Marker setzen (PIXEL)
                     img.addEventListener("click", function (e) {
 
-                        const rect = img.getBoundingClientRect();
-
-                        const x = e.clientX - rect.left;
-                        const y = e.clientY - rect.top;
+                        const x = e.offsetX;
+                        const y = e.offsetY;
 
                         markerX.value = Math.round(x);
                         markerY.value = Math.round(y);
