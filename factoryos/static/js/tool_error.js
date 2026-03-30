@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const input = document.getElementById("toolSearch");
     const dropdown = document.getElementById("toolDropdown");
     const hiddenInput = document.getElementById("tool_id");
-    const form = document.querySelector("form"); 
+    const form = document.querySelector("form");
 
     let timeout = null;
 
@@ -69,6 +69,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
+        // 🔥 VALIDATION
         if (form) {
             form.addEventListener("submit", function (e) {
 
@@ -95,6 +96,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         imageInput.addEventListener("change", function (e) {
 
+            // 🔥 RESET (wichtig!)
+            container.innerHTML = "";
+            imageIndex = 0;
+
             const files = Array.from(e.target.files);
 
             files.forEach(file => {
@@ -109,43 +114,72 @@ document.addEventListener("DOMContentLoaded", function () {
                     const img = document.createElement("img");
                     img.src = ev.target.result;
 
-                    // Hidden Inputs pro Bild
-                    const markerX = document.createElement("input");
-                    markerX.type = "hidden";
-                    markerX.name = `marker_x_${imageIndex}`;
+                    // 🔥 Hidden Inputs (Prozent + Pixel)
 
-                    const markerY = document.createElement("input");
-                    markerY.type = "hidden";
-                    markerY.name = `marker_y_${imageIndex}`;
+                    const markerXPercent = document.createElement("input");
+                    markerXPercent.type = "hidden";
+                    markerXPercent.name = `marker_x_${imageIndex}`;
+
+                    const markerYPercent = document.createElement("input");
+                    markerYPercent.type = "hidden";
+                    markerYPercent.name = `marker_y_${imageIndex}`;
+
+                    const markerXPixel = document.createElement("input");
+                    markerXPixel.type = "hidden";
+                    markerXPixel.name = `marker_px_${imageIndex}`;
+
+                    const markerYPixel = document.createElement("input");
+                    markerYPixel.type = "hidden";
+                    markerYPixel.name = `marker_py_${imageIndex}`;
 
                     let currentMarker = null;
 
-                    // 🎯 Marker setzen (PIXEL)
+                    // 🎯 MARKER SETZEN
                     img.addEventListener("click", function (e) {
 
-                        const x = e.offsetX;
-                        const y = e.offsetY;
+                        const rect = img.getBoundingClientRect();
 
-                        markerX.value = Math.round(x);
-                        markerY.value = Math.round(y);
+                        // Prozent (für UI)
+                        const xPercent = (e.clientX - rect.left) / rect.width;
+                        const yPercent = (e.clientY - rect.top) / rect.height;
 
+                        // Pixel (Originalbild!)
+                        const naturalWidth = img.naturalWidth;
+                        const naturalHeight = img.naturalHeight;
+
+                        const xPixel = xPercent * naturalWidth;
+                        const yPixel = yPercent * naturalHeight;
+
+                        // speichern
+                        markerXPercent.value = xPercent;
+                        markerYPercent.value = yPercent;
+
+                        markerXPixel.value = Math.round(xPixel);
+                        markerYPixel.value = Math.round(yPixel);
+
+                        // alten Marker löschen
                         if (currentMarker) currentMarker.remove();
 
                         const marker = document.createElement("div");
                         marker.classList.add("marker");
 
-                        marker.style.left = x + "px";
-                        marker.style.top = y + "px";
+                        marker.style.left = (xPercent * 100) + "%";
+                        marker.style.top = (yPercent * 100) + "%";
 
                         wrapper.appendChild(marker);
                         currentMarker = marker;
 
-                        console.log("Marker gesetzt:", x, y);
+                        console.log("Marker:", {
+                            percent: xPercent, yPercent,
+                            pixel: xPixel, yPixel
+                        });
                     });
 
                     wrapper.appendChild(img);
-                    wrapper.appendChild(markerX);
-                    wrapper.appendChild(markerY);
+                    wrapper.appendChild(markerXPercent);
+                    wrapper.appendChild(markerYPercent);
+                    wrapper.appendChild(markerXPixel);
+                    wrapper.appendChild(markerYPixel);
 
                     container.appendChild(wrapper);
 
