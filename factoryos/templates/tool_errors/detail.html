@@ -35,8 +35,8 @@
                     {% if image.marker_x is not none and image.marker_y is not none %}
                         <div class="marker"
                              style="
-                                left: {{ image.marker_x }}px;
-                                top: {{ image.marker_y }}px;
+																					left: {{ image.marker_x * 100 }}%;
+																					top: {{ image.marker_y * 100 }}%;
                              ">
                         </div>
                     {% endif %}
