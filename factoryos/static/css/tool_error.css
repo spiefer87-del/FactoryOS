@@ -39,6 +39,15 @@
     border-radius: 6px;
 }
 
+.image-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.image-wrapper img {
+    max-width: 100%;
+}
+
 /* =========================
    MARKER
 ========================= */
