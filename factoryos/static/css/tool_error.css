@@ -89,13 +89,14 @@
 /* 📱 MOBILE */
 @media (max-width: 768px) {
 
-    .image-preview-container {
-        flex-wrap: nowrap;
-        overflow-x: auto;
+   .image-preview-container {
+       display: flex;
+       gap: 10px;
+       overflow-x: auto;      /* 🔥 horizontal scroll */
+       padding-bottom: 10px;
     }
 
     .image-wrapper {
         min-width: 250px;
-        height: 250px;
     }
 }
