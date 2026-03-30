@@ -1,87 +1,82 @@
 document.addEventListener("DOMContentLoaded", function () {
-// =========================
-// 🔧 TOOL SEARCH
-// =========================
 
-const input = document.getElementById("toolSearch");
-const dropdown = document.getElementById("toolDropdown");
-const hiddenInput = document.getElementById("tool_id");
+    const input = document.getElementById("toolSearch");
+    const dropdown = document.getElementById("toolDropdown");
+    const hiddenInput = document.getElementById("tool_id");
 
-let timeout = null;
+    let timeout = null;
 
-if (input) {
-    input.addEventListener("input", function () {
+    if (input) {
+        input.addEventListener("input", function () {
 
-        clearTimeout(timeout);
+            clearTimeout(timeout);
 
-        const query = this.value;
-        hiddenInput.value = "";
+            const query = this.value;
+            hiddenInput.value = "";
 
-        if (query.length < 2) {
-            dropdown.style.display = "none";
-            dropdown.innerHTML = "";
-            return;
-        }
+            if (query.length < 2) {
+                dropdown.style.display = "none";
+                dropdown.innerHTML = "";
+                return;
+            }
 
-        timeout = setTimeout(() => {
+            timeout = setTimeout(() => {
 
-            fetch(`/masterdata/tools/api/search?q=${query}`)
-                .then(res => res.json())
-                .then(data => {
+                fetch(`/masterdata/tools/api/search?q=${query}`)
+                    .then(res => res.json())
+                    .then(data => {
 
-                    dropdown.innerHTML = "";
+                        dropdown.innerHTML = "";
 
-                    if (data.results.length === 0) {
-                        dropdown.style.display = "none";
-                        return;
-                    }
-
-                    dropdown.style.display = "block";
-
-                    data.results.forEach(tool => {
-
-                        const div = document.createElement("div");
-                        div.classList.add("dropdown-item");
-                        div.textContent = tool.text;
-
-                        div.onclick = () => {
-                            input.value = tool.text;
-                            hiddenInput.value = tool.id;
-                            dropdown.innerHTML = "";
+                        if (data.results.length === 0) {
                             dropdown.style.display = "none";
-                        };
+                            return;
+                        }
 
-                        dropdown.appendChild(div);
+                        dropdown.style.display = "block";
+
+                        data.results.forEach(tool => {
+
+                            const div = document.createElement("div");
+                            div.classList.add("dropdown-item");
+                            div.textContent = tool.text;
+
+                            div.onclick = () => {
+                                input.value = tool.text;
+                                hiddenInput.value = tool.id;
+                                dropdown.innerHTML = "";
+                                dropdown.style.display = "none";
+                            };
+
+                            dropdown.appendChild(div);
+                        });
+
                     });
 
-                })
-                .catch(err => console.error("SEARCH ERROR:", err));
+            }, 300);
+        });
+    }
 
-        }, 300);
-    });
-}
+    // 📸 IMAGE
+    const imageInput = document.getElementById("imageInput");
+    const preview = document.getElementById("previewImage");
 
-// =========================
-// 🔧 ERROR PRESETS
-// =========================
+    if (imageInput && preview) {
 
-const presetSelect = document.getElementById("errorPreset");
-const errorInput = document.getElementById("error_type");
+        imageInput.addEventListener("change", function (e) {
 
-if (presetSelect) {
-    presetSelect.addEventListener("change", function () {
-        if (this.value) {
-            errorInput.value = this.value;
-        }
-    });
-}
+            const file = e.target.files[0];
+            if (!file) return;
 
-// =========================
-// 📸 IMAGE PREVIEW + MARKER
-// =========================
+            const reader = new FileReader();
 
-const imageInput = document.getElementById("imageInput");
-const preview = document.getElementById("previewImage");
+            reader.onload = function (ev) {
+                preview.src = ev.target.result;
+                preview.style.display = "block";
+            };
 
-const markerX = document.getElementById
+            reader.readAsDataURL(file);
+        });
+    }
+
 });
