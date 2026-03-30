@@ -1,5 +1,9 @@
 {% extends "layout/base.html" %}
-
+<head>
+    {% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tool_error.css') }}">
+    {% endblock %}
+</head>
 {% block content %}
 
 <h2>Tool Error #{{ error.id }}</h2>
