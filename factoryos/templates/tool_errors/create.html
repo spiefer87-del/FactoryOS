@@ -6,52 +6,43 @@
 
 <form method="POST" enctype="multipart/form-data" class="form-container">
 
-    <!-- Werkzeug auswählen -->
+    <!-- 🔧 Werkzeug -->
     <div class="form-group">
         <label for="toolSearch">Werkzeugnummer *</label>
 
         <input type="text"
-            id="toolSearch"
-            class="form-control"
-            placeholder="Werkzeug suchen..."
-            autocomplete="off"
-            required>
+               id="toolSearch"
+               class="form-control"
+               placeholder="Werkzeug suchen..."
+               autocomplete="off"
+               required>
 
         <input type="hidden" name="tool_id" id="tool_id" required>
 
-        <!-- simple dropdown -->
-        <div id="toolDropdown" class="form-control" style="margin-top:5px; display:none;"></div>
+        <div id="toolDropdown" class="tool-dropdown"></div>
     </div>
 
-    <!-- Fehlerart -->
+    <!-- ⚠️ Fehler -->
     <div class="form-group">
         <label for="error_type">Fehler *</label>
 
-        <!-- Dropdown Presets -->
-        <select id="errorPreset"
-                class="form-control"
-                style="margin-bottom:5px;">
-
+        <select id="errorPreset" class="form-control preset-select">
             <option value="">-- Fehler auswählen --</option>
 
             {% for p in presets %}
-                <option value="{{ p.title }}">
-                    {{ p.title }}
-                </option>
+                <option value="{{ p.title }}">{{ p.title }}</option>
             {% endfor %}
-
         </select>
 
-        <!-- Freitext -->
         <input type="text"
-            name="error_type"
-            id="error_type"
-            class="form-control"
-            placeholder="Oder eigenen Fehler eingeben..."
-            required>
+               name="error_type"
+               id="error_type"
+               class="form-control"
+               placeholder="Oder eigenen Fehler eingeben..."
+               required>
     </div>
 
-    <!-- Beschreibung -->
+    <!-- 📝 Beschreibung -->
     <div class="form-group">
         <label for="description">Beschreibung</label>
         <textarea name="description"
@@ -59,31 +50,28 @@
                   class="form-control"
                   rows="4"></textarea>
     </div>
-    
-    <!-- Bilder -->
+
+    <!-- 📸 Bild + Marker -->
     <div class="form-group">
         <label>Bild mit Marker</label>
 
         <input type="file"
-           id="imageInput"
-           name="images"
-           accept="image/*"
-           multiple>
+               name="images"
+               id="imageInput"
+               class="form-control"
+               accept="image/*">
 
-        <div style="margin-top:10px;">
-            <img id="previewImage" style="max-width:100%; cursor:crosshair;">
+        <div class="image-preview-container">
+            <img id="previewImage">
         </div>
 
-        <!-- Marker hidden -->
         <input type="hidden" name="marker_x" id="marker_x">
         <input type="hidden" name="marker_y" id="marker_y">
     </div>
-    
-    <!-- Submit -->
+
+    <!-- ✅ Buttons -->
     <div class="form-actions">
-        <button type="submit" class="btn-primary">
-            Speichern
-        </button>
+        <button type="submit" class="btn-primary">Speichern</button>
 
         <a href="{{ url_for('tool_error.list') }}" class="btn-secondary">
             Abbrechen
@@ -92,131 +80,10 @@
 
 </form>
 
-<!-- 🔥 Live Filter Script -->
-<script>
-const input = document.getElementById("toolSearch");
-const dropdown = document.getElementById("toolDropdown");
-const hiddenInput = document.getElementById("tool_id");
+<!-- 🔥 JS -->
+<script src="{{ url_for('static', filename='js/tool_error.js') }}"></script>
 
-let timeout = null;
-
-input.addEventListener("input", function () {
-
-    clearTimeout(timeout);
-
-    const query = this.value;
-
-    hiddenInput.value = "";
-
-    if (query.length < 2) {
-        dropdown.style.display = "none";
-        dropdown.innerHTML = "";
-        return;
-    }
-
-    timeout = setTimeout(() => {
-
-        fetch(`/masterdata/tools/api/search?q=${query}`)
-            .then(res => res.json())
-            .then(data => {
-
-                dropdown.innerHTML = "";
-
-                if (data.results.length === 0) {
-                    dropdown.style.display = "none";
-                    return;
-                }
-
-                dropdown.style.display = "block";
-
-                data.results.forEach(tool => {
-
-                    const div = document.createElement("div");
-                    div.classList.add("dropdown-item");
-                    div.textContent = tool.text;
-
-                    div.onclick = () => {
-                        input.value = tool.text;
-                        hiddenInput.value = tool.id;
-                        dropdown.innerHTML = "";
-                        dropdown.style.display = "none";
-                    };
-
-                    dropdown.appendChild(div);
-                });
-
-            })
-            .catch(err => {
-                console.error("SEARCH ERROR:", err);
-            });
-
-    }, 300);
-});
-
-const presetSelect = document.getElementById("errorPreset");
-const errorInput = document.getElementById("error_type");
-
-presetSelect.addEventListener("change", function () {
-    if (this.value) {
-        errorInput.value = this.value;
-    }
-});
-
-const imageInput = document.getElementById("imageInput");
-const preview = document.getElementById("previewImage");
-
-const markerX = document.getElementById("marker_x");
-const markerY = document.getElementById("marker_y");
-
-let currentMarker = null;
-
-
-// 📸 Bild laden
-imageInput.addEventListener("change", function(e) {
-
-    const file = e.target.files[0];
-
-    if (!file) return;
-
-    const reader = new FileReader();
-
-    reader.onload = function(ev) {
-        preview.src = ev.target.result;
-    };
-
-    reader.readAsDataURL(file);
-});
-
-
-// 🎯 Marker setzen
-preview.addEventListener("click", function(e) {
-
-    const rect = preview.getBoundingClientRect();
-
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-
-    markerX.value = x;
-    markerY.value = y;
-
-    // alten Marker löschen
-    if (currentMarker) currentMarker.remove();
-
-    const marker = document.createElement("div");
-    marker.style.position = "absolute";
-    marker.style.width = "10px";
-    marker.style.height = "10px";
-    marker.style.background = "red";
-    marker.style.borderRadius = "50%";
-    marker.style.left = (x * 100) + "%";
-    marker.style.top = (y * 100) + "%";
-    marker.style.transform = "translate(-50%, -50%)";
-
-    preview.parentElement.style.position = "relative";
-    preview.parentElement.appendChild(marker);
-
-    currentMarker = marker;
-});
-</script>
+<!-- 🎨 CSS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tool_errors.css') }}">
 
 {% endblock %}
