@@ -55,29 +55,29 @@ def create_tool_error(form, files, user_id):
 
     uploaded_files = files.getlist("images")
 
-marker_x = form.get("marker_x")
-marker_y = form.get("marker_y")
-
-print("FILES:", uploaded_files)
-print("MARKER:", marker_x, marker_y)
-
-for file in uploaded_files:
-
-    if file and file.filename:
-
-        filename = f"{uuid.uuid4()}_{file.filename}"
-        filepath = os.path.join(upload_folder, filename)
-
-        file.save(filepath)
-
-        image = ToolErrorImage(
-            tool_error_id=error.id,
-            image_path=f"uploads/tool_errors/{filename}",
-            marker_x=int(marker_x) if marker_x else None,
-            marker_y=int(marker_y) if marker_y else None
-        )
-
-        db.session.add(image)
+    marker_x = form.get("marker_x")
+    marker_y = form.get("marker_y")
+    
+    print("FILES:", uploaded_files)
+    print("MARKER:", marker_x, marker_y)
+    
+    for file in uploaded_files:
+    
+        if file and file.filename:
+    
+            filename = f"{uuid.uuid4()}_{file.filename}"
+            filepath = os.path.join(upload_folder, filename)
+    
+            file.save(filepath)
+    
+            image = ToolErrorImage(
+                tool_error_id=error.id,
+                image_path=f"uploads/tool_errors/{filename}",
+                marker_x=int(marker_x) if marker_x else None,
+                marker_y=int(marker_y) if marker_y else None
+            )
+    
+            db.session.add(image)
         
 
     # =========================
