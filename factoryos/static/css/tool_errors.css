@@ -1,1 +1,64 @@
+/* =========================
+   TOOL DROPDOWN
+========================= */
 
+.tool-dropdown {
+    display: none;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+    background: white;
+    margin-top: 5px;
+}
+
+.tool-dropdown .dropdown-item {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.tool-dropdown .dropdown-item:hover {
+    background: #f0f0f0;
+}
+
+/* =========================
+   IMAGE PREVIEW
+========================= */
+
+.image-preview-container {
+    margin-top: 10px;
+    position: relative;
+    display: inline-block;
+}
+
+.image-preview-container img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    cursor: crosshair;
+    border-radius: 6px;
+}
+
+/* =========================
+   MARKER
+========================= */
+
+.marker {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: red;
+    border-radius: 50%;
+    border: 2px solid white;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* =========================
+   PRESET SELECT SPACING
+========================= */
+
+.preset-select {
+    margin-bottom: 5px;
+}
