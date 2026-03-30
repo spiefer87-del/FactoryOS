@@ -67,13 +67,16 @@ def create_tool_error(form, files, user_id):
             marker_x = form.get(f"marker_x_{i}")
             marker_y = form.get(f"marker_y_{i}")
 
-            print("DEBUG:", i, marker_x, marker_y)  # 👈 GANZ WICHTIG
+            marker_px = form.get(f"marker_px_{i}")
+            marker_py = form.get(f"marker_py_{i}")
 
             image = ToolErrorImage(
                 tool_error_id=error.id,
-                image_path=f"uploads/tool_errors/{filename}",
-                marker_x=int(marker_x) if marker_x else None,
-                marker_y=int(marker_y) if marker_y else None
+                image_path=...,
+                marker_x=float(marker_x),
+                marker_y=float(marker_y),
+                marker_px=int(marker_px),
+                marker_py=int(marker_py)
             )
 
             db.session.add(image)
