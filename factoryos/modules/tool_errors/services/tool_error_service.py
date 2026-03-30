@@ -72,7 +72,7 @@ def create_tool_error(form, files, user_id):
 
             image = ToolErrorImage(
                 tool_error_id=error.id,
-                image_path=...,
+                image_path=f"uploads/tool_errors/{filename}",image_path=...,
                 marker_x=float(marker_x),
                 marker_y=float(marker_y),
                 marker_px=int(marker_px),
