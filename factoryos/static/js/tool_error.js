@@ -72,19 +72,17 @@ document.addEventListener("DOMContentLoaded", function () {
         // 🔥 VALIDATION
         if (form) {
             form.addEventListener("submit", function (e) {
-
                 if (!hiddenInput.value) {
                     e.preventDefault();
                     alert("Bitte Werkzeug auswählen!");
                     input.focus();
                 }
-
             });
         }
     }
 
     // =========================
-    // 📸 MULTI IMAGE + MARKER
+    // 📸 MULTI IMAGE + MARKER (TOUCH + CLICK)
     // =========================
 
     const imageInput = document.getElementById("imageInput");
@@ -96,7 +94,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         imageInput.addEventListener("change", function (e) {
 
-            // 🔥 RESET (wichtig!)
             container.innerHTML = "";
             imageIndex = 0;
 
@@ -114,8 +111,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     const img = document.createElement("img");
                     img.src = ev.target.result;
 
-                    // 🔥 Hidden Inputs (Prozent + Pixel)
+                    // 🔥 wichtig für Mobile
+                    img.style.touchAction = "none";
 
+                    // Hidden Inputs
                     const markerXPercent = document.createElement("input");
                     markerXPercent.type = "hidden";
                     markerXPercent.name = `marker_x_${imageIndex}`;
@@ -134,16 +133,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     let currentMarker = null;
 
-                    // 🎯 MARKER SETZEN
-                    img.addEventListener("click", function (e) {
+                    // =========================
+                    // 🎯 MARKER FUNCTION
+                    // =========================
+
+                    function setMarker(e) {
+
+                        let clientX, clientY;
+
+                        if (e.touches && e.touches.length > 0) {
+                            clientX = e.touches[0].clientX;
+                            clientY = e.touches[0].clientY;
+                        } else {
+                            clientX = e.clientX;
+                            clientY = e.clientY;
+                        }
 
                         const rect = img.getBoundingClientRect();
 
-                        // Prozent (für UI)
-                        const xPercent = (e.clientX - rect.left) / rect.width;
-                        const yPercent = (e.clientY - rect.top) / rect.height;
+                        const xPercent = (clientX - rect.left) / rect.width;
+                        const yPercent = (clientY - rect.top) / rect.height;
 
-                        // Pixel (Originalbild!)
                         const naturalWidth = img.naturalWidth;
                         const naturalHeight = img.naturalHeight;
 
@@ -157,7 +167,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         markerXPixel.value = Math.round(xPixel);
                         markerYPixel.value = Math.round(yPixel);
 
-                        // alten Marker löschen
+                        // alten Marker entfernen
                         if (currentMarker) currentMarker.remove();
 
                         const marker = document.createElement("div");
@@ -169,10 +179,21 @@ document.addEventListener("DOMContentLoaded", function () {
                         wrapper.appendChild(marker);
                         currentMarker = marker;
 
-                        console.log("Marker:", {
-                            percent: xPercent, yPercent,
-                            pixel: xPixel, yPixel
+                        console.log("Marker gesetzt:", {
+                            percent: xPercent,
+                            pixel: xPixel
                         });
+                    }
+
+                    // 🖱️ CLICK
+                    img.addEventListener("click", function (e) {
+                        setMarker(e);
+                    });
+
+                    // 📱 TOUCH
+                    img.addEventListener("touchstart", function (e) {
+                        e.preventDefault(); // 🔥 verhindert scroll/zoom chaos
+                        setMarker(e);
                     });
 
                     wrapper.appendChild(img);
