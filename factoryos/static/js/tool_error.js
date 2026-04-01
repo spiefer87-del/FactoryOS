@@ -82,166 +82,79 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // =========================
-    // 📸 IMAGE UPLOAD (FIXED)
+    // 📸 IMAGE UPLOAD (FINAL STABLE)
     // =========================
+
+    const imageInput = document.getElementById("imageInput");
+    const container = document.getElementById("imagePreviewContainer");
+
     function generateId() {
         return crypto.randomUUID();
     }
-    
-    imageInput.addEventListener("change", function (e) {
 
-    const file = e.target.files[0];
-    if (!file) return;
+    if (imageInput && container) {
 
-    const id = generateId(); // 🔥 WICHTIG
+        imageInput.addEventListener("change", function (e) {
 
-    const reader = new FileReader();
+            const file = e.target.files[0];
+            if (!file) return;
 
-    reader.onload = function (ev) {
+            const id = generateId();
 
-        const block = document.createElement("div");
-        block.classList.add("image-block");
+            const reader = new FileReader();
 
-        const wrapper = document.createElement("div");
-        wrapper.classList.add("image-wrapper");
+            reader.onload = function (ev) {
 
-        const img = document.createElement("img");
-        img.src = ev.target.result;
-        img.style.touchAction = "none";
+                const block = document.createElement("div");
+                block.classList.add("image-block");
 
-        wrapper.appendChild(img);
+                const wrapper = document.createElement("div");
+                wrapper.classList.add("image-wrapper");
 
-        // 🔥 FILE sichern
-        const dt = new DataTransfer();
-        dt.items.add(file);
+                const img = document.createElement("img");
+                img.src = ev.target.result;
+                img.style.touchAction = "none";
 
-        const fileInput = document.createElement("input");
-        fileInput.type = "file";
-        fileInput.name = "images";
-        fileInput.files = dt.files;
-        fileInput.style.display = "none";
+                wrapper.appendChild(img);
 
-        // 🔥 ID
-        const idInput = document.createElement("input");
-        idInput.type = "hidden";
-        idInput.name = "image_ids";
-        idInput.value = id;
+                // FILE sichern
+                const dt = new DataTransfer();
+                dt.items.add(file);
 
-        // 🔥 DESCRIPTION
-        const textarea = document.createElement("textarea");
-        textarea.name = `description_${id}`;
-        textarea.placeholder = "Beschreibung...";
-        textarea.classList.add("form-control");
+                const fileInput = document.createElement("input");
+                fileInput.type = "file";
+                fileInput.name = "images";
+                fileInput.files = dt.files;
+                fileInput.style.display = "none";
 
-        // 🔥 MARKER
-        const markerX = document.createElement("input");
-        markerX.type = "hidden";
-        markerX.name = `marker_x_${id}`;
+                // ID
+                const idInput = document.createElement("input");
+                idInput.type = "hidden";
+                idInput.name = "image_ids";
+                idInput.value = id;
 
-        const markerY = document.createElement("input");
-        markerY.type = "hidden";
-        markerY.name = `marker_y_${id}`;
-
-        const markerPX = document.createElement("input");
-        markerPX.type = "hidden";
-        markerPX.name = `marker_px_${id}`;
-
-        const markerPY = document.createElement("input");
-        markerPY.type = "hidden";
-        markerPY.name = `marker_py_${id}`;
-
-        let currentMarker = null;
-
-        function setMarker(clientX, clientY) {
-
-            const rect = img.getBoundingClientRect();
-
-            const xPercent = (clientX - rect.left) / rect.width;
-            const yPercent = (clientY - rect.top) / rect.height;
-
-            const xPixel = xPercent * img.naturalWidth;
-            const yPixel = yPercent * img.naturalHeight;
-
-            markerX.value = xPercent;
-            markerY.value = yPercent;
-
-            markerPX.value = Math.round(xPixel);
-            markerPY.value = Math.round(yPixel);
-
-            if (currentMarker) currentMarker.remove();
-
-            const marker = document.createElement("div");
-            marker.classList.add("marker");
-
-            marker.style.left = (xPercent * 100) + "%";
-            marker.style.top = (yPercent * 100) + "%";
-
-            wrapper.appendChild(marker);
-            currentMarker = marker;
-        }
-
-        img.addEventListener("click", (e) => setMarker(e.clientX, e.clientY));
-
-        img.addEventListener("touchstart", (e) => {
-            e.preventDefault();
-            const t = e.touches[0];
-            setMarker(t.clientX, t.clientY);
-        });
-
-        // REMOVE
-        const removeBtn = document.createElement("button");
-        removeBtn.type = "button";
-        removeBtn.textContent = "Entfernen";
-        removeBtn.onclick = () => block.remove();
-
-        block.appendChild(wrapper);
-        block.appendChild(textarea);
-        block.appendChild(markerX);
-        block.appendChild(markerY);
-        block.appendChild(markerPX);
-        block.appendChild(markerPY);
-        block.appendChild(fileInput);
-        block.appendChild(idInput);
-        block.appendChild(removeBtn);
-
-        container.appendChild(block);
-
-        imageInput.value = "";
-    };
-
-    reader.readAsDataURL(file);
-});
-    
-
-                // =========================
-                // 📝 TEXT
-                // =========================
-
+                // TEXT
                 const textarea = document.createElement("textarea");
-                textarea.name = `image_description_${imageIndex}`;
-                textarea.placeholder = "Beschreibung zum Bild...";
+                textarea.name = `description_${id}`;
+                textarea.placeholder = "Beschreibung...";
                 textarea.classList.add("form-control");
-                textarea.style.marginTop = "8px";
 
-                // =========================
-                // 🎯 MARKER INPUTS
-                // =========================
-
+                // MARKER
                 const markerX = document.createElement("input");
                 markerX.type = "hidden";
-                markerX.name = `marker_x_${imageIndex}`;
+                markerX.name = `marker_x_${id}`;
 
                 const markerY = document.createElement("input");
                 markerY.type = "hidden";
-                markerY.name = `marker_y_${imageIndex}`;
+                markerY.name = `marker_y_${id}`;
 
                 const markerPX = document.createElement("input");
                 markerPX.type = "hidden";
-                markerPX.name = `marker_px_${imageIndex}`;
+                markerPX.name = `marker_px_${id}`;
 
                 const markerPY = document.createElement("input");
                 markerPY.type = "hidden";
-                markerPY.name = `marker_py_${imageIndex}`;
+                markerPY.name = `marker_py_${id}`;
 
                 let currentMarker = null;
 
@@ -273,17 +186,19 @@ document.addEventListener("DOMContentLoaded", function () {
                     currentMarker = marker;
                 }
 
+                // CLICK
                 img.addEventListener("click", (e) => {
                     setMarker(e.clientX, e.clientY);
                 });
 
+                // TOUCH
                 img.addEventListener("touchstart", (e) => {
                     e.preventDefault();
-                    const touch = e.touches[0];
-                    setMarker(touch.clientX, touch.clientY);
+                    const t = e.touches[0];
+                    setMarker(t.clientX, t.clientY);
                 });
 
-                // REMOVE BUTTON
+                // REMOVE
                 const removeBtn = document.createElement("button");
                 removeBtn.type = "button";
                 removeBtn.textContent = "Entfernen";
@@ -291,24 +206,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 removeBtn.onclick = () => block.remove();
 
-                // =========================
                 // BUILD
-                // =========================
-
                 block.appendChild(wrapper);
                 block.appendChild(textarea);
                 block.appendChild(markerX);
                 block.appendChild(markerY);
                 block.appendChild(markerPX);
                 block.appendChild(markerPY);
-                block.appendChild(hiddenFileInput);
+                block.appendChild(fileInput);
+                block.appendChild(idInput);
                 block.appendChild(removeBtn);
 
                 container.appendChild(block);
 
-                imageIndex++;
-
-                // 🔥 wichtig: reset
                 imageInput.value = "";
             };
 
