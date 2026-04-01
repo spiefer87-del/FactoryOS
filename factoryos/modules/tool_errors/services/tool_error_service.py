@@ -24,9 +24,7 @@ def create_tool_error(form, files, user_id):
         "description": form.get("description"),
     }
 
-    # Dummy Objekt für Vergleich (create → alles ist "neu")
     temp_obj = ToolError()
-
     changes = build_changes(temp_obj, new_data, new_data.keys())
 
     # =========================
@@ -57,30 +55,45 @@ def create_tool_error(form, files, user_id):
 
     for i, file in enumerate(uploaded_files):
 
-        if file and file.filename:
+        if not file or not file.filename:
+            continue
 
-            filename = f"{uuid.uuid4()}_{file.filename}"
-            filepath = os.path.join(upload_folder, filename)
+        filename = f"{uuid.uuid4()}_{file.filename}"
+        filepath = os.path.join(upload_folder, filename)
 
-            file.save(filepath)
+        file.save(filepath)
 
-            marker_x = form.get(f"marker_x_{i}")
-            marker_y = form.get(f"marker_y_{i}")
+        # =========================
+        # 🎯 Marker Werte sicher holen
+        # =========================
 
-            marker_px = form.get(f"marker_px_{i}")
-            marker_py = form.get(f"marker_py_{i}")
+        marker_x = form.get(f"marker_x_{i}")
+        marker_y = form.get(f"marker_y_{i}")
 
-            image = ToolErrorImage(
-                tool_error_id=error.id,
-                image_path=f"uploads/tool_errors/{filename}",
-                marker_x=float(marker_x),
-                marker_y=float(marker_y),
-                marker_px=int(marker_px),
-                marker_py=int(marker_py)
-            )
+        marker_px = form.get(f"marker_px_{i}")
+        marker_py = form.get(f"marker_py_{i}")
 
-            db.session.add(image)
-        
+        # 🔥 SAFE CONVERT (sehr wichtig)
+        marker_x = float(marker_x) if marker_x else None
+        marker_y = float(marker_y) if marker_y else None
+
+        marker_px = int(marker_px) if marker_px else None
+        marker_py = int(marker_py) if marker_py else None
+
+        # optional: Bildbeschreibung
+        description = form.get(f"image_description_{i}")
+
+        image = ToolErrorImage(
+            tool_error_id=error.id,
+            image_path=f"uploads/tool_errors/{filename}",
+            marker_x=marker_x,
+            marker_y=marker_y,
+            marker_px=marker_px,
+            marker_py=marker_py,
+            description=description
+        )
+
+        db.session.add(image)
 
     # =========================
     # 📝 CHANGELOG
@@ -101,7 +114,7 @@ def create_tool_error(form, files, user_id):
 
 
 # =========================
-# UPDATE (optional, aber vorbereitet)
+# UPDATE
 # =========================
 def update_tool_error(error, data):
 
@@ -149,6 +162,10 @@ def delete_tool_error(error):
         action="delete",
         category="production"
     )
+
+    # 🔥 WICHTIG: Bilder mitlöschen
+    for image in error.images:
+        db.session.delete(image)
 
     db.session.delete(error)
     db.session.commit()
