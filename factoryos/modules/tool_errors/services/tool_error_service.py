@@ -52,40 +52,35 @@ def create_tool_error(form, files, user_id):
     os.makedirs(upload_folder, exist_ok=True)
 
     uploaded_files = files.getlist("images")
-    image_ids = form.getlist("image_ids")
+
+    marker_x_list = form.getlist("marker_x[]")
+    marker_y_list = form.getlist("marker_y[]")
+    descriptions = form.getlist("image_description[]")
     
     for i, file in enumerate(uploaded_files):
     
         if not file or not file.filename:
             continue
     
-        # 🔥 SAFE ID
-        image_id = image_ids[i] if i < len(image_ids) else str(uuid.uuid4())
-    
         filename = f"{uuid.uuid4()}_{file.filename}"
         filepath = os.path.join(upload_folder, filename)
     
         file.save(filepath)
     
-        # 🔥 SAFE READ (kein Crash mehr)
-        marker_x = form.get(f"marker_x_{image_id}")
-        marker_y = form.get(f"marker_y_{image_id}")
-        marker_px = form.get(f"marker_px_{image_id}")
-        marker_py = form.get(f"marker_py_{image_id}")
-        description = form.get(f"description_{image_id}")
+        # 🔥 WICHTIG: Index sauber matchen
+        marker_x = marker_x_list[i] if i < len(marker_x_list) else None
+        marker_y = marker_y_list[i] if i < len(marker_y_list) else None
+        description = descriptions[i] if i < len(descriptions) else None
     
         image = ToolErrorImage(
             tool_error_id=error.id,
             image_path=f"uploads/tool_errors/{filename}",
             marker_x=float(marker_x) if marker_x else None,
             marker_y=float(marker_y) if marker_y else None,
-            marker_px=int(marker_px) if marker_px else None,
-            marker_py=int(marker_py) if marker_py else None,
             description=description
         )
     
         db.session.add(image)
-
 
     # =========================
     # 📝 CHANGELOG
