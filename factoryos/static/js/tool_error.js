@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // =========================
-    // 📸 MULTI IMAGE + MARKER (TOUCH + CLICK)
+    // 📸 IMAGE UPLOAD (EINZELN!)
     // =========================
 
     const imageInput = document.getElementById("imageInput");
@@ -94,122 +94,145 @@ document.addEventListener("DOMContentLoaded", function () {
 
         imageInput.addEventListener("change", function (e) {
 
-            container.innerHTML = "";
-            imageIndex = 0;
+            const file = e.target.files[0];
+            if (!file) return;
 
-            const files = Array.from(e.target.files);
+            const reader = new FileReader();
 
-            files.forEach(file => {
+            reader.onload = function (ev) {
 
-                const reader = new FileReader();
+                // =========================
+                // 📦 BLOCK
+                // =========================
 
-                reader.onload = function (ev) {
+                const block = document.createElement("div");
+                block.classList.add("image-block");
 
-                    const wrapper = document.createElement("div");
-                    wrapper.classList.add("image-wrapper");
+                const wrapper = document.createElement("div");
+                wrapper.classList.add("image-wrapper");
 
-                    const img = document.createElement("img");
-                    img.src = ev.target.result;
+                const img = document.createElement("img");
+                img.src = ev.target.result;
+                img.style.touchAction = "none";
 
-                    // 🔥 wichtig für Mobile
-                    img.style.touchAction = "none";
+                wrapper.appendChild(img);
 
-                    // Hidden Inputs
-                    const markerXPercent = document.createElement("input");
-                    markerXPercent.type = "hidden";
-                    markerXPercent.name = `marker_x_${imageIndex}`;
+                // =========================
+                // 📝 TEXT
+                // =========================
 
-                    const markerYPercent = document.createElement("input");
-                    markerYPercent.type = "hidden";
-                    markerYPercent.name = `marker_y_${imageIndex}`;
+                const textarea = document.createElement("textarea");
+                textarea.name = `image_description_${imageIndex}`;
+                textarea.placeholder = "Beschreibung zum Bild...";
+                textarea.classList.add("form-control");
+                textarea.style.marginTop = "8px";
 
-                    const markerXPixel = document.createElement("input");
-                    markerXPixel.type = "hidden";
-                    markerXPixel.name = `marker_px_${imageIndex}`;
+                // =========================
+                // 🎯 MARKER INPUTS
+                // =========================
 
-                    const markerYPixel = document.createElement("input");
-                    markerYPixel.type = "hidden";
-                    markerYPixel.name = `marker_py_${imageIndex}`;
+                const markerXPercent = document.createElement("input");
+                markerXPercent.type = "hidden";
+                markerXPercent.name = `marker_x_${imageIndex}`;
 
-                    let currentMarker = null;
+                const markerYPercent = document.createElement("input");
+                markerYPercent.type = "hidden";
+                markerYPercent.name = `marker_y_${imageIndex}`;
 
-                    // =========================
-                    // 🎯 MARKER FUNCTION
-                    // =========================
+                const markerXPixel = document.createElement("input");
+                markerXPixel.type = "hidden";
+                markerXPixel.name = `marker_px_${imageIndex}`;
 
-                    function setMarker(e) {
+                const markerYPixel = document.createElement("input");
+                markerYPixel.type = "hidden";
+                markerYPixel.name = `marker_py_${imageIndex}`;
 
-                        let clientX, clientY;
+                let currentMarker = null;
 
-                        if (e.touches && e.touches.length > 0) {
-                            clientX = e.touches[0].clientX;
-                            clientY = e.touches[0].clientY;
-                        } else {
-                            clientX = e.clientX;
-                            clientY = e.clientY;
-                        }
+                // =========================
+                // 🎯 MARKER SETZEN
+                // =========================
 
-                        const rect = img.getBoundingClientRect();
+                function setMarker(e) {
 
-                        const xPercent = (clientX - rect.left) / rect.width;
-                        const yPercent = (clientY - rect.top) / rect.height;
+                    let clientX, clientY;
 
-                        const naturalWidth = img.naturalWidth;
-                        const naturalHeight = img.naturalHeight;
-
-                        const xPixel = xPercent * naturalWidth;
-                        const yPixel = yPercent * naturalHeight;
-
-                        // speichern
-                        markerXPercent.value = xPercent;
-                        markerYPercent.value = yPercent;
-
-                        markerXPixel.value = Math.round(xPixel);
-                        markerYPixel.value = Math.round(yPixel);
-
-                        // alten Marker entfernen
-                        if (currentMarker) currentMarker.remove();
-
-                        const marker = document.createElement("div");
-                        marker.classList.add("marker");
-
-                        marker.style.left = (xPercent * 100) + "%";
-                        marker.style.top = (yPercent * 100) + "%";
-
-                        wrapper.appendChild(marker);
-                        currentMarker = marker;
-
-                        console.log("Marker gesetzt:", {
-                            percent: xPercent,
-                            pixel: xPixel
-                        });
+                    if (e.touches && e.touches.length > 0) {
+                        clientX = e.touches[0].clientX;
+                        clientY = e.touches[0].clientY;
+                    } else {
+                        clientX = e.clientX;
+                        clientY = e.clientY;
                     }
 
-                    // 🖱️ CLICK
-                    img.addEventListener("click", function (e) {
-                        setMarker(e);
-                    });
+                    const rect = img.getBoundingClientRect();
 
-                    // 📱 TOUCH
-                    img.addEventListener("touchstart", function (e) {
-                        e.preventDefault(); // 🔥 verhindert scroll/zoom chaos
-                        setMarker(e);
-                    });
+                    const xPercent = (clientX - rect.left) / rect.width;
+                    const yPercent = (clientY - rect.top) / rect.height;
 
-                    wrapper.appendChild(img);
-                    wrapper.appendChild(markerXPercent);
-                    wrapper.appendChild(markerYPercent);
-                    wrapper.appendChild(markerXPixel);
-                    wrapper.appendChild(markerYPixel);
+                    const xPixel = xPercent * img.naturalWidth;
+                    const yPixel = yPercent * img.naturalHeight;
 
-                    container.appendChild(wrapper);
+                    // speichern
+                    markerXPercent.value = xPercent;
+                    markerYPercent.value = yPercent;
 
-                    imageIndex++;
-                };
+                    markerXPixel.value = Math.round(xPixel);
+                    markerYPixel.value = Math.round(yPixel);
 
-                reader.readAsDataURL(file);
-            });
+                    // alten Marker löschen
+                    if (currentMarker) currentMarker.remove();
 
+                    const marker = document.createElement("div");
+                    marker.classList.add("marker");
+
+                    marker.style.left = (xPercent * 100) + "%";
+                    marker.style.top = (yPercent * 100) + "%";
+
+                    wrapper.appendChild(marker);
+                    currentMarker = marker;
+                }
+
+                img.addEventListener("click", setMarker);
+
+                img.addEventListener("touchstart", function (e) {
+                    e.preventDefault();
+                    setMarker(e);
+                });
+
+                // =========================
+                // ❌ REMOVE BUTTON
+                // =========================
+
+                const removeBtn = document.createElement("button");
+                removeBtn.type = "button";
+                removeBtn.textContent = "Entfernen";
+                removeBtn.classList.add("btn-secondary");
+                removeBtn.style.marginTop = "5px";
+
+                removeBtn.onclick = () => block.remove();
+
+                // =========================
+                // 📦 ZUSAMMENBAUEN
+                // =========================
+
+                block.appendChild(wrapper);
+                block.appendChild(textarea);
+                block.appendChild(markerXPercent);
+                block.appendChild(markerYPercent);
+                block.appendChild(markerXPixel);
+                block.appendChild(markerYPixel);
+                block.appendChild(removeBtn);
+
+                container.appendChild(block);
+
+                imageIndex++;
+
+                // 🔥 Reset → gleiche Datei erneut möglich
+                imageInput.value = "";
+            };
+
+            reader.readAsDataURL(file);
         });
     }
 
