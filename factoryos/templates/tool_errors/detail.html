@@ -32,7 +32,8 @@
 
                     <img src="{{ url_for('static', filename=image.image_path) }}">
 
-                    {% if image.marker_x is not none and image.marker_y is not none %}
+					{% if image.marker_x != None and image.marker_y != None %}
+					
                         <div class="marker"
                              style="
 																					left: {{ image.marker_x * 100 }}%;
