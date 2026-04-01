@@ -53,47 +53,42 @@ def create_tool_error(form, files, user_id):
 
     uploaded_files = files.getlist("images")
 
-    for i, file in enumerate(uploaded_files):
+    uploaded_files = files.getlist("images")
+image_ids = form.getlist("image_ids")
 
-        if not file or not file.filename:
-            continue
+for i, file in enumerate(uploaded_files):
 
-        filename = f"{uuid.uuid4()}_{file.filename}"
-        filepath = os.path.join(upload_folder, filename)
+    if not file or not file.filename:
+        continue
 
-        file.save(filepath)
+    image_id = image_ids[i]
 
-        # =========================
-        # 🎯 Marker Werte sicher holen
-        # =========================
+    filename = f"{uuid.uuid4()}_{file.filename}"
+    filepath = os.path.join(upload_folder, filename)
 
-        marker_x = form.get(f"marker_x_{i}")
-        marker_y = form.get(f"marker_y_{i}")
+    file.save(filepath)
 
-        marker_px = form.get(f"marker_px_{i}")
-        marker_py = form.get(f"marker_py_{i}")
+    # 🔥 Daten holen
+    marker_x = form.get(f"marker_x_{image_id}")
+    marker_y = form.get(f"marker_y_{image_id}")
 
-        # 🔥 SAFE CONVERT (sehr wichtig)
-        marker_x = float(marker_x) if marker_x else None
-        marker_y = float(marker_y) if marker_y else None
+    marker_px = form.get(f"marker_px_{image_id}")
+    marker_py = form.get(f"marker_py_{image_id}")
 
-        marker_px = int(marker_px) if marker_px else None
-        marker_py = int(marker_py) if marker_py else None
+    description = form.get(f"description_{image_id}")
 
-        # optional: Bildbeschreibung
-        description = form.get(f"image_description_{i}")
+    image = ToolErrorImage(
+        tool_error_id=error.id,
+        image_path=f"uploads/tool_errors/{filename}",
+        description=description,
+        marker_x=float(marker_x) if marker_x else None,
+        marker_y=float(marker_y) if marker_y else None,
+        marker_px=int(marker_px) if marker_px else None,
+        marker_py=int(marker_py) if marker_py else None
+    )
 
-        image = ToolErrorImage(
-            tool_error_id=error.id,
-            image_path=f"uploads/tool_errors/{filename}",
-            marker_x=marker_x,
-            marker_y=marker_y,
-            marker_px=marker_px,
-            marker_py=marker_py,
-            description=description
-        )
+    db.session.add(image)
 
-        db.session.add(image)
 
     # =========================
     # 📝 CHANGELOG
