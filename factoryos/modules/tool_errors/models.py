@@ -41,6 +41,8 @@ class ToolErrorImage(db.Model):
 
     image_path = db.Column(db.String(255))
 
+    description = db.Column(db.Text)
+
     marker_x = db.Column(db.Float)  # Prozent
     marker_y = db.Column(db.Float)
 
