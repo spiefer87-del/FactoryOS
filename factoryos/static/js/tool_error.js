@@ -88,105 +88,87 @@ document.addEventListener("DOMContentLoaded", function () {
     const container = document.getElementById("imagePreviewContainer");
     
     if (imageInput && container) {
-    
+
         imageInput.addEventListener("change", function (e) {
     
-            const file = e.target.files[0];
-            if (!file) return;
+            const files = Array.from(e.target.files);
     
-            const reader = new FileReader();
+            files.forEach((file) => {
     
-            reader.onload = function (ev) {
+                const reader = new FileReader();
     
-                // 📦 BLOCK
-                const block = document.createElement("div");
-                block.classList.add("image-block");
+                reader.onload = function (ev) {
     
-                const wrapper = document.createElement("div");
-                wrapper.classList.add("image-wrapper");
+                    const block = document.createElement("div");
+                    block.classList.add("image-block");
     
-                const img = document.createElement("img");
-                img.src = ev.target.result;
-                img.style.width = "100%";
-                img.style.display = "block";
-                img.style.touchAction = "none";
+                    const wrapper = document.createElement("div");
+                    wrapper.classList.add("image-wrapper");
+                    wrapper.style.position = "relative";
     
-                wrapper.appendChild(img);
+                    const img = document.createElement("img");
+                    img.src = ev.target.result;
+                    img.style.width = "100%";
     
-                // 📝 TEXT
-                const textarea = document.createElement("textarea");
-                textarea.name = "image_description[]";
-                textarea.placeholder = "Beschreibung...";
-                textarea.classList.add("form-control");
+                    wrapper.appendChild(img);
     
-                // 🎯 MARKER
-                const markerX = document.createElement("input");
-                markerX.type = "hidden";
-                markerX.name = "marker_x[]";
+                    const textarea = document.createElement("textarea");
+                    textarea.name = "image_description[]";
     
-                const markerY = document.createElement("input");
-                markerY.type = "hidden";
-                markerY.name = "marker_y[]";
+                    const markerX = document.createElement("input");
+                    markerX.type = "hidden";
+                    markerX.name = "marker_x[]";
     
-                let currentMarker = null;
+                    const markerY = document.createElement("input");
+                    markerY.type = "hidden";
+                    markerY.name = "marker_y[]";
     
-                function setMarker(clientX, clientY) {
+                    let currentMarker = null;
     
-                    const rect = img.getBoundingClientRect();
+                    function setMarker(x, y) {
+                        const rect = img.getBoundingClientRect();
     
-                    const xPercent = (clientX - rect.left) / rect.width;
-                    const yPercent = (clientY - rect.top) / rect.height;
+                        const xp = (x - rect.left) / rect.width;
+                        const yp = (y - rect.top) / rect.height;
     
-                    markerX.value = xPercent;
-                    markerY.value = yPercent;
+                        markerX.value = xp;
+                        markerY.value = yp;
     
-                    if (currentMarker) currentMarker.remove();
+                        if (currentMarker) currentMarker.remove();
     
-                    const marker = document.createElement("div");
-                    marker.classList.add("marker");
+                        const marker = document.createElement("div");
+                        marker.classList.add("marker");
     
-                    marker.style.left = (xPercent * 100) + "%";
-                    marker.style.top = (yPercent * 100) + "%";
+                        marker.style.left = (xp * 100) + "%";
+                        marker.style.top = (yp * 100) + "%";
     
-                    wrapper.appendChild(marker);
-                    currentMarker = marker;
-                }
+                        wrapper.appendChild(marker);
+                        currentMarker = marker;
+                    }
     
-                // 🖱 CLICK
-                img.addEventListener("click", (e) => {
-                    setMarker(e.clientX, e.clientY);
-                });
+                    img.addEventListener("click", (e) => {
+                        setMarker(e.clientX, e.clientY);
+                    });
     
-                // 📱 TOUCH
-                img.addEventListener("touchstart", (e) => {
-                    e.preventDefault();
-                    const t = e.touches[0];
-                    setMarker(t.clientX, t.clientY);
-                });
+                    img.addEventListener("touchstart", (e) => {
+                        e.preventDefault();
+                        const t = e.touches[0];
+                        setMarker(t.clientX, t.clientY);
+                    });
     
-                // ❌ REMOVE BUTTON
-                const removeBtn = document.createElement("button");
-                removeBtn.type = "button";
-                removeBtn.textContent = "Entfernen";
-                removeBtn.classList.add("btn-secondary");
-                removeBtn.style.marginTop = "5px";
+                    block.appendChild(wrapper);
+                    block.appendChild(textarea);
+                    block.appendChild(markerX);
+                    block.appendChild(markerY);
     
-                removeBtn.onclick = () => block.remove();
+                    container.appendChild(block);
+                };
     
-                // 📦 BUILD
-                block.appendChild(wrapper);
-                block.appendChild(textarea);
-                block.appendChild(markerX);
-                block.appendChild(markerY);
-                block.appendChild(removeBtn);
+                reader.readAsDataURL(file);
+            });
     
-                container.appendChild(block);
-    
-                // reset → gleiche Datei wieder auswählbar
-                imageInput.value = "";
-            };
-    
-            reader.readAsDataURL(file);
+            // ❌ NICHT resetten!
+            // imageInput.value = "";
         });
     }
     // =========================
