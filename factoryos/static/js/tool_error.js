@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // 🔥 VALIDATION
+        // VALIDATION
         if (form) {
             form.addEventListener("submit", function (e) {
                 if (!hiddenInput.value) {
@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // =========================
-    // 📸 IMAGE UPLOAD (EINZELN + STABIL)
+    // 📸 IMAGE UPLOAD (FIXED)
     // =========================
 
     const imageInput = document.getElementById("imageInput");
@@ -101,10 +101,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             reader.onload = function (ev) {
 
-                // =========================
-                // 📦 BLOCK
-                // =========================
-
                 const block = document.createElement("div");
                 block.classList.add("image-block");
 
@@ -116,6 +112,19 @@ document.addEventListener("DOMContentLoaded", function () {
                 img.style.touchAction = "none";
 
                 wrapper.appendChild(img);
+
+                // =========================
+                // 🔥 WICHTIG: FILE KLONEN
+                // =========================
+
+                const dt = new DataTransfer();
+                dt.items.add(file);
+
+                const hiddenFileInput = document.createElement("input");
+                hiddenFileInput.type = "file";
+                hiddenFileInput.name = "images";
+                hiddenFileInput.files = dt.files;
+                hiddenFileInput.style.display = "none";
 
                 // =========================
                 // 📝 TEXT
@@ -131,27 +140,23 @@ document.addEventListener("DOMContentLoaded", function () {
                 // 🎯 MARKER INPUTS
                 // =========================
 
-                const markerXPercent = document.createElement("input");
-                markerXPercent.type = "hidden";
-                markerXPercent.name = `marker_x_${imageIndex}`;
+                const markerX = document.createElement("input");
+                markerX.type = "hidden";
+                markerX.name = `marker_x_${imageIndex}`;
 
-                const markerYPercent = document.createElement("input");
-                markerYPercent.type = "hidden";
-                markerYPercent.name = `marker_y_${imageIndex}`;
+                const markerY = document.createElement("input");
+                markerY.type = "hidden";
+                markerY.name = `marker_y_${imageIndex}`;
 
-                const markerXPixel = document.createElement("input");
-                markerXPixel.type = "hidden";
-                markerXPixel.name = `marker_px_${imageIndex}`;
+                const markerPX = document.createElement("input");
+                markerPX.type = "hidden";
+                markerPX.name = `marker_px_${imageIndex}`;
 
-                const markerYPixel = document.createElement("input");
-                markerYPixel.type = "hidden";
-                markerYPixel.name = `marker_py_${imageIndex}`;
+                const markerPY = document.createElement("input");
+                markerPY.type = "hidden";
+                markerPY.name = `marker_py_${imageIndex}`;
 
                 let currentMarker = null;
-
-                // =========================
-                // 🎯 MARKER FUNCTION
-                // =========================
 
                 function setMarker(clientX, clientY) {
 
@@ -163,14 +168,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     const xPixel = xPercent * img.naturalWidth;
                     const yPixel = yPercent * img.naturalHeight;
 
-                    // speichern
-                    markerXPercent.value = xPercent;
-                    markerYPercent.value = yPercent;
+                    markerX.value = xPercent;
+                    markerY.value = yPercent;
 
-                    markerXPixel.value = Math.round(xPixel);
-                    markerYPixel.value = Math.round(yPixel);
+                    markerPX.value = Math.round(xPixel);
+                    markerPY.value = Math.round(yPixel);
 
-                    // alten Marker löschen
                     if (currentMarker) currentMarker.remove();
 
                     const marker = document.createElement("div");
@@ -183,50 +186,42 @@ document.addEventListener("DOMContentLoaded", function () {
                     currentMarker = marker;
                 }
 
-                // 🖱️ CLICK
-                img.addEventListener("click", function (e) {
+                img.addEventListener("click", (e) => {
                     setMarker(e.clientX, e.clientY);
                 });
 
-                // 📱 TOUCH (sauber!)
-                img.addEventListener("touchstart", function (e) {
+                img.addEventListener("touchstart", (e) => {
                     e.preventDefault();
-
                     const touch = e.touches[0];
                     setMarker(touch.clientX, touch.clientY);
                 });
 
-                // =========================
-                // ❌ REMOVE BUTTON
-                // =========================
-
+                // REMOVE BUTTON
                 const removeBtn = document.createElement("button");
                 removeBtn.type = "button";
                 removeBtn.textContent = "Entfernen";
                 removeBtn.classList.add("btn-secondary");
-                removeBtn.style.marginTop = "5px";
 
-                removeBtn.onclick = () => {
-                    block.remove();
-                };
+                removeBtn.onclick = () => block.remove();
 
                 // =========================
-                // 📦 ZUSAMMENBAUEN
+                // BUILD
                 // =========================
 
                 block.appendChild(wrapper);
                 block.appendChild(textarea);
-                block.appendChild(markerXPercent);
-                block.appendChild(markerYPercent);
-                block.appendChild(markerXPixel);
-                block.appendChild(markerYPixel);
+                block.appendChild(markerX);
+                block.appendChild(markerY);
+                block.appendChild(markerPX);
+                block.appendChild(markerPY);
+                block.appendChild(hiddenFileInput);
                 block.appendChild(removeBtn);
 
                 container.appendChild(block);
 
                 imageIndex++;
 
-                // 🔥 Reset → gleiche Datei erneut möglich
+                // 🔥 wichtig: reset
                 imageInput.value = "";
             };
 
