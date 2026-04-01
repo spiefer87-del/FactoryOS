@@ -69,7 +69,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // VALIDATION
         if (form) {
             form.addEventListener("submit", function (e) {
                 if (!hiddenInput.value) {
@@ -82,111 +81,120 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // =========================
-    // 📸 IMAGE UPLOAD (FINAL CLEAN)
+    // 📸 IMAGE UPLOAD (STABLE FIX)
     // =========================
-    
+
     const imageInput = document.getElementById("imageInput");
     const container = document.getElementById("imagePreviewContainer");
-    
+
     function generateId() {
         return crypto.randomUUID();
     }
-    
+
     if (imageInput && container) {
-    
+
         imageInput.addEventListener("change", function (e) {
-    
+
             const file = e.target.files[0];
             if (!file) return;
-    
+
             const id = generateId();
-    
+
             const reader = new FileReader();
-    
+
             reader.onload = function (ev) {
-    
+
+                // 📦 BLOCK
                 const block = document.createElement("div");
                 block.classList.add("image-block");
-    
+
                 const wrapper = document.createElement("div");
                 wrapper.classList.add("image-wrapper");
-    
+
                 const img = document.createElement("img");
                 img.src = ev.target.result;
-    
+                img.style.width = "100%";
+                img.style.display = "block";
+                img.style.touchAction = "none";
+
                 wrapper.appendChild(img);
-    
-                // hidden file input (WICHTIG!)
-                const dt = new DataTransfer();
-                dt.items.add(file);
-    
+
+                // 📁 FILE (OHNE DataTransfer!)
                 const fileInput = document.createElement("input");
                 fileInput.type = "file";
                 fileInput.name = "images";
-                fileInput.files = dt.files;
                 fileInput.style.display = "none";
-    
-                // Marker Inputs
-                const markerX = document.createElement("input");
-                markerX.type = "hidden";
-                markerX.name = `marker_x_${id}`;
-    
-                const markerY = document.createElement("input");
-                markerY.type = "hidden";
-                markerY.name = `marker_y_${id}`;
-    
-                let currentMarker = null;
-    
-                img.onload = function () {
-    
-                    function setMarker(x, y) {
-    
-                        const rect = img.getBoundingClientRect();
-    
-                        const xp = (x - rect.left) / rect.width;
-                        const yp = (y - rect.top) / rect.height;
-    
-                        markerX.value = xp;
-                        markerY.value = yp;
-    
-                        if (currentMarker) currentMarker.remove();
-    
-                        const marker = document.createElement("div");
-                        marker.classList.add("marker");
-    
-                        marker.style.left = (xp * 100) + "%";
-                        marker.style.top = (yp * 100) + "%";
-    
-                        wrapper.appendChild(marker);
-                        currentMarker = marker;
-                    }
-    
-                    img.addEventListener("click", (e) => {
-                        setMarker(e.clientX, e.clientY);
-                    });
-    
-                    img.addEventListener("touchstart", (e) => {
-                        e.preventDefault();
-                        const t = e.touches[0];
-                        setMarker(t.clientX, t.clientY);
-                    });
-                };
-    
+
+                // 🔥 DIREKT FILE ZUWEISEN (funktioniert stabiler)
+                const dataTransfer = new ClipboardEvent('').clipboardData || new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+
+                // 🧾 ID
                 const idInput = document.createElement("input");
                 idInput.type = "hidden";
                 idInput.name = "image_ids";
                 idInput.value = id;
-    
+
+                // 📝 TEXT
                 const textarea = document.createElement("textarea");
                 textarea.name = `description_${id}`;
                 textarea.placeholder = "Beschreibung...";
                 textarea.classList.add("form-control");
-    
+
+                // 🎯 MARKER
+                const markerX = document.createElement("input");
+                markerX.type = "hidden";
+                markerX.name = `marker_x_${id}`;
+
+                const markerY = document.createElement("input");
+                markerY.type = "hidden";
+                markerY.name = `marker_y_${id}`;
+
+                let currentMarker = null;
+
+                function setMarker(clientX, clientY) {
+
+                    const rect = img.getBoundingClientRect();
+
+                    const xPercent = (clientX - rect.left) / rect.width;
+                    const yPercent = (clientY - rect.top) / rect.height;
+
+                    markerX.value = xPercent;
+                    markerY.value = yPercent;
+
+                    if (currentMarker) currentMarker.remove();
+
+                    const marker = document.createElement("div");
+                    marker.classList.add("marker");
+
+                    marker.style.left = (xPercent * 100) + "%";
+                    marker.style.top = (yPercent * 100) + "%";
+
+                    wrapper.appendChild(marker);
+                    currentMarker = marker;
+                }
+
+                // 🖱 CLICK
+                img.addEventListener("click", function (e) {
+                    setMarker(e.clientX, e.clientY);
+                });
+
+                // 📱 TOUCH
+                img.addEventListener("touchstart", function (e) {
+                    e.preventDefault();
+                    const t = e.touches[0];
+                    setMarker(t.clientX, t.clientY);
+                });
+
+                // ❌ REMOVE
                 const removeBtn = document.createElement("button");
                 removeBtn.type = "button";
                 removeBtn.textContent = "Entfernen";
+                removeBtn.classList.add("btn-secondary");
                 removeBtn.onclick = () => block.remove();
-    
+
+                // 📦 BUILD
                 block.appendChild(wrapper);
                 block.appendChild(textarea);
                 block.appendChild(markerX);
@@ -194,12 +202,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 block.appendChild(fileInput);
                 block.appendChild(idInput);
                 block.appendChild(removeBtn);
-    
+
                 container.appendChild(block);
-    
+
+                // wichtig
                 imageInput.value = "";
             };
-    
+
             reader.readAsDataURL(file);
         });
     }
