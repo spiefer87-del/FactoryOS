@@ -61,7 +61,9 @@
     border-radius: 6px;
 }
 
-
+.image-block {
+    margin-bottom: 20px;
+}
 
 /* =========================
    MARKER
