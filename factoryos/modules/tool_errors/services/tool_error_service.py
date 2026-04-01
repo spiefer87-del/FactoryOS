@@ -54,40 +54,40 @@ def create_tool_error(form, files, user_id):
     uploaded_files = files.getlist("images")
 
     uploaded_files = files.getlist("images")
-image_ids = form.getlist("image_ids")
-
-for i, file in enumerate(uploaded_files):
-
-    if not file or not file.filename:
-        continue
-
-    image_id = image_ids[i]
-
-    filename = f"{uuid.uuid4()}_{file.filename}"
-    filepath = os.path.join(upload_folder, filename)
-
-    file.save(filepath)
-
-    # 🔥 Daten holen
-    marker_x = form.get(f"marker_x_{image_id}")
-    marker_y = form.get(f"marker_y_{image_id}")
-
-    marker_px = form.get(f"marker_px_{image_id}")
-    marker_py = form.get(f"marker_py_{image_id}")
-
-    description = form.get(f"description_{image_id}")
-
-    image = ToolErrorImage(
-        tool_error_id=error.id,
-        image_path=f"uploads/tool_errors/{filename}",
-        description=description,
-        marker_x=float(marker_x) if marker_x else None,
-        marker_y=float(marker_y) if marker_y else None,
-        marker_px=int(marker_px) if marker_px else None,
-        marker_py=int(marker_py) if marker_py else None
-    )
-
-    db.session.add(image)
+    image_ids = form.getlist("image_ids")
+    
+    for i, file in enumerate(uploaded_files):
+    
+        if not file or not file.filename:
+            continue
+    
+        image_id = image_ids[i]
+    
+        filename = f"{uuid.uuid4()}_{file.filename}"
+        filepath = os.path.join(upload_folder, filename)
+    
+        file.save(filepath)
+    
+        # 🔥 Daten holen
+        marker_x = form.get(f"marker_x_{image_id}")
+        marker_y = form.get(f"marker_y_{image_id}")
+    
+        marker_px = form.get(f"marker_px_{image_id}")
+        marker_py = form.get(f"marker_py_{image_id}")
+    
+        description = form.get(f"description_{image_id}")
+    
+        image = ToolErrorImage(
+            tool_error_id=error.id,
+            image_path=f"uploads/tool_errors/{filename}",
+            description=description,
+            marker_x=float(marker_x) if marker_x else None,
+            marker_y=float(marker_y) if marker_y else None,
+            marker_px=int(marker_px) if marker_px else None,
+            marker_py=int(marker_py) if marker_py else None
+        )
+    
+        db.session.add(image)
 
 
     # =========================
