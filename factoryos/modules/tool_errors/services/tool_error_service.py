@@ -79,7 +79,7 @@ def create_tool_error(form, files, user_id):
             marker_y=float(marker_y) if marker_y else None,
             description=description
         )
-    
+        print("UPLOAD PATH:", upload_folder)
         db.session.add(image)
 
     # =========================
