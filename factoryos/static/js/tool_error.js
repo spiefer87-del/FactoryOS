@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // =========================
-    // 📸 IMAGE UPLOAD (EINZELN!)
+    // 📸 IMAGE UPLOAD (EINZELN + STABIL)
     // =========================
 
     const imageInput = document.getElementById("imageInput");
@@ -150,20 +150,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 let currentMarker = null;
 
                 // =========================
-                // 🎯 MARKER SETZEN
+                // 🎯 MARKER FUNCTION
                 // =========================
 
-                function setMarker(e) {
-
-                    let clientX, clientY;
-
-                    if (e.touches && e.touches.length > 0) {
-                        clientX = e.touches[0].clientX;
-                        clientY = e.touches[0].clientY;
-                    } else {
-                        clientX = e.clientX;
-                        clientY = e.clientY;
-                    }
+                function setMarker(clientX, clientY) {
 
                     const rect = img.getBoundingClientRect();
 
@@ -193,11 +183,17 @@ document.addEventListener("DOMContentLoaded", function () {
                     currentMarker = marker;
                 }
 
-                img.addEventListener("click", setMarker);
+                // 🖱️ CLICK
+                img.addEventListener("click", function (e) {
+                    setMarker(e.clientX, e.clientY);
+                });
 
+                // 📱 TOUCH (sauber!)
                 img.addEventListener("touchstart", function (e) {
                     e.preventDefault();
-                    setMarker(e);
+
+                    const touch = e.touches[0];
+                    setMarker(touch.clientX, touch.clientY);
                 });
 
                 // =========================
@@ -210,7 +206,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 removeBtn.classList.add("btn-secondary");
                 removeBtn.style.marginTop = "5px";
 
-                removeBtn.onclick = () => block.remove();
+                removeBtn.onclick = () => {
+                    block.remove();
+                };
 
                 // =========================
                 // 📦 ZUSAMMENBAUEN
