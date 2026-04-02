@@ -19,6 +19,52 @@ button,
     box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
+.btn-primary {
+    background: linear-gradient(135deg, #4f8cff, #3a6ff7);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28c76f, #20a75a);
+    color: white;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.btn-success:hover {
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: #f1f3f5;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background: #e2e6ea;
+}
+
+input[type="file"] {
+    background: #f8f9fa;
+    border: 1px dashed #ccc;
+    padding: 10px;
+    border-radius: 8px;
+    width: 100%;
+}
+
+.upload-box {
+    background: #ffffff;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid #eee;
+
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
 /* =========================
    TOOL DROPDOWN
 ========================= */
