@@ -1,3 +1,30 @@
+uploaded_files = files.getlist("images")
+
+for i, file in enumerate(uploaded_files):
+
+    if not file or not file.filename:
+        continue
+
+    marker_x = form.get(f"marker_x_{i}")
+    marker_y = form.get(f"marker_y_{i}")
+    description = form.get(f"image_description_{i}")
+
+    filename = f"{uuid.uuid4()}_{file.filename}"
+    filepath = os.path.join(upload_folder, filename)
+
+    file.save(filepath)
+
+    image = ToolErrorImage(
+        tool_error_id=error.id,
+        image_path=f"uploads/tool_errors/{filename}",
+        marker_x=float(marker_x) if marker_x else 0,
+        marker_y=float(marker_y) if marker_y else 0,
+        description=description
+    )
+
+    db.session.add(image)
+
+
 import os
 import uuid
 from datetime import datetime
