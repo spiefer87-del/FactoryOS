@@ -1,91 +1,4 @@
-const imageInput = document.getElementById("imageInput");
-const preview = document.getElementById("previewImage");
-const wrapper = document.getElementById("previewWrapper");
 
-const markerX = document.getElementById("marker_x");
-const markerY = document.getElementById("marker_y");
-
-const uploadBtn = document.getElementById("uploadBtn");
-const textarea = document.getElementById("imageDescription");
-
-let currentMarker = null;
-
-// 📸 Preview
-imageInput.addEventListener("change", function (e) {
-
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-
-    reader.onload = function (ev) {
-        preview.src = ev.target.result;
-        preview.style.display = "block";
-    };
-
-    reader.readAsDataURL(file);
-});
-
-// 🎯 Marker
-function setMarker(x, y) {
-
-    const rect = preview.getBoundingClientRect();
-
-    const xp = (x - rect.left) / rect.width;
-    const yp = (y - rect.top) / rect.height;
-
-    markerX.value = xp;
-    markerY.value = yp;
-
-    if (currentMarker) currentMarker.remove();
-
-    const marker = document.createElement("div");
-    marker.classList.add("marker");
-
-    marker.style.left = (xp * 100) + "%";
-    marker.style.top = (yp * 100) + "%";
-
-    wrapper.appendChild(marker);
-    currentMarker = marker;
-}
-
-// CLICK
-preview.addEventListener("click", (e) => {
-    setMarker(e.clientX, e.clientY);
-});
-
-// TOUCH
-preview.addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    const t = e.touches[0];
-    setMarker(t.clientX, t.clientY);
-});
-
-// 🚀 UPLOAD
-uploadBtn.addEventListener("click", function () {
-
-    const file = imageInput.files[0];
-
-    if (!file) {
-        alert("Bitte Bild auswählen");
-        return;
-    }
-
-    const formData = new FormData();
-
-    formData.append("image", file);
-    formData.append("marker_x", markerX.value);
-    formData.append("marker_y", markerY.value);
-    formData.append("description", textarea.value);
-
-    fetch(`/tool_error/upload_image/${ERROR_ID}`, {
-        method: "POST",
-        body: formData
-    })
-    .then(() => {
-        location.reload(); // einfach & stabil
-    });
-});
 
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -173,96 +86,93 @@ document.addEventListener("DOMContentLoaded", function () {
     // 📸 IMAGE UPLOAD (FIXED CLEAN)
     // =========================
     const imageInput = document.getElementById("imageInput");
-    const container = document.getElementById("imagePreviewContainer");
+    const preview = document.getElementById("previewImage");
+    const wrapper = document.getElementById("previewWrapper");
     
-    if (imageInput && container) {
+    const markerX = document.getElementById("marker_x");
+    const markerY = document.getElementById("marker_y");
     
-        imageInput.addEventListener("change", function (e) {
+    const uploadBtn = document.getElementById("uploadBtn");
+    const textarea = document.getElementById("imageDescription");
     
-            container.innerHTML = "";
+    let currentMarker = null;
     
-            const files = Array.from(e.target.files);
+    // 📸 Preview
+    imageInput.addEventListener("change", function (e) {
     
-            files.forEach((file, index) => {
+        const file = e.target.files[0];
+        if (!file) return;
     
-                const reader = new FileReader();
+        const reader = new FileReader();
     
-                reader.onload = function (ev) {
+        reader.onload = function (ev) {
+            preview.src = ev.target.result;
+            preview.style.display = "block";
+        };
     
-                    const block = document.createElement("div");
-                    block.classList.add("image-block");
+        reader.readAsDataURL(file);
+    });
     
-                    const wrapper = document.createElement("div");
-                    wrapper.classList.add("image-wrapper");
-                    wrapper.style.position = "relative";
+    // 🎯 Marker
+    function setMarker(x, y) {
     
-                    const img = document.createElement("img");
-                    img.src = ev.target.result;
-                    img.style.width = "100%";
+        const rect = preview.getBoundingClientRect();
     
-                    wrapper.appendChild(img);
+        const xp = (x - rect.left) / rect.width;
+        const yp = (y - rect.top) / rect.height;
     
-                    // 📝 TEXT
-                    const textarea = document.createElement("textarea");
-                    textarea.name = `image_description_${index}`;
+        markerX.value = xp;
+        markerY.value = yp;
     
-                    // 🎯 MARKER
-                    const markerX = document.createElement("input");
-                    markerX.type = "hidden";
-                    markerX.name = `marker_x_${index}`;
-                    markerX.value = 0;
+        if (currentMarker) currentMarker.remove();
     
-                    const markerY = document.createElement("input");
-                    markerY.type = "hidden";
-                    markerY.name = `marker_y_${index}`;
-                    markerY.value = 0;
+        const marker = document.createElement("div");
+        marker.classList.add("marker");
     
-                    let currentMarker = null;
+        marker.style.left = (xp * 100) + "%";
+        marker.style.top = (yp * 100) + "%";
     
-                    function setMarker(x, y) {
-    
-                        const rect = img.getBoundingClientRect();
-    
-                        const xp = (x - rect.left) / rect.width;
-                        const yp = (y - rect.top) / rect.height;
-    
-                        markerX.value = xp;
-                        markerY.value = yp;
-    
-                        if (currentMarker) currentMarker.remove();
-    
-                        const marker = document.createElement("div");
-                        marker.classList.add("marker");
-    
-                        marker.style.left = (xp * 100) + "%";
-                        marker.style.top = (yp * 100) + "%";
-    
-                        wrapper.appendChild(marker);
-                        currentMarker = marker;
-                    }
-    
-                    img.addEventListener("click", (e) => {
-                        setMarker(e.clientX, e.clientY);
-                    });
-    
-                    img.addEventListener("touchstart", (e) => {
-                        e.preventDefault();
-                        const t = e.touches[0];
-                        setMarker(t.clientX, t.clientY);
-                    });
-    
-                    block.appendChild(wrapper);
-                    block.appendChild(textarea);
-                    block.appendChild(markerX);
-                    block.appendChild(markerY);
-    
-                    container.appendChild(block);
-                };
-    
-                reader.readAsDataURL(file);
-            });
-        });
+        wrapper.appendChild(marker);
+        currentMarker = marker;
     }
+    
+    // CLICK
+    preview.addEventListener("click", (e) => {
+        setMarker(e.clientX, e.clientY);
+    });
+    
+    // TOUCH
+    preview.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        const t = e.touches[0];
+        setMarker(t.clientX, t.clientY);
+    });
+    
+    // 🚀 UPLOAD
+    uploadBtn.addEventListener("click", function () {
+    
+        const file = imageInput.files[0];
+    
+        if (!file) {
+            alert("Bitte Bild auswählen");
+            return;
+        }
+    
+        const formData = new FormData();
+    
+        formData.append("image", file);
+        formData.append("marker_x", markerX.value);
+        formData.append("marker_y", markerY.value);
+        formData.append("description", textarea.value);
+    
+        fetch(`/tool_error/upload_image/${ERROR_ID}`, {
+            method: "POST",
+            body: formData
+        })
+        .then(() => {
+            location.reload(); // einfach & stabil
+        });
+    });
     
     // =========================
     // 🧾 PRESET → INPUT
