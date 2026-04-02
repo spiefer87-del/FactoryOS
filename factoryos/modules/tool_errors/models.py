@@ -36,7 +36,7 @@ class ToolErrorImage(db.Model):
     tool_error_id = db.Column(
         db.Integer,
         db.ForeignKey("tool_errors.id"),
-        nullable=False
+        nullable=True
     )
 
     image_path = db.Column(db.String(255))
