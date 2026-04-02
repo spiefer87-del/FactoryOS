@@ -1,7 +1,7 @@
 import os
 import uuid
 from datetime import datetime
-from flask import current_app
+from flask import current_app, request
 
 from factoryos.extensions import db
 from factoryos.modules.masterdata.tools.models import Tool
