@@ -273,11 +273,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const delBtn = document.createElement("button");
         delBtn.innerText = "✕";
         delBtn.classList.add("delete-btn");
-    
-        delBtn.onclick = () => {
-    
+        delBtn.type = "button";  // 🔥 WICHTIG!!!
+        
+        delBtn.onclick = (e) => {
+        
+            e.preventDefault();  // 🔥 extra safe
+        
             if (!confirm("Bild wirklich löschen?")) return;
-    
+        
             fetch(`/tool-errors/delete_temp_image/${imageId}`, {
                 method: "POST"
             })
