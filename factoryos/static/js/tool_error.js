@@ -18,119 +18,166 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // =========================
-    // 🔍 TOOL SEARCH
+    // 🔍 PERFECT TOOL SEARCH
     // =========================
-
+    
     const toolInput = document.getElementById("toolSearch");
     const dropdown = document.getElementById("toolDropdown");
     const hiddenInput = document.getElementById("tool_id");
     const form = document.querySelector("form");
-
+    
     let timeout = null;
-
+    let currentFocus = -1;
+    let currentResults = [];
+    
     if (toolInput && dropdown && hiddenInput) {
-
+    
+        // 🔍 LIVE SEARCH
         toolInput.addEventListener("input", function () {
-
+    
             clearTimeout(timeout);
-
             const query = this.value;
             hiddenInput.value = "";
-
+    
             if (query.length < 2) {
                 dropdown.style.display = "none";
-                dropdown.innerHTML = "";
                 return;
             }
-
-            timeout = setTimeout(() => {
-
-                fetch(`/masterdata/tools/api/search?q=${query}`)
-                    .then(res => res.json())
-                    .then(data => {
-
-                        dropdown.innerHTML = "";
-
-                        if (!data.results || data.results.length === 0) {
-                            dropdown.style.display = "none";
-                            return;
-                        }
-
-                        dropdown.style.display = "block";
-
-                        data.results.forEach(tool => {
-
-                            const div = document.createElement("div");
-                            div.classList.add("dropdown-item");
-                            div.textContent = tool.text;
-
-                            div.onclick = () => {
-                                toolInput.value = tool.text;
-                                hiddenInput.value = tool.id;
-                                dropdown.innerHTML = "";
-                                dropdown.style.display = "none";
-                            };
-
-                            dropdown.appendChild(div);
-                        });
-
+    
+            timeout = setTimeout(async () => {
+    
+                try {
+                    const res = await fetch(`/masterdata/tools/api/search?q=${query}`);
+                    const data = await res.json();
+    
+                    dropdown.innerHTML = "";
+                    currentResults = data.results || [];
+                    currentFocus = -1;
+    
+                    if (currentResults.length === 0) {
+                        dropdown.style.display = "none";
+                        return;
+                    }
+    
+                    dropdown.style.display = "block";
+    
+                    currentResults.forEach((tool, index) => {
+    
+                        const div = document.createElement("div");
+                        div.classList.add("dropdown-item");
+                        div.textContent = tool.text;
+    
+                        div.onclick = () => selectTool(index);
+    
+                        dropdown.appendChild(div);
                     });
-
-            }, 300);
+    
+                } catch (err) {
+                    console.error("Search error:", err);
+                }
+    
+            }, 250);
         });
-
+    
+    
+        // 🎯 SELECT FUNCTION
+        function selectTool(index) {
+            const tool = currentResults[index];
+            if (!tool) return;
+    
+            toolInput.value = tool.text;
+            hiddenInput.value = tool.id;
+    
+            dropdown.style.display = "none";
+        }
+    
+    
+        // ⌨️ KEYBOARD NAVIGATION
+        toolInput.addEventListener("keydown", function (e) {
+    
+            const items = dropdown.querySelectorAll(".dropdown-item");
+    
+            if (e.key === "ArrowDown") {
+                currentFocus++;
+                setActive(items);
+                e.preventDefault();
+            }
+    
+            if (e.key === "ArrowUp") {
+                currentFocus--;
+                setActive(items);
+                e.preventDefault();
+            }
+    
+            if (e.key === "Enter") {
+    
+                if (currentFocus > -1 && items[currentFocus]) {
+                    e.preventDefault();
+                    items[currentFocus].click();
+                } else if (currentResults.length > 0) {
+                    e.preventDefault();
+                    selectTool(0);
+                }
+            }
+        });
+    
+    
+        function setActive(items) {
+            if (!items.length) return;
+    
+            items.forEach(item => item.classList.remove("active"));
+    
+            if (currentFocus >= items.length) currentFocus = 0;
+            if (currentFocus < 0) currentFocus = items.length - 1;
+    
+            items[currentFocus].classList.add("active");
+        }
+    
+    
+        // 🖱 CLICK OUTSIDE
         document.addEventListener("click", function (e) {
             if (!toolInput.contains(e.target) && !dropdown.contains(e.target)) {
                 dropdown.style.display = "none";
             }
         });
-
+    
+    
+        // 🧠 SMART SUBMIT (kein nerviges Alert mehr)
         if (form) {
             form.addEventListener("submit", async function (e) {
-        
-                // 🔥 Wenn ID schon gesetzt → alles gut
+    
                 if (hiddenInput.value) return;
-        
-                // 🔥 Wenn nix eingegeben → abbrechen
+    
                 if (!toolInput.value) {
                     e.preventDefault();
                     alert("Bitte Werkzeug eingeben!");
                     toolInput.focus();
                     return;
                 }
-        
+    
                 e.preventDefault();
-        
-                const query = toolInput.value;
-        
+    
                 try {
-                    const res = await fetch(`/masterdata/tools/api/search?q=${query}`);
+                    const res = await fetch(`/masterdata/tools/api/search?q=${toolInput.value}`);
                     const data = await res.json();
-        
+    
                     if (!data.results || data.results.length === 0) {
                         alert("Werkzeug nicht gefunden!");
-                        toolInput.focus();
                         return;
                     }
-        
-                    // 🔥 1. exakter Match
-                    const exact = data.results.find(t =>
-                        t.text.toLowerCase() === query.toLowerCase()
-                    );
-        
-                    if (exact) {
-                        hiddenInput.value = exact.id;
-                    } else {
-                        // 🔥 fallback: erster Treffer
-                        hiddenInput.value = data.results[0].id;
-                    }
-        
-                    // 🔥 nochmal submit
+    
+                    // 🔥 best match
+                    const match = data.results.find(t =>
+                        t.text.toLowerCase().includes(toolInput.value.toLowerCase())
+                    ) || data.results[0];
+    
+                    hiddenInput.value = match.id;
+    
                     form.submit();
-        
+    
                 } catch (err) {
-                    console.error("❌ Tool Search Error:", err);
-                    alert("Fehler bei der Werkzeugsuche");
+                    console.error(err);
+                    alert("Fehler bei der Suche");
                 }
             });
         }
