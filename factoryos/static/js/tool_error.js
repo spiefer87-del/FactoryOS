@@ -86,11 +86,51 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         if (form) {
-            form.addEventListener("submit", function (e) {
-                if (!hiddenInput.value) {
+            form.addEventListener("submit", async function (e) {
+        
+                // 🔥 Wenn ID schon gesetzt → alles gut
+                if (hiddenInput.value) return;
+        
+                // 🔥 Wenn nix eingegeben → abbrechen
+                if (!toolInput.value) {
                     e.preventDefault();
-                    alert("Bitte Werkzeug auswählen!");
+                    alert("Bitte Werkzeug eingeben!");
                     toolInput.focus();
+                    return;
+                }
+        
+                e.preventDefault();
+        
+                const query = toolInput.value;
+        
+                try {
+                    const res = await fetch(`/masterdata/tools/api/search?q=${query}`);
+                    const data = await res.json();
+        
+                    if (!data.results || data.results.length === 0) {
+                        alert("Werkzeug nicht gefunden!");
+                        toolInput.focus();
+                        return;
+                    }
+        
+                    // 🔥 1. exakter Match
+                    const exact = data.results.find(t =>
+                        t.text.toLowerCase() === query.toLowerCase()
+                    );
+        
+                    if (exact) {
+                        hiddenInput.value = exact.id;
+                    } else {
+                        // 🔥 fallback: erster Treffer
+                        hiddenInput.value = data.results[0].id;
+                    }
+        
+                    // 🔥 nochmal submit
+                    form.submit();
+        
+                } catch (err) {
+                    console.error("❌ Tool Search Error:", err);
+                    alert("Fehler bei der Werkzeugsuche");
                 }
             });
         }
