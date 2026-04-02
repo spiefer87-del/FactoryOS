@@ -72,6 +72,7 @@ def upload_temp_image(file, marker_x, marker_y, description, temp_id):
     file.save(filepath)
 
     image = ToolErrorImage(
+        tool_error_id=None,
         temp_id=temp_id,  # 🔥 HIER!
         image_path=f"uploads/tool_errors/{filename}",
         marker_x=float(marker_x) if marker_x else None,
