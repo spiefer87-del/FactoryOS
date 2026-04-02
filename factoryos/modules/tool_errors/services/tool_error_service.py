@@ -10,11 +10,10 @@ from factoryos.core.services.change_log_service import log_change, build_changes
 from ..models import ToolError, ToolErrorImage
 
 
-def create_tool_error(form, files, user_id):
-
-    # =========================
-    # 🔧 Daten vorbereiten
-    # =========================
+# =========================
+# CREATE (OHNE BILDER!)
+# =========================
+def create_tool_error(form, user_id):
 
     new_data = {
         "tool_id": form.get("tool_id"),
@@ -27,10 +26,6 @@ def create_tool_error(form, files, user_id):
     temp_obj = ToolError()
     changes = build_changes(temp_obj, new_data, new_data.keys())
 
-    # =========================
-    # 🆕 Objekt erstellen
-    # =========================
-
     error = ToolError(
         **new_data,
         reported_by_id=user_id,
@@ -38,53 +33,7 @@ def create_tool_error(form, files, user_id):
     )
 
     db.session.add(error)
-    db.session.flush()  # 🔥 ID verfügbar
-
-    # =========================
-    # 📸 Bilder speichern
-    # =========================
-
-    upload_folder = os.path.join(
-        current_app.static_folder,
-        "uploads/tool_errors"
-    )
-
-    os.makedirs(upload_folder, exist_ok=True)
-
-    uploaded_files = files.getlist("images")
-
-    marker_x_list = form.getlist("marker_x[]")
-    marker_y_list = form.getlist("marker_y[]")
-    descriptions = form.getlist("image_description[]")
-    
-    for i, file in enumerate(uploaded_files):
-    
-        if not file or not file.filename:
-            continue
-    
-        filename = f"{uuid.uuid4()}_{file.filename}"
-        filepath = os.path.join(upload_folder, filename)
-    
-        file.save(filepath)
-    
-        # 🔥 WICHTIG: Index sauber matchen
-        marker_x = marker_x_list[i] if i < len(marker_x_list) else None
-        marker_y = marker_y_list[i] if i < len(marker_y_list) else None
-        description = descriptions[i] if i < len(descriptions) else None
-    
-        image = ToolErrorImage(
-            tool_error_id=error.id,
-            image_path=f"uploads/tool_errors/{filename}",
-            marker_x=float(marker_x) if marker_x else None,
-            marker_y=float(marker_y) if marker_y else None,
-            description=description
-        )
-        print("UPLOAD PATH:", upload_folder)
-        db.session.add(image)
-
-    # =========================
-    # 📝 CHANGELOG
-    # =========================
+    db.session.commit()
 
     log_change(
         entity_type="tool_error",
@@ -95,9 +44,44 @@ def create_tool_error(form, files, user_id):
         category="production"
     )
 
+    return error
+
+
+# =========================
+# IMAGE UPLOAD (NEU!)
+# =========================
+def upload_tool_error_image(error_id, file, marker_x, marker_y, description, user_id):
+
+    if not file or not file.filename:
+        print("❌ Kein File erhalten")
+        return None
+
+    upload_folder = os.path.join(
+        current_app.static_folder,
+        "uploads/tool_errors"
+    )
+
+    os.makedirs(upload_folder, exist_ok=True)
+
+    filename = f"{uuid.uuid4()}_{file.filename}"
+    filepath = os.path.join(upload_folder, filename)
+
+    file.save(filepath)
+
+    print("✅ Bild gespeichert:", filename)
+
+    image = ToolErrorImage(
+        tool_error_id=error_id,
+        image_path=f"uploads/tool_errors/{filename}",
+        marker_x=float(marker_x) if marker_x else None,
+        marker_y=float(marker_y) if marker_y else None,
+        description=description
+    )
+
+    db.session.add(image)
     db.session.commit()
 
-    return error
+    return image
 
 
 # =========================
@@ -150,7 +134,6 @@ def delete_tool_error(error):
         category="production"
     )
 
-    # 🔥 WICHTIG: Bilder mitlöschen
     for image in error.images:
         db.session.delete(image)
 
