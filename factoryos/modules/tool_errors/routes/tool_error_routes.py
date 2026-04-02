@@ -11,7 +11,7 @@ from ..queries.tool_error_queries import (
 from ..services.tool_error_service import (
     create_tool_error,
     delete_tool_error,
-    upload_tool_error_image   # 🔥 NEU
+    upload_tool_error_image
 )
 
 from factoryos.modules.masterdata.tools.queries.tool_queries import get_all_tools
@@ -28,21 +28,17 @@ def list():
     errors = get_tool_errors()
 
     return render_template(
-        "/tool_errors/list.html",
+        "tool_errors/list.html",
         errors=errors
     )
 
 
 # =========================
-# CREATE (OHNE BILDER)
+# CREATE (STEP 1 + STEP 2)
 # =========================
 @bp.route("/create", methods=["GET", "POST"])
 @login_required
 def create():
-
-    if request.method == "POST":
-        error = create_tool_error(request.form, current_user.id)
-        return redirect(url_for("tool_error.detail", error_id=error.id))  # 🔥 wichtig!
 
     tools = get_all_tools()
 
@@ -51,15 +47,49 @@ def create():
         .order_by(ToolErrorTitlePreset.sort_order)\
         .all()
 
+    # 👉 GET ohne error
+    error = None
+
+    if request.method == "POST":
+        error = create_tool_error(request.form, current_user.id)
+
+        # 🔥 WICHTIG: NICHT auf detail!
+        return redirect(url_for("tool_error.create_with_id", error_id=error.id))
+
     return render_template(
         "tool_errors/create.html",
         tools=tools,
-        presets=presets
+        presets=presets,
+        error=error
     )
 
 
 # =========================
-# DETAIL
+# CREATE MIT ERROR (UPLOAD MODE)
+# =========================
+@bp.route("/create/<int:error_id>")
+@login_required
+def create_with_id(error_id):
+
+    tools = get_all_tools()
+
+    presets = ToolErrorTitlePreset.query\
+        .filter_by(active=True)\
+        .order_by(ToolErrorTitlePreset.sort_order)\
+        .all()
+
+    error = get_tool_error(error_id)
+
+    return render_template(
+        "tool_errors/create.html",
+        tools=tools,
+        presets=presets,
+        error=error
+    )
+
+
+# =========================
+# DETAIL (READ ONLY)
 # =========================
 @bp.route("/<int:error_id>")
 @login_required
@@ -74,7 +104,7 @@ def detail(error_id):
 
 
 # =========================
-# IMAGE UPLOAD (NEU!)
+# IMAGE UPLOAD (AJAX)
 # =========================
 @bp.route("/upload_image/<int:error_id>", methods=["POST"])
 @login_required
