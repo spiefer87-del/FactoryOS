@@ -98,15 +98,20 @@ def upload_temp_image(file, marker_x, marker_y, description, temp_id):
 # =========================
 def assign_images_to_error(temp_id, error_id):
 
-    temp_id = form.get("temp_id")
+    if not temp_id:
+        print("❌ Kein temp_id")
+        return
 
     images = ToolErrorImage.query.filter_by(temp_id=temp_id).all()
 
     for img in images:
-        img.tool_error_id = error.id
-        img.temp_id = None  # optional cleanup 
+        img.tool_error_id = error_id
+        img.temp_id = None  # optional cleanup
 
     db.session.commit()
+
+    print(f"✅ {len(images)} Bilder zugeordnet")
+
 
 
 # =========================
