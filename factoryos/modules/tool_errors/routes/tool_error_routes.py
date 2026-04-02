@@ -84,6 +84,27 @@ def upload_temp():
     if not image:
         return jsonify({"error": "Upload fehlgeschlagen"}), 400
 
+    return jsonify({
+        "success": True,
+        "image_id": image.id
+    })
+
+@bp.route("/delete_temp_image/<int:image_id>", methods=["POST"])
+@login_required
+def delete_temp_image(image_id):
+
+
+    image = ToolErrorImage.query.get_or_404(image_id)
+
+    # Datei löschen
+    file_path = os.path.join(current_app.static_folder, image.image_path)
+
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
+    db.session.delete(image)
+    db.session.commit()
+
     return jsonify({"success": True})
 
 
