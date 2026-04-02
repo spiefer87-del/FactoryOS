@@ -1,3 +1,44 @@
+<h3>Bilder hinzufügen</h3>
+
+<div class="upload-box">
+
+    <input type="file" id="imageInput" accept="image/*">
+
+    <div id="previewWrapper" class="image-wrapper">
+        <img id="previewImage" style="display:none;">
+    </div>
+
+    <textarea id="imageDescription"
+              placeholder="Beschreibung zum Bild..."></textarea>
+
+    <input type="hidden" id="marker_x">
+    <input type="hidden" id="marker_y">
+
+    <button type="button" id="uploadBtn">
+        Bild speichern
+    </button>
+
+</div>
+
+<hr>
+
+<h3>Bereits hochgeladene Bilder</h3>
+
+<div class="image-gallery">
+    {% for image in error.images %}
+        <div class="image-wrapper">
+            <img src="{{ url_for('static', filename=image.image_path) }}">
+
+            {% if image.marker_x is not none %}
+                <div class="marker"
+                     style="left: {{ image.marker_x * 100 }}%;
+                            top: {{ image.marker_y * 100 }}%;">
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+
 {% extends "layout/base.html" %}
 
 {% block styles %}
