@@ -206,7 +206,7 @@ document.addEventListener("DOMContentLoaded", function () {
             formData.append("description", textarea.value);
             formData.append("temp_id", TEMP_ID);
 
-            fetch("/tool_errors/upload_temp_image", {
+            fetch("/tool-errors/upload_temp_image", {
                 method: "POST",
                 body: formData
             })
