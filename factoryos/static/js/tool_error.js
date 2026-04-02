@@ -84,215 +84,109 @@ document.addEventListener("DOMContentLoaded", function () {
     // 📸 IMAGE UPLOAD (FIXED CLEAN)
     // =========================
     const imageInput = document.getElementById("imageInput");
-const preview = document.getElementById("previewImage");
-const wrapper = document.getElementById("previewWrapper");
-
-const markerX = document.getElementById("marker_x");
-const markerY = document.getElementById("marker_y");
-
-const uploadBtn = document.getElementById("uploadBtn");
-const textarea = document.getElementById("imageDescription");
-
-let currentMarker = null;
-
-// 📸 Preview
-imageInput.addEventListener("change", function (e) {
-
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-
-    reader.onload = function (ev) {
-        preview.src = ev.target.result;
-        preview.style.display = "block";
-    };
-
-    reader.readAsDataURL(file);
-});
-
-// 🎯 Marker setzen
-preview.addEventListener("click", function (e) {
-
-    const rect = preview.getBoundingClientRect();
-
-    const xp = (e.clientX - rect.left) / rect.width;
-    const yp = (e.clientY - rect.top) / rect.height;
-
-    markerX.value = xp;
-    markerY.value = yp;
-
-    if (currentMarker) currentMarker.remove();
-
-    const marker = document.createElement("div");
-    marker.classList.add("marker");
-
-    marker.style.left = (xp * 100) + "%";
-    marker.style.top = (yp * 100) + "%";
-
-    wrapper.appendChild(marker);
-    currentMarker = marker;
-});
-
-// 📱 Touch Support
-preview.addEventListener("touchstart", function (e) {
-    e.preventDefault();
-    const t = e.touches[0];
-
-    const rect = preview.getBoundingClientRect();
-
-    const xp = (t.clientX - rect.left) / rect.width;
-    const yp = (t.clientY - rect.top) / rect.height;
-
-    markerX.value = xp;
-    markerY.value = yp;
-
-    if (currentMarker) currentMarker.remove();
-
-    const marker = document.createElement("div");
-    marker.classList.add("marker");
-
-    marker.style.left = (xp * 100) + "%";
-    marker.style.top = (yp * 100) + "%";
-
-    wrapper.appendChild(marker);
-    currentMarker = marker;
-});
-
-// 🚀 Upload
-uploadBtn.addEventListener("click", function () {
-
-    const file = imageInput.files[0];
-
-    if (!file) {
-        alert("Bitte Bild auswählen");
-        return;
-    }
-
-    const formData = new FormData();
-
-    formData.append("image", file);
-    formData.append("marker_x", markerX.value);
-    formData.append("marker_y", markerY.value);
-    formData.append("description", textarea.value);
-
-    fetch(`/tool_error/upload_image/${ERROR_ID}`, {
-        method: "POST",
-        body: formData
-    })
-    .then(res => res.json())
-    .then(() => {
-        location.reload(); // 🔥 einfach reload
+    const preview = document.getElementById("previewImage");
+    const wrapper = document.getElementById("previewWrapper");
+    
+    const markerX = document.getElementById("marker_x");
+    const markerY = document.getElementById("marker_y");
+    
+    const uploadBtn = document.getElementById("uploadBtn");
+    const textarea = document.getElementById("imageDescription");
+    
+    let currentMarker = null;
+    
+    // 📸 Preview
+    imageInput.addEventListener("change", function (e) {
+    
+        const file = e.target.files[0];
+        if (!file) return;
+    
+        const reader = new FileReader();
+    
+        reader.onload = function (ev) {
+            preview.src = ev.target.result;
+            preview.style.display = "block";
+        };
+    
+        reader.readAsDataURL(file);
     });
-});
-
     
-    const imageInput = document.getElementById("imageInput");
-    const container = document.getElementById("imagePreviewContainer");
+    // 🎯 Marker setzen
+    preview.addEventListener("click", function (e) {
     
-    if (imageInput && container) {
+        const rect = preview.getBoundingClientRect();
     
-        imageInput.addEventListener("change", function (e) {
+        const xp = (e.clientX - rect.left) / rect.width;
+        const yp = (e.clientY - rect.top) / rect.height;
     
-            const file = e.target.files[0];
-            if (!file) return;
+        markerX.value = xp;
+        markerY.value = yp;
     
-            const reader = new FileReader();
+        if (currentMarker) currentMarker.remove();
     
-            reader.onload = function (ev) {
+        const marker = document.createElement("div");
+        marker.classList.add("marker");
     
-                const block = document.createElement("div");
-                block.classList.add("image-block");
+        marker.style.left = (xp * 100) + "%";
+        marker.style.top = (yp * 100) + "%";
     
-                const wrapper = document.createElement("div");
-                wrapper.classList.add("image-wrapper");
-                wrapper.style.position = "relative";
+        wrapper.appendChild(marker);
+        currentMarker = marker;
+    });
     
-                const img = document.createElement("img");
-                img.src = ev.target.result;
-                img.style.width = "100%";
+    // 📱 Touch Support
+    preview.addEventListener("touchstart", function (e) {
+        e.preventDefault();
+        const t = e.touches[0];
     
-                wrapper.appendChild(img);
+        const rect = preview.getBoundingClientRect();
     
-                // 🔥 WICHTIG: echter File Input wird BEHALTEN
-                const fileInput = document.createElement("input");
-                fileInput.type = "file";
-                fileInput.name = "images";
-                fileInput.style.display = "none";
+        const xp = (t.clientX - rect.left) / rect.width;
+        const yp = (t.clientY - rect.top) / rect.height;
     
-                // 👉 Trick: wir hängen das Original-File Input direkt rein
-                fileInput.files = e.target.files;
+        markerX.value = xp;
+        markerY.value = yp;
     
-                // 📝 TEXT
-                const textarea = document.createElement("textarea");
-                textarea.name = "image_description[]";
+        if (currentMarker) currentMarker.remove();
     
-                // 🎯 MARKER
-                const markerX = document.createElement("input");
-                markerX.type = "hidden";
-                markerX.name = "marker_x[]";
-                markerX.value = 0;
+        const marker = document.createElement("div");
+        marker.classList.add("marker");
     
-                const markerY = document.createElement("input");
-                markerY.type = "hidden";
-                markerY.name = "marker_y[]";
-                markerY.value = 0;
+        marker.style.left = (xp * 100) + "%";
+        marker.style.top = (yp * 100) + "%";
     
-                let currentMarker = null;
+        wrapper.appendChild(marker);
+        currentMarker = marker;
+    });
     
-                function setMarker(x, y) {
-                    const rect = img.getBoundingClientRect();
+    // 🚀 Upload
+    uploadBtn.addEventListener("click", function () {
     
-                    const xp = (x - rect.left) / rect.width;
-                    const yp = (y - rect.top) / rect.height;
+        const file = imageInput.files[0];
     
-                    markerX.value = xp;
-                    markerY.value = yp;
+        if (!file) {
+            alert("Bitte Bild auswählen");
+            return;
+        }
     
-                    if (currentMarker) currentMarker.remove();
+        const formData = new FormData();
     
-                    const marker = document.createElement("div");
-                    marker.classList.add("marker");
+        formData.append("image", file);
+        formData.append("marker_x", markerX.value);
+        formData.append("marker_y", markerY.value);
+        formData.append("description", textarea.value);
     
-                    marker.style.left = (xp * 100) + "%";
-                    marker.style.top = (yp * 100) + "%";
-    
-                    wrapper.appendChild(marker);
-                    currentMarker = marker;
-                }
-    
-                img.addEventListener("click", (e) => {
-                    setMarker(e.clientX, e.clientY);
-                });
-    
-                img.addEventListener("touchstart", (e) => {
-                    e.preventDefault();
-                    const t = e.touches[0];
-                    setMarker(t.clientX, t.clientY);
-                });
-    
-                // ❌ REMOVE (wichtig!)
-                const removeBtn = document.createElement("button");
-                removeBtn.type = "button";
-                removeBtn.textContent = "Entfernen";
-                removeBtn.onclick = () => block.remove();
-    
-                block.appendChild(wrapper);
-                block.appendChild(textarea);
-                block.appendChild(markerX);
-                block.appendChild(markerY);
-                block.appendChild(fileInput);
-                block.appendChild(removeBtn);
-    
-                container.appendChild(block);
-    
-                // 🔥 Reset → neues Bild möglich
-                imageInput.value = "";
-            };
-    
-            reader.readAsDataURL(file);
+        fetch(`/tool_error/upload_image/${ERROR_ID}`, {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(() => {
+            location.reload(); // 🔥 einfach reload
         });
-    }
+    });
+
+
     
     // =========================
     // 🧾 PRESET → INPUT
