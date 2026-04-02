@@ -220,7 +220,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     return;
                 }
 
-                addToGallery(preview.src, markerX.value, markerY.value, textarea.value);
+                addToGallery(preview.src, markerX.value, markerY.value, textarea.value, data.image_id);
 
                 // RESET
                 preview.style.display = "none";
@@ -242,32 +242,59 @@ document.addEventListener("DOMContentLoaded", function () {
     // 📸 GALLERY
     // =========================
 
-    function addToGallery(src, x, y, text) {
+    function addToGallery(src, x, y, text, imageId) {
 
-    const wrap = document.createElement("div");
-    wrap.classList.add("image-wrapper");
-
-    const img = document.createElement("img");
-    img.src = src;
-
-    wrap.appendChild(img);
-
-    const marker = document.createElement("div");
-    marker.classList.add("marker");
-
-    marker.style.left = (x * 100) + "%";
-    marker.style.top = (y * 100) + "%";
-
-    wrap.appendChild(marker);
-
-    if (text) {
-        const desc = document.createElement("div");
-        desc.classList.add("image-description");
-        desc.innerText = text;
-        wrap.appendChild(desc);
+        const wrap = document.createElement("div");
+        wrap.classList.add("image-wrapper");
+    
+        const img = document.createElement("img");
+        img.src = src;
+    
+        wrap.appendChild(img);
+    
+        // 🎯 Marker
+        const marker = document.createElement("div");
+        marker.classList.add("marker");
+    
+        marker.style.left = (x * 100) + "%";
+        marker.style.top = (y * 100) + "%";
+    
+        wrap.appendChild(marker);
+    
+        // 📝 Beschreibung
+        if (text) {
+            const desc = document.createElement("div");
+            desc.classList.add("image-description");
+            desc.innerText = text;
+            wrap.appendChild(desc);
+        }
+    
+        // ❌ DELETE BUTTON
+        const delBtn = document.createElement("button");
+        delBtn.innerText = "✕";
+        delBtn.classList.add("delete-btn");
+    
+        delBtn.onclick = () => {
+    
+            if (!confirm("Bild wirklich löschen?")) return;
+    
+            fetch(`/tool-errors/delete_temp_image/${imageId}`, {
+                method: "POST"
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    wrap.remove();
+                } else {
+                    alert("Löschen fehlgeschlagen");
+                }
+            });
+        };
+    
+        wrap.appendChild(delBtn);
+    
+        gallery.appendChild(wrap);
     }
-
-    gallery.appendChild(wrap);
 
     // nur leicht nach unten scrollen
     uploadBox.scrollIntoView({
