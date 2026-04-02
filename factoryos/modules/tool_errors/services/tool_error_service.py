@@ -35,6 +35,13 @@ def create_tool_error(form, user_id):
     db.session.add(error)
     db.session.flush()
 
+    temp_id = form.get("temp_id")
+
+    images = ToolErrorImage.query.filter_by(temp_id=temp_id).all()
+
+    for img in images:
+        img.tool_error_id = error.id
+        
     log_change(
         entity_type="tool_error",
         entity_id=error.id,
