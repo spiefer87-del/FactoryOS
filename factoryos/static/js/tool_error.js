@@ -8,9 +8,6 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("🔥 TomSelect deaktiviert für toolSearch");
     }
 
-});
-
-document.addEventListener("DOMContentLoaded", function () {
 
     // =========================
     // 🔥 TEMP ID FIX (WICHTIG!)
