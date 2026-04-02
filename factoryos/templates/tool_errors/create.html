@@ -8,22 +8,13 @@
 
 <h2>Tool Error erfassen</h2>
 
-<!-- ========================= -->
-<!-- 🧾 FORM: ERROR -->
-<!-- ========================= -->
-<form method="POST" class="form-container">
+<form method="POST" enctype="multipart/form-data" class="form-container">
 
     <!-- 🔧 Werkzeug -->
     <div class="form-group">
-        <label for="toolSearch">Werkzeugnummer *</label>
+        <label>Werkzeugnummer *</label>
 
-        <input type="text"
-               id="toolSearch"
-               class="form-control"
-               placeholder="Werkzeug suchen..."
-               autocomplete="off"
-               required>
-
+        <input type="text" id="toolSearch" class="form-control" autocomplete="off" required>
         <input type="hidden" name="tool_id" id="tool_id" required>
 
         <div id="toolDropdown" class="tool-dropdown"></div>
@@ -31,117 +22,37 @@
 
     <!-- ⚠️ Fehler -->
     <div class="form-group">
-        <label for="error_type">Fehler *</label>
+        <label>Fehler *</label>
 
-        <select id="errorPreset" class="form-control preset-select">
+        <select id="errorPreset" class="form-control">
             <option value="">-- Fehler auswählen --</option>
-
             {% for p in presets %}
                 <option value="{{ p.title }}">{{ p.title }}</option>
             {% endfor %}
         </select>
 
-        <input type="text"
-               name="error_type"
-               id="error_type"
-               class="form-control"
-               placeholder="Oder eigenen Fehler eingeben..."
-               required>
+        <input type="text" name="error_type" id="error_type" class="form-control" required>
     </div>
 
     <!-- 📝 Beschreibung -->
     <div class="form-group">
-        <label for="description">Beschreibung</label>
-        <textarea name="description"
-                  id="description"
-                  class="form-control"
-                  rows="4"></textarea>
+        <label>Beschreibung</label>
+        <textarea name="description" class="form-control"></textarea>
     </div>
 
-    <div class="form-actions">
-        <button type="submit" class="btn-primary">Speichern</button>
+    <!-- 📸 BILDER -->
+    <div class="form-group">
+        <label>Bilder + Marker</label>
 
-        <a href="{{ url_for('tool_error.list') }}" class="btn-secondary">
-            Abbrechen
-        </a>
+        <input type="file" id="imageInput" name="images" multiple accept="image/*">
+
+        <div id="imagePreviewContainer"></div>
     </div>
+
+    <button type="submit" class="btn-primary">Speichern</button>
 
 </form>
 
-
-<!-- ========================= -->
-<!-- 📸 IMAGE UPLOAD (NUR WENN ERROR EXISTIERT) -->
-<!-- ========================= -->
-
-{% if error %}
-
-<hr>
-
-<h3>Bilder hinzufügen</h3>
-
-<div class="upload-box">
-
-    <input type="file" id="imageInput" accept="image/*">
-
-    <div id="previewWrapper" class="image-wrapper">
-        <img id="previewImage" style="display:none;">
-    </div>
-
-    <textarea id="imageDescription"
-              class="form-control"
-              placeholder="Beschreibung zum Bild..."></textarea>
-
-    <input type="hidden" id="marker_x">
-    <input type="hidden" id="marker_y">
-
-    <button type="button" id="uploadBtn" class="btn-primary">
-        Bild speichern
-    </button>
-
-</div>
-
-
-<hr>
-
-<h3>Bereits hochgeladene Bilder</h3>
-
-<div class="image-gallery">
-
-    {% for image in error.images %}
-
-        <div class="image-wrapper">
-
-            <img src="{{ url_for('static', filename=image.image_path) }}">
-
-            {% if image.marker_x is not none %}
-                <div class="marker"
-                     style="
-                        left: {{ image.marker_x * 100 }}%;
-                        top: {{ image.marker_y * 100 }}%;
-                     ">
-                </div>
-            {% endif %}
-
-            {% if image.description %}
-                <div class="image-description">
-                    {{ image.description }}
-                </div>
-            {% endif %}
-
-        </div>
-
-    {% endfor %}
-
-</div>
-
-<script>
-    const ERROR_ID = {{ error.id }};
-</script>
-
-{% endif %}
-
-
-<!-- 🔥 JS -->
 <script src="{{ url_for('static', filename='js/tool_error.js') }}"></script>
 
 {% endblock %}
