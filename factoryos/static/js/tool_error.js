@@ -154,39 +154,46 @@ document.addEventListener("DOMContentLoaded", function () {
         // 🧠 SMART SUBMIT (kein nerviges Alert mehr)
         if (form) {
             form.addEventListener("submit", async function (e) {
-    
-                if (hiddenInput.value) return;
-    
-                if (!toolInput.value) {
-                    e.preventDefault();
-                    alert("Bitte Werkzeug eingeben!");
-                    toolInput.focus();
+
+                console.log("🚀 Submit gestartet");
+            
+                // Wenn ID schon da → passt
+                if (hiddenInput.value) {
+                    console.log("✅ Tool ID vorhanden:", hiddenInput.value);
                     return;
                 }
-    
+            
                 e.preventDefault();
-    
+            
+                const query = toolInput.value;
+            
+                if (!query) {
+                    alert("Bitte Werkzeug eingeben!");
+                    return;
+                }
+            
                 try {
-                    const res = await fetch(`/masterdata/tools/api/search?q=${toolInput.value}`);
+                    const res = await fetch(`/masterdata/tools/api/search?q=${query}`);
                     const data = await res.json();
-    
+            
+                    console.log("🔍 API Antwort:", data);
+            
                     if (!data.results || data.results.length === 0) {
                         alert("Werkzeug nicht gefunden!");
                         return;
                     }
-    
-                    // 🔥 best match
-                    const match = data.results.find(t =>
-                        t.text.toLowerCase().includes(toolInput.value.toLowerCase())
-                    ) || data.results[0];
-    
-                    hiddenInput.value = match.id;
-    
+            
+                    // 🔥 IMMER ersten Treffer nehmen
+                    const tool = data.results[0];
+            
+                    hiddenInput.value = tool.id;
+            
+                    console.log("✅ Tool automatisch gesetzt:", tool.id);
+            
                     form.submit();
-    
+            
                 } catch (err) {
-                    console.error(err);
-                    alert("Fehler bei der Suche");
+                    console.error("❌ Fehler:", err);
                 }
             });
         }
