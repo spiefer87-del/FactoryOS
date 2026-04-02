@@ -22,7 +22,7 @@ def create_tool_error(form, user_id):
         "error_type": form.get("error_type"),
         "description": form.get("description"),
     }
-
+    print("FORM TOOL ID:", form.get("tool_id"))
     temp_obj = ToolError()
     changes = build_changes(temp_obj, new_data, new_data.keys())
 
