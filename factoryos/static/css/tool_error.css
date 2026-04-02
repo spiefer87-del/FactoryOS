@@ -49,6 +49,33 @@ button,
     background: #e2e6ea;
 }
 
+
+/* ❌ Delete Button */
+.delete-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+
+    background: rgba(0,0,0,0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+
+    font-size: 14px;
+    line-height: 24px;
+    text-align: center;
+
+    transition: 0.2s;
+}
+
+.delete-btn:hover {
+    background: #ff4d4d;
+}
+
 input[type="file"] {
     background: #f8f9fa;
     border: 1px dashed #ccc;
