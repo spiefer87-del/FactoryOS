@@ -1,21 +1,19 @@
-
-
 document.addEventListener("DOMContentLoaded", function () {
 
     // =========================
     // 🔍 TOOL SEARCH
     // =========================
 
-    const input = document.getElementById("toolSearch");
+    const toolInput = document.getElementById("toolSearch");
     const dropdown = document.getElementById("toolDropdown");
     const hiddenInput = document.getElementById("tool_id");
     const form = document.querySelector("form");
 
     let timeout = null;
 
-    if (input && dropdown && hiddenInput) {
+    if (toolInput && dropdown && hiddenInput) {
 
-        input.addEventListener("input", function () {
+        toolInput.addEventListener("input", function () {
 
             clearTimeout(timeout);
 
@@ -50,7 +48,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             div.textContent = tool.text;
 
                             div.onclick = () => {
-                                input.value = tool.text;
+                                toolInput.value = tool.text;
                                 hiddenInput.value = tool.id;
                                 dropdown.innerHTML = "";
                                 dropdown.style.display = "none";
@@ -59,14 +57,13 @@ document.addEventListener("DOMContentLoaded", function () {
                             dropdown.appendChild(div);
                         });
 
-                    })
-                    .catch(err => console.error("SEARCH ERROR:", err));
+                    });
 
             }, 300);
         });
 
         document.addEventListener("click", function (e) {
-            if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+            if (!toolInput.contains(e.target) && !dropdown.contains(e.target)) {
                 dropdown.style.display = "none";
             }
         });
@@ -76,107 +73,179 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (!hiddenInput.value) {
                     e.preventDefault();
                     alert("Bitte Werkzeug auswählen!");
-                    input.focus();
+                    toolInput.focus();
                 }
             });
         }
     }
 
+
     // =========================
-    // 📸 IMAGE UPLOAD (FIXED CLEAN)
+    // 📸 IMAGE MODULE (TEMP UPLOAD FLOW)
     // =========================
-    const input = document.getElementById("imageInput");
-    const container = document.getElementById("imagePreviewContainer");
-    
-    if (input && container) {
-    
-        input.addEventListener("change", function () {
-    
-            container.innerHTML = "";
-    
-            const files = Array.from(input.files);
-    
-            files.forEach((file, index) => {
-    
-                const reader = new FileReader();
-    
-                reader.onload = function (e) {
-    
-                    const block = document.createElement("div");
-                    block.classList.add("image-block");
-    
-                    const wrapper = document.createElement("div");
-                    wrapper.classList.add("image-wrapper");
-    
-                    const img = document.createElement("img");
-                    img.src = e.target.result;
-    
-                    wrapper.appendChild(img);
-    
-                    // 🎯 Marker Inputs
-                    const markerX = document.createElement("input");
-                    markerX.type = "hidden";
-                    markerX.name = `marker_x_${index}`;
-    
-                    const markerY = document.createElement("input");
-                    markerY.type = "hidden";
-                    markerY.name = `marker_y_${index}`;
-    
-                    // 📝 Beschreibung
-                    const textarea = document.createElement("textarea");
-                    textarea.name = `image_description_${index}`;
-                    textarea.placeholder = "Beschreibung";
-    
-                    let currentMarker = null;
-    
-                    function setMarker(x, y) {
-    
-                        const rect = img.getBoundingClientRect();
-    
-                        const xp = (x - rect.left) / rect.width;
-                        const yp = (y - rect.top) / rect.height;
-    
-                        markerX.value = xp;
-                        markerY.value = yp;
-    
-                        if (currentMarker) currentMarker.remove();
-    
-                        const marker = document.createElement("div");
-                        marker.classList.add("marker");
-    
-                        marker.style.left = (xp * 100) + "%";
-                        marker.style.top = (yp * 100) + "%";
-    
-                        wrapper.appendChild(marker);
-                        currentMarker = marker;
-                    }
-    
-                    img.addEventListener("click", (e) => {
-                        setMarker(e.clientX, e.clientY);
-                    });
-    
-                    img.addEventListener("touchstart", (e) => {
-                        e.preventDefault();
-                        const t = e.touches[0];
-                        setMarker(t.clientX, t.clientY);
-                    });
-    
-                    block.appendChild(wrapper);
-                    block.appendChild(markerX);
-                    block.appendChild(markerY);
-                    block.appendChild(textarea);
-    
-                    container.appendChild(block);
-                };
-    
-                reader.readAsDataURL(file);
-            });
-        });
+
+    const imageInput = document.getElementById("imageInput");
+    const preview = document.getElementById("previewImage");
+    const wrapper = document.getElementById("previewWrapper");
+
+    const markerX = document.getElementById("marker_x");
+    const markerY = document.getElementById("marker_y");
+
+    const uploadBtn = document.getElementById("uploadBtn");
+    const textarea = document.getElementById("imageDescription");
+    const gallery = document.getElementById("imageGallery");
+
+    let currentMarker = null;
+
+    if (!imageInput) return;
+
+    // =========================
+    // 📸 PREVIEW
+    // =========================
+
+    imageInput.addEventListener("change", function (e) {
+
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = function (ev) {
+            preview.src = ev.target.result;
+            preview.style.display = "block";
+        };
+
+        reader.readAsDataURL(file);
+    });
+
+
+    // =========================
+    // 🎯 MARKER SETZEN
+    // =========================
+
+    function setMarker(x, y) {
+
+        const rect = preview.getBoundingClientRect();
+
+        const xp = (x - rect.left) / rect.width;
+        const yp = (y - rect.top) / rect.height;
+
+        markerX.value = xp;
+        markerY.value = yp;
+
+        if (currentMarker) currentMarker.remove();
+
+        const marker = document.createElement("div");
+        marker.classList.add("marker");
+
+        marker.style.left = (xp * 100) + "%";
+        marker.style.top = (yp * 100) + "%";
+
+        wrapper.appendChild(marker);
+        currentMarker = marker;
     }
-    
-    
+
+    // CLICK
+    preview.addEventListener("click", (e) => {
+        setMarker(e.clientX, e.clientY);
+    });
+
+    // TOUCH (Mobile fix)
+    preview.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        const t = e.touches[0];
+        setMarker(t.clientX, t.clientY);
+    });
+
+
     // =========================
-    // 🧾 PRESET → INPUT
+    // 🚀 UPLOAD (AJAX)
+    // =========================
+
+    uploadBtn.addEventListener("click", function () {
+
+        const file = imageInput.files[0];
+
+        if (!file) {
+            alert("Bitte Bild auswählen");
+            return;
+        }
+
+        if (!markerX.value || !markerY.value) {
+            alert("Bitte Marker setzen");
+            return;
+        }
+
+        const formData = new FormData();
+
+        formData.append("image", file);
+        formData.append("marker_x", markerX.value);
+        formData.append("marker_y", markerY.value);
+        formData.append("description", textarea.value);
+        formData.append("temp_id", TEMP_ID);
+
+        fetch("/tool_error/upload_temp_image", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+
+            if (!data.success) {
+                alert("Upload fehlgeschlagen");
+                return;
+            }
+
+            // 🔥 direkt anzeigen
+            addToGallery(preview.src, markerX.value, markerY.value, textarea.value);
+
+            // RESET
+            preview.style.display = "none";
+            imageInput.value = "";
+            textarea.value = "";
+            markerX.value = "";
+            markerY.value = "";
+
+            if (currentMarker) currentMarker.remove();
+        });
+    });
+
+
+    // =========================
+    // 📸 GALLERY
+    // =========================
+
+    function addToGallery(src, x, y, text) {
+
+        const wrap = document.createElement("div");
+        wrap.classList.add("image-wrapper");
+
+        const img = document.createElement("img");
+        img.src = src;
+
+        wrap.appendChild(img);
+
+        const marker = document.createElement("div");
+        marker.classList.add("marker");
+
+        marker.style.left = (x * 100) + "%";
+        marker.style.top = (y * 100) + "%";
+
+        wrap.appendChild(marker);
+
+        if (text) {
+            const desc = document.createElement("div");
+            desc.classList.add("image-description");
+            desc.innerText = text;
+            wrap.appendChild(desc);
+        }
+
+        gallery.appendChild(wrap);
+    }
+
+
+    // =========================
+    // 🧾 PRESET
     // =========================
 
     const presetSelect = document.getElementById("errorPreset");
