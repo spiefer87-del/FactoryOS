@@ -90,7 +90,7 @@ def upload_temp_image(file, marker_x, marker_y, description, temp_id):
     db.session.add(image)
     db.session.commit()
 
-    return {"success": True}
+    return image
 
 
 # =========================
