@@ -1,4 +1,77 @@
+document.addEventListener("DOMContentLoaded", function () {
 
+    // =========================
+    // 🔥 TEMP ID FIX (WICHTIG!)
+    // =========================
+    function generateTempId() {
+        return 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxx'.replace(/[xy]/g, function(c) {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    const TEMP_ID = generateTempId();
+
+    const tempInput = document.getElementById("temp_id");
+    if (tempInput) tempInput.value = TEMP_ID;
+
+
+    // =========================
+    // 🔍 TOOL SEARCH
+    // =========================
+
+    const toolInput = document.getElementById("toolSearch");
+    const dropdown = document.getElementById("toolDropdown");
+    const hiddenInput = document.getElementById("tool_id");
+    const form = document.querySelector("form");
+
+    let timeout = null;
+
+    if (toolInput && dropdown && hiddenInput) {
+
+        toolInput.addEventListener("input", function () {
+
+            clearTimeout(timeout);
+
+            const query = this.value;
+            hiddenInput.value = "";
+
+            if (query.length < 2) {
+                dropdown.style.display = "none";
+                dropdown.innerHTML = "";
+                return;
+            }
+
+            timeout = setTimeout(() => {
+
+                fetch(`/masterdata/tools/api/search?q=${query}`)
+                    .then(res => res.json())
+                    .then(data => {
+
+                        dropdown.innerHTML = "";
+
+                        if (!data.results || data.results.length === 0) {
+                            dropdown.style.display = "none";
+                            return;
+                        }
+
+                        dropdown.style.display = "block";
+
+                        data.results.forEach(tool => {
+
+                            const div = document.createElement("div");
+                            div.classList.add("dropdown-item");
+                            div.textContent = tool.text;
+
+                            div.onclick = () => {
+                                toolInput.value = tool.text;
+                                hiddenInput.value = tool.id;
+                                dropdown.innerHTML = "";
+                                dropdown.style.display = "none";
+                            };
+
+                            dropdown
 
 document.addEventListener("DOMContentLoaded", function () {
 
