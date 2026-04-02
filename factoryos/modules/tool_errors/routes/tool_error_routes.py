@@ -3,7 +3,6 @@ from flask_login import login_required, current_user
 
 from . import bp
 
-from ..models import ToolErrorImage
 
 from ..queries.tool_error_queries import (
     get_tool_errors,
@@ -95,10 +94,14 @@ def upload_temp():
 @login_required
 def delete_temp_image(image_id):
 
+    from ..models import ToolErrorImage
+    from factoryos.extensions import db
+    import os
+    from flask import current_app
 
     image = ToolErrorImage.query.get_or_404(image_id)
 
-    # Datei löschen
+    # 🔥 Datei löschen
     file_path = os.path.join(current_app.static_folder, image.image_path)
 
     if os.path.exists(file_path):
