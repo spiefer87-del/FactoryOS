@@ -269,10 +269,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     gallery.appendChild(wrap);
 
-    // optional smooth scroll nach unten
-    window.scrollTo({
-        top: document.body.scrollHeight,
-        behavior: "smooth"
+    // nur leicht nach unten scrollen
+    uploadBox.scrollIntoView({
+        behavior: "smooth",
+        block: "end"
     });
     }
     
