@@ -244,6 +244,43 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function addToGallery(src, x, y, text) {
 
+    const wrap = document.createElement("div");
+    wrap.classList.add("image-wrapper");
+
+    const img = document.createElement("img");
+    img.src = src;
+
+    wrap.appendChild(img);
+
+    const marker = document.createElement("div");
+    marker.classList.add("marker");
+
+    marker.style.left = (x * 100) + "%";
+    marker.style.top = (y * 100) + "%";
+
+    wrap.appendChild(marker);
+
+    if (text) {
+        const desc = document.createElement("div");
+        desc.classList.add("image-description");
+        desc.innerText = text;
+        wrap.appendChild(desc);
+    }
+
+    gallery.appendChild(wrap);
+
+    // 🔥 SCROLL zum Upload Bereich (nicht verschieben!)
+    const uploadBox = document.getElementById("uploadBox");
+
+    uploadBox.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+    }
+    
+
+    function addToGallery(src, x, y, text) {
+
         const wrap = document.createElement("div");
         wrap.classList.add("image-wrapper");
 
