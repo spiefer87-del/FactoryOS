@@ -1,7 +1,7 @@
 import os
 import uuid
 from datetime import datetime
-from flask import current_app, request
+from flask import current_app
 
 from factoryos.extensions import db
 from factoryos.modules.masterdata.tools.models import Tool
@@ -54,12 +54,10 @@ def create_tool_error(form, user_id):
 # =========================
 def upload_temp_image(file, marker_x, marker_y, description, temp_id):
 
-    file = request.files.get("image")
-    temp_id = request.form.get("temp_id")
-
-    marker_x = request.form.get("marker_x")
-    marker_y = request.form.get("marker_y")
-    description = request.form.get("description")
+    if not file:
+        print("❌ Kein File")
+        return None
+        
 
     upload_folder = os.path.join(
         current_app.static_folder,
