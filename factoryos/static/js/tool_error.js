@@ -1,3 +1,15 @@
+// 🔥 KILL TOMSELECT falls aktiv
+document.addEventListener("DOMContentLoaded", function () {
+
+    const toolInput = document.getElementById("toolSearch");
+
+    if (toolInput && toolInput.tomselect) {
+        toolInput.tomselect.destroy();
+        console.log("🔥 TomSelect deaktiviert für toolSearch");
+    }
+
+});
+
 document.addEventListener("DOMContentLoaded", function () {
 
     // =========================
