@@ -85,200 +85,95 @@ document.addEventListener("DOMContentLoaded", function () {
     // =========================
 
     const imageInput = document.getElementById("imageInput");
-
-    const imageInput = document.getElementById("imageInput");
-const container = document.getElementById("imagePreviewContainer");
-
-if (imageInput && container) {
-
-    imageInput.addEventListener("change", function (e) {
-
-        container.innerHTML = ""; // reset preview
-
-        const files = Array.from(e.target.files);
-
-        files.forEach((file, index) => {
-
-            const reader = new FileReader();
-
-            reader.onload = function (ev) {
-
-                const block = document.createElement("div");
-                block.classList.add("image-block");
-
-                const wrapper = document.createElement("div");
-                wrapper.classList.add("image-wrapper");
-                wrapper.style.position = "relative";
-
-                const img = document.createElement("img");
-                img.src = ev.target.result;
-                img.style.width = "100%";
-
-                wrapper.appendChild(img);
-
-                // 📝 TEXT
-                const textarea = document.createElement("textarea");
-                textarea.name = `image_description_${index}`;
-
-                // 🎯 MARKER
-                const markerX = document.createElement("input");
-                markerX.type = "hidden";
-                markerX.name = `marker_x_${index}`;
-
-                const markerY = document.createElement("input");
-                markerY.type = "hidden";
-                markerY.name = `marker_y_${index}`;
-
-                let currentMarker = null;
-
-                function setMarker(x, y) {
-                    const rect = img.getBoundingClientRect();
-
-                    const xp = (x - rect.left) / rect.width;
-                    const yp = (y - rect.top) / rect.height;
-
-                    markerX.value = xp;
-                    markerY.value = yp;
-
-                    if (currentMarker) currentMarker.remove();
-
-                    const marker = document.createElement("div");
-                    marker.classList.add("marker");
-
-                    marker.style.left = (xp * 100) + "%";
-                    marker.style.top = (yp * 100) + "%";
-
-                    wrapper.appendChild(marker);
-                    currentMarker = marker;
-                }
-
-                img.addEventListener("click", (e) => {
-                    setMarker(e.clientX, e.clientY);
-                });
-
-                img.addEventListener("touchstart", (e) => {
-                    e.preventDefault();
-                    const t = e.touches[0];
-                    setMarker(t.clientX, t.clientY);
-                });
-
-                block.appendChild(wrapper);
-                block.appendChild(textarea);
-                block.appendChild(markerX);
-                block.appendChild(markerY);
-
-                container.appendChild(block);
-            };
-
-            reader.readAsDataURL(file);
-        });
-
-    });
-}
-
-    
     const container = document.getElementById("imagePreviewContainer");
     
     if (imageInput && container) {
     
         imageInput.addEventListener("change", function (e) {
     
-            const file = e.target.files[0];
-            if (!file) return;
+            container.innerHTML = ""; // reset preview
     
-            const reader = new FileReader();
+            const files = Array.from(e.target.files);
     
-            reader.onload = function (ev) {
+            files.forEach((file, index) => {
     
-                const block = document.createElement("div");
-                block.classList.add("image-block");
+                const reader = new FileReader();
     
-                const wrapper = document.createElement("div");
-                wrapper.classList.add("image-wrapper");
-                wrapper.style.position = "relative";
+                reader.onload = function (ev) {
     
-                const img = document.createElement("img");
-                img.src = ev.target.result;
-                img.style.width = "100%";
+                    const block = document.createElement("div");
+                    block.classList.add("image-block");
     
-                wrapper.appendChild(img);
+                    const wrapper = document.createElement("div");
+                    wrapper.classList.add("image-wrapper");
+                    wrapper.style.position = "relative";
     
-                // 🔥 WICHTIG → echtes File bleibt im Input!
-                const fileInput = document.createElement("input");
-                fileInput.type = "file";
-                fileInput.name = "images";
-                fileInput.files = e.target.files;
-                fileInput.style.display = "none";
+                    const img = document.createElement("img");
+                    img.src = ev.target.result;
+                    img.style.width = "100%";
     
-                // 📝 TEXT
-                const textarea = document.createElement("textarea");
-                textarea.name = "image_description[]";
+                    wrapper.appendChild(img);
     
-                // 🎯 MARKER
-                const markerX = document.createElement("input");
-                markerX.type = "hidden";
-                markerX.name = "marker_x[]";
+                    // 📝 TEXT
+                    const textarea = document.createElement("textarea");
+                    textarea.name = `image_description_${index}`;
     
-                const markerY = document.createElement("input");
-                markerY.type = "hidden";
-                markerY.name = "marker_y[]";
+                    // 🎯 MARKER
+                    const markerX = document.createElement("input");
+                    markerX.type = "hidden";
+                    markerX.name = `marker_x_${index}`;
     
-                let currentMarker = null;
+                    const markerY = document.createElement("input");
+                    markerY.type = "hidden";
+                    markerY.name = `marker_y_${index}`;
     
-                function setMarker(x, y) {
+                    let currentMarker = null;
     
-                    const rect = img.getBoundingClientRect();
+                    function setMarker(x, y) {
+                        const rect = img.getBoundingClientRect();
     
-                    const xp = (x - rect.left) / rect.width;
-                    const yp = (y - rect.top) / rect.height;
+                        const xp = (x - rect.left) / rect.width;
+                        const yp = (y - rect.top) / rect.height;
     
-                    markerX.value = xp;
-                    markerY.value = yp;
+                        markerX.value = xp;
+                        markerY.value = yp;
     
-                    if (currentMarker) currentMarker.remove();
+                        if (currentMarker) currentMarker.remove();
     
-                    const marker = document.createElement("div");
-                    marker.classList.add("marker");
+                        const marker = document.createElement("div");
+                        marker.classList.add("marker");
     
-                    marker.style.left = (xp * 100) + "%";
-                    marker.style.top = (yp * 100) + "%";
+                        marker.style.left = (xp * 100) + "%";
+                        marker.style.top = (yp * 100) + "%";
     
-                    wrapper.appendChild(marker);
-                    currentMarker = marker;
-                }
+                        wrapper.appendChild(marker);
+                        currentMarker = marker;
+                    }
     
-                img.addEventListener("click", (e) => {
-                    setMarker(e.clientX, e.clientY);
-                });
+                    img.addEventListener("click", (e) => {
+                        setMarker(e.clientX, e.clientY);
+                    });
     
-                img.addEventListener("touchstart", (e) => {
-                    e.preventDefault();
-                    const t = e.touches[0];
-                    setMarker(t.clientX, t.clientY);
-                });
+                    img.addEventListener("touchstart", (e) => {
+                        e.preventDefault();
+                        const t = e.touches[0];
+                        setMarker(t.clientX, t.clientY);
+                    });
     
-                // ❌ REMOVE
-                const removeBtn = document.createElement("button");
-                removeBtn.type = "button";
-                removeBtn.textContent = "Entfernen";
-                removeBtn.onclick = () => block.remove();
+                    block.appendChild(wrapper);
+                    block.appendChild(textarea);
+                    block.appendChild(markerX);
+                    block.appendChild(markerY);
     
-                block.appendChild(wrapper);
-                block.appendChild(textarea);
-                block.appendChild(markerX);
-                block.appendChild(markerY);
-                block.appendChild(fileInput);
-                block.appendChild(removeBtn);
+                    container.appendChild(block);
+                };
     
-                container.appendChild(block);
+                reader.readAsDataURL(file);
+            });
     
-                // 🔥 wichtig → neues Bild auswählen möglich
-                imageInput.value = "";
-            };
-    
-            reader.readAsDataURL(file);
         });
     }
+
     
     // =========================
     // 🧾 PRESET → INPUT
