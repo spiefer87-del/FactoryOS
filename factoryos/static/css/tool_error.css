@@ -78,6 +78,29 @@
     margin-bottom: 20px;
 }
 
+.save-bar {
+    position: fixed;
+    bottom: 0;
+    left: 250px; /* 👈 wegen Sidebar anpassen */
+    right: 0;
+
+    background: #fff;
+    padding: 12px;
+    border-top: 2px solid #ddd;
+
+    z-index: 999;
+}
+.save-bar button {
+    width: 300px;
+    margin: auto;
+    display: block;
+}
+
+/* Platz unten schaffen */
+.form-container {
+    padding-bottom: 80px;
+}
+
 /* =========================
    MARKER
 ========================= */
