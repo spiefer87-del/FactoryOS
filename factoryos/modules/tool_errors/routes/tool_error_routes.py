@@ -3,6 +3,8 @@ from flask_login import login_required, current_user
 
 from . import bp
 
+from ..models import ToolErrorImage
+
 from ..queries.tool_error_queries import (
     get_tool_errors,
     get_tool_error
