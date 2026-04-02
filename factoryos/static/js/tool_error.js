@@ -294,14 +294,14 @@ document.addEventListener("DOMContentLoaded", function () {
         wrap.appendChild(delBtn);
     
         gallery.appendChild(wrap);
-    }
 
-    // nur leicht nach unten scrollen
-    uploadBox.scrollIntoView({
-        behavior: "smooth",
-        block: "end"
-    });
-    }
+
+        // nur leicht nach unten scrollen
+        uploadBox.scrollIntoView({
+            behavior: "smooth",
+            block: "end"
+        });
+        }
     
 
     // =========================
