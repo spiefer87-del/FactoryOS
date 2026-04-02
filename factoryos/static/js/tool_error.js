@@ -1,3 +1,92 @@
+const imageInput = document.getElementById("imageInput");
+const preview = document.getElementById("previewImage");
+const wrapper = document.getElementById("previewWrapper");
+
+const markerX = document.getElementById("marker_x");
+const markerY = document.getElementById("marker_y");
+
+const uploadBtn = document.getElementById("uploadBtn");
+const textarea = document.getElementById("imageDescription");
+
+let currentMarker = null;
+
+// 📸 Preview
+imageInput.addEventListener("change", function (e) {
+
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function (ev) {
+        preview.src = ev.target.result;
+        preview.style.display = "block";
+    };
+
+    reader.readAsDataURL(file);
+});
+
+// 🎯 Marker
+function setMarker(x, y) {
+
+    const rect = preview.getBoundingClientRect();
+
+    const xp = (x - rect.left) / rect.width;
+    const yp = (y - rect.top) / rect.height;
+
+    markerX.value = xp;
+    markerY.value = yp;
+
+    if (currentMarker) currentMarker.remove();
+
+    const marker = document.createElement("div");
+    marker.classList.add("marker");
+
+    marker.style.left = (xp * 100) + "%";
+    marker.style.top = (yp * 100) + "%";
+
+    wrapper.appendChild(marker);
+    currentMarker = marker;
+}
+
+// CLICK
+preview.addEventListener("click", (e) => {
+    setMarker(e.clientX, e.clientY);
+});
+
+// TOUCH
+preview.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    const t = e.touches[0];
+    setMarker(t.clientX, t.clientY);
+});
+
+// 🚀 UPLOAD
+uploadBtn.addEventListener("click", function () {
+
+    const file = imageInput.files[0];
+
+    if (!file) {
+        alert("Bitte Bild auswählen");
+        return;
+    }
+
+    const formData = new FormData();
+
+    formData.append("image", file);
+    formData.append("marker_x", markerX.value);
+    formData.append("marker_y", markerY.value);
+    formData.append("description", textarea.value);
+
+    fetch(`/tool_error/upload_image/${ERROR_ID}`, {
+        method: "POST",
+        body: formData
+    })
+    .then(() => {
+        location.reload(); // einfach & stabil
+    });
+});
+
 document.addEventListener("DOMContentLoaded", function () {
 
     // =========================
