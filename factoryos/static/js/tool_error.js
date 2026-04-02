@@ -1,3 +1,110 @@
+const imageInput = document.getElementById("imageInput");
+const container = document.getElementById("imagePreviewContainer");
+
+if (imageInput && container) {
+
+    imageInput.addEventListener("change", function (e) {
+
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = function (ev) {
+
+            const block = document.createElement("div");
+            block.classList.add("image-block");
+
+            const wrapper = document.createElement("div");
+            wrapper.classList.add("image-wrapper");
+            wrapper.style.position = "relative";
+
+            const img = document.createElement("img");
+            img.src = ev.target.result;
+            img.style.width = "100%";
+
+            wrapper.appendChild(img);
+
+            // 🔥 WICHTIG: echter File Input wird BEHALTEN
+            const fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.name = "images";
+            fileInput.style.display = "none";
+
+            // 👉 Trick: wir hängen das Original-File Input direkt rein
+            fileInput.files = e.target.files;
+
+            // 📝 TEXT
+            const textarea = document.createElement("textarea");
+            textarea.name = "image_description[]";
+
+            // 🎯 MARKER
+            const markerX = document.createElement("input");
+            markerX.type = "hidden";
+            markerX.name = "marker_x[]";
+            markerX.value = 0;
+
+            const markerY = document.createElement("input");
+            markerY.type = "hidden";
+            markerY.name = "marker_y[]";
+            markerY.value = 0;
+
+            let currentMarker = null;
+
+            function setMarker(x, y) {
+                const rect = img.getBoundingClientRect();
+
+                const xp = (x - rect.left) / rect.width;
+                const yp = (y - rect.top) / rect.height;
+
+                markerX.value = xp;
+                markerY.value = yp;
+
+                if (currentMarker) currentMarker.remove();
+
+                const marker = document.createElement("div");
+                marker.classList.add("marker");
+
+                marker.style.left = (xp * 100) + "%";
+                marker.style.top = (yp * 100) + "%";
+
+                wrapper.appendChild(marker);
+                currentMarker = marker;
+            }
+
+            img.addEventListener("click", (e) => {
+                setMarker(e.clientX, e.clientY);
+            });
+
+            img.addEventListener("touchstart", (e) => {
+                e.preventDefault();
+                const t = e.touches[0];
+                setMarker(t.clientX, t.clientY);
+            });
+
+            // ❌ REMOVE (wichtig!)
+            const removeBtn = document.createElement("button");
+            removeBtn.type = "button";
+            removeBtn.textContent = "Entfernen";
+            removeBtn.onclick = () => block.remove();
+
+            block.appendChild(wrapper);
+            block.appendChild(textarea);
+            block.appendChild(markerX);
+            block.appendChild(markerY);
+            block.appendChild(fileInput);
+            block.appendChild(removeBtn);
+
+            container.appendChild(block);
+
+            // 🔥 Reset → neues Bild möglich
+            imageInput.value = "";
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+
 document.addEventListener("DOMContentLoaded", function () {
 
     // =========================
