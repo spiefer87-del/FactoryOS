@@ -268,6 +268,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         gallery.appendChild(wrap);
+
+        const uploadBox = document.getElementById("uploadBox");
+        gallery.parentNode.insertBefore(uploadBox, null);
+
+        // 🔥 Optional: smooth scroll
+        uploadBox.scrollIntoView({ behavior: "smooth", block: "end" });
     }
 
 
