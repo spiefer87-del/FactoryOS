@@ -52,16 +52,20 @@ def create_tool_error(form, user_id):
 # =========================
 # TEMP IMAGE UPLOAD
 # =========================
-def upload_temp_image(file, marker_x, marker_y, description, temp_id):
+def upload_temp_image():
 
-    if not file or not file.filename:
-        print("❌ Kein File")
-        return None
+    file = request.files.get("image")
+    temp_id = request.form.get("temp_id")
+
+    marker_x = request.form.get("marker_x")
+    marker_y = request.form.get("marker_y")
+    description = request.form.get("description")
 
     upload_folder = os.path.join(
         current_app.static_folder,
         "uploads/tool_errors"
     )
+
     os.makedirs(upload_folder, exist_ok=True)
 
     filename = f"{uuid.uuid4()}_{file.filename}"
@@ -69,21 +73,18 @@ def upload_temp_image(file, marker_x, marker_y, description, temp_id):
 
     file.save(filepath)
 
-    print("✅ TEMP IMAGE:", filename)
-
     image = ToolErrorImage(
+        temp_id=temp_id,  # 🔥 HIER!
         image_path=f"uploads/tool_errors/{filename}",
         marker_x=float(marker_x) if marker_x else None,
         marker_y=float(marker_y) if marker_y else None,
-        description=description,
-        temp_id=temp_id,
-        tool_error_id=None
+        description=description
     )
 
     db.session.add(image)
     db.session.commit()
 
-    return image
+    return {"success": True}
 
 
 # =========================
@@ -91,13 +92,13 @@ def upload_temp_image(file, marker_x, marker_y, description, temp_id):
 # =========================
 def assign_images_to_error(temp_id, error_id):
 
+    temp_id = form.get("temp_id")
+
     images = ToolErrorImage.query.filter_by(temp_id=temp_id).all()
 
-    print("🔗 Assign images:", len(images))
-
     for img in images:
-        img.tool_error_id = error_id
-        img.temp_id = None
+        img.tool_error_id = error.id
+        img.temp_id = None  # optional cleanup 
 
     db.session.commit()
 
