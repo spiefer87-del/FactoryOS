@@ -83,7 +83,110 @@ document.addEventListener("DOMContentLoaded", function () {
     // =========================
     // 📸 IMAGE UPLOAD (FIXED CLEAN)
     // =========================
+    const imageInput = document.getElementById("imageInput");
+const preview = document.getElementById("previewImage");
+const wrapper = document.getElementById("previewWrapper");
 
+const markerX = document.getElementById("marker_x");
+const markerY = document.getElementById("marker_y");
+
+const uploadBtn = document.getElementById("uploadBtn");
+const textarea = document.getElementById("imageDescription");
+
+let currentMarker = null;
+
+// 📸 Preview
+imageInput.addEventListener("change", function (e) {
+
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function (ev) {
+        preview.src = ev.target.result;
+        preview.style.display = "block";
+    };
+
+    reader.readAsDataURL(file);
+});
+
+// 🎯 Marker setzen
+preview.addEventListener("click", function (e) {
+
+    const rect = preview.getBoundingClientRect();
+
+    const xp = (e.clientX - rect.left) / rect.width;
+    const yp = (e.clientY - rect.top) / rect.height;
+
+    markerX.value = xp;
+    markerY.value = yp;
+
+    if (currentMarker) currentMarker.remove();
+
+    const marker = document.createElement("div");
+    marker.classList.add("marker");
+
+    marker.style.left = (xp * 100) + "%";
+    marker.style.top = (yp * 100) + "%";
+
+    wrapper.appendChild(marker);
+    currentMarker = marker;
+});
+
+// 📱 Touch Support
+preview.addEventListener("touchstart", function (e) {
+    e.preventDefault();
+    const t = e.touches[0];
+
+    const rect = preview.getBoundingClientRect();
+
+    const xp = (t.clientX - rect.left) / rect.width;
+    const yp = (t.clientY - rect.top) / rect.height;
+
+    markerX.value = xp;
+    markerY.value = yp;
+
+    if (currentMarker) currentMarker.remove();
+
+    const marker = document.createElement("div");
+    marker.classList.add("marker");
+
+    marker.style.left = (xp * 100) + "%";
+    marker.style.top = (yp * 100) + "%";
+
+    wrapper.appendChild(marker);
+    currentMarker = marker;
+});
+
+// 🚀 Upload
+uploadBtn.addEventListener("click", function () {
+
+    const file = imageInput.files[0];
+
+    if (!file) {
+        alert("Bitte Bild auswählen");
+        return;
+    }
+
+    const formData = new FormData();
+
+    formData.append("image", file);
+    formData.append("marker_x", markerX.value);
+    formData.append("marker_y", markerY.value);
+    formData.append("description", textarea.value);
+
+    fetch(`/tool_error/upload_image/${ERROR_ID}`, {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(() => {
+        location.reload(); // 🔥 einfach reload
+    });
+});
+
+    
     const imageInput = document.getElementById("imageInput");
     const container = document.getElementById("imagePreviewContainer");
     
