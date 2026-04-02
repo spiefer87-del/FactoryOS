@@ -30,7 +30,6 @@ document.addEventListener("DOMContentLoaded", function () {
     // 🔍 PERFECT TOOL SEARCH
     // =========================
     
-    const toolInput = document.getElementById("toolSearch");
     const dropdown = document.getElementById("toolDropdown");
     const hiddenInput = document.getElementById("tool_id");
     const form = document.querySelector("form");
