@@ -27,16 +27,12 @@
 ========================= */
 
 .sticky-upload {
-    position: fixed;
+    position: sticky;
     bottom: 0;
-    left: 0;
-    right: 0;
 
     background: #fff;
     padding: 10px;
-    border-top: 2px solid #ddd;
-
-    z-index: 1000;
+    border-top: 1px solid #ddd;
 }
 
 .image-gallery {
