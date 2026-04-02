@@ -269,12 +269,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     gallery.appendChild(wrap);
 
-    // 🔥 SCROLL zum Upload Bereich (nicht verschieben!)
-    const uploadBox = document.getElementById("uploadBox");
-
-    uploadBox.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
+    // optional smooth scroll nach unten
+    window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: "smooth"
     });
     }
     
