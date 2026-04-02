@@ -49,6 +49,8 @@ class ToolErrorImage(db.Model):
     marker_px = db.Column(db.Integer)  # Pixel
     marker_py = db.Column(db.Integer)
 
+    temp_id = db.Column(db.String, nullable=True)  # 🔥 NEU
+
 
 class ToolErrorTitlePreset(db.Model):
     __tablename__ = "tool_error_title_presets"
