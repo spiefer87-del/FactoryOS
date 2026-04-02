@@ -26,6 +26,23 @@
    IMAGE PREVIEW
 ========================= */
 
+.sticky-upload {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    background: #fff;
+    padding: 10px;
+    border-top: 2px solid #ddd;
+
+    z-index: 1000;
+}
+
+.image-gallery {
+    padding-bottom: 220px;
+}
+
 .image-preview-container {
     display: flex;
     flex-wrap: wrap;
