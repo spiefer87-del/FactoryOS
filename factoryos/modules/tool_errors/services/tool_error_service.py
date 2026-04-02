@@ -52,7 +52,7 @@ def create_tool_error(form, user_id):
 # =========================
 # TEMP IMAGE UPLOAD
 # =========================
-def upload_temp_image():
+def upload_temp_image(file, marker_x, marker_y, description, temp_id):
 
     file = request.files.get("image")
     temp_id = request.form.get("temp_id")
