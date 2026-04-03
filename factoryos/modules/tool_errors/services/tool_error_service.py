@@ -15,8 +15,18 @@ from ..models import ToolError, ToolErrorImage
 # =========================
 def create_tool_error(form, user_id):
 
+    tool_id_raw = form.get("tool_id")
+
+    print("FORM TOOL ID:", tool_id_raw)
+
+    if not tool_id_raw:
+        raise ValueError("❌ tool_id fehlt")
+
+    tool_id = int(tool_id_raw)
+
+
     new_data = {
-        "tool_id": form.get("tool_id"),
+        "tool_id": tool_id,
         "order_id": form.get("order_id"),
         "machine_id": form.get("machine_id"),
         "error_type": form.get("error_type"),
