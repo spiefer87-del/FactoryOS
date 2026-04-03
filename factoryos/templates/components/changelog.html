@@ -65,7 +65,12 @@
         <div class="changelog-entity">
             🔧 Werkzeug {{ log.entity_name or log.entity_id }}
         </div>
-
+    
+    {% elif log.entity_type == "tool_error" %}
+        <div class="changelog-entity">
+            ⚠️ Fehlermeldung {{ log.entity_name or log.entity_id }}
+        </div>
+    
     {% else %}
         <div class="changelog-entity">
             {{ log.entity_type }} {{ log.entity_id }}
