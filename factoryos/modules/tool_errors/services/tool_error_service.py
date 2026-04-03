@@ -56,6 +56,13 @@ def create_tool_error(form, user_id):
     # 🔥 schöner Name im Log
     tool = Tool.query.get(tool_id)
 
+    if tool:
+        changes["Werkzeug"] = {
+            "old": None,
+            "new": tool.tool_no
+        }
+        changes.pop("tool_id", None)
+
     log_change(
         entity_type="tool_error",
         entity_id=error.id,
