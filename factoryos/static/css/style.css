@@ -1229,3 +1229,41 @@ text-align: center;
 
 }
 
+/* ------------------------------------------------ */
+/* GLOBAL TABLE COLUMN FIX */
+/* ------------------------------------------------ */
+
+.factory-table th:first-child,
+.factory-table td:first-child,
+.fos-table th:first-child,
+.fos-table td:first-child {
+    white-space: nowrap;
+    width: 110px;
+    text-align: center;
+}
+
+/* Werkzeug Spalte */
+.factory-table th:nth-child(2),
+.factory-table td:nth-child(2),
+.fos-table th:nth-child(2),
+.fos-table td:nth-child(2) {
+    min-width: 140px;
+}
+
+/* Datum kompakt */
+.factory-table th:nth-child(4),
+.factory-table td:nth-child(4),
+.fos-table th:nth-child(4),
+.fos-table td:nth-child(4) {
+    white-space: nowrap;
+    width: 150px;
+}
+
+/* Aktionen nicht umbrechen */
+.factory-table th:last-child,
+.factory-table td:last-child,
+.fos-table th:last-child,
+.fos-table td:last-child {
+    white-space: nowrap;
+    width: 140px;
+}
