@@ -10,7 +10,7 @@
 </a>
 
 {% set columns = [
-    "ID",
+    "FM-Nr.",
     "Werkzeug",
     "Fehler",
     "Datum",
@@ -41,7 +41,7 @@
 ' %}
 
 {% set row = [
-    error.id,
+    error.error_no or ("FM" ~ error.created_at.strftime("%y") ~ "-" ~ "%03d"|format(error.id)),
     tool_link,
     error.error_type,
     error.created_at.strftime("%d.%m.%Y %H:%M"),
