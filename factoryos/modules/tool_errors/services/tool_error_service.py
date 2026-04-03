@@ -15,6 +15,25 @@ from ..models import ToolError, ToolErrorImage
 # =========================
 def create_tool_error(form, user_id):
 
+    from datetime import datetime
+from sqlalchemy import func
+
+year = datetime.utcnow().year % 100  # 26
+
+# 🔍 höchste Nummer dieses Jahres holen
+last = db.session.query(ToolError)\
+    .filter(func.strftime('%Y', ToolError.created_at) == str(datetime.utcnow().year))\
+    .order_by(ToolError.id.desc())\
+    .first()
+
+if last and last.error_no:
+    last_number = int(last.error_no.split("-")[1])
+    new_number = last_number + 1
+else:
+    new_number = 1
+
+error_no = f"FM{year:02d}-{new_number:03d}"
+
     tool_id_raw = form.get("tool_id")
 
     print("FORM TOOL ID:", tool_id_raw)
