@@ -24,7 +24,6 @@ def create_tool_error(form, user_id):
 
     tool_id = int(tool_id_raw)
 
-
     new_data = {
         "tool_id": tool_id,
         "order_id": form.get("order_id"),
@@ -32,7 +31,7 @@ def create_tool_error(form, user_id):
         "error_type": form.get("error_type"),
         "description": form.get("description"),
     }
-    print("FORM TOOL ID:", form.get("tool_id"))
+
     temp_obj = ToolError()
     changes = build_changes(temp_obj, new_data, new_data.keys())
 
@@ -45,20 +44,22 @@ def create_tool_error(form, user_id):
     db.session.add(error)
     db.session.flush()
 
+    # 🔥 Bilder zuweisen
     temp_id = form.get("temp_id")
 
     images = ToolErrorImage.query.filter_by(temp_id=temp_id).all()
 
     for img in images:
         img.tool_error_id = error.id
-        
+        img.temp_id = None
+
+    # 🔥 schöner Name im Log
     tool = Tool.query.get(tool_id)
 
-entity_name = f"{tool.tool_no} - {error.error_type}" if tool else f"Tool {tool_id}"    
     log_change(
         entity_type="tool_error",
         entity_id=error.id,
-        entity_name = f"{tool.tool_no} - {error.error_type}" if tool else f"Tool {tool_id}",
+        entity_name=f"{tool.tool_no} - {error.error_type}" if tool else f"Tool {tool_id}",
         action="create",
         changes=changes,
         category="production"
