@@ -13,8 +13,10 @@ from ..services.tool_error_service import (
     create_tool_error,
     delete_tool_error,
     upload_temp_image,
-    assign_images_to_error
+    assign_images_to_error,
+    set_tool_status
 )
+
 
 from factoryos.modules.masterdata.tools.queries.tool_queries import get_all_tools
 from factoryos.modules.tool_errors.models import ToolErrorTitlePreset
@@ -58,7 +60,7 @@ def create():
             error_id=error.id
         )
 
-        return redirect(url_for("tool_error.detail", error_id=error.id))
+        return redirect(url_for("tool_error.detail", error_id=error.id,new=1))
 
     return render_template(
         "tool_errors/create.html",
@@ -127,6 +129,20 @@ def detail(error_id):
         error=error
     )
 
+
+
+@bp.route("/set_tool_status/<int:error_id>", methods=["POST"])
+@login_required
+def set_tool_status_route(error_id):
+
+    status = request.json.get("status")
+
+    success = set_tool_status(error_id, status)
+
+    if not success:
+        return jsonify({"success": False}), 404
+
+    return jsonify({"success": True})
 
 # =========================
 # DELETE

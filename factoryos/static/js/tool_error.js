@@ -424,5 +424,42 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // =========================
+    // Status Update Modal (NEU)
+    // =========================
+
+    const urlParams = new URLSearchParams(window.location.search);
+
+    if (urlParams.get("new") === "1") {
+
+        const modal = document.getElementById("toolStatusModal");
+        modal.classList.remove("hidden");
+
+        const errorId = window.location.pathname.split("/").pop();
+
+        document.getElementById("setDefect").onclick = () => {
+            updateStatus(errorId, "defekt");
+        };
+
+        document.getElementById("keepActive").onclick = () => {
+            updateStatus(errorId, "aktiv");
+        };
+    }
+
+    function updateStatus(errorId, status) {
+
+        fetch(`/tool-errors/set_tool_status/${errorId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ status })
+        })
+        .then(res => res.json())
+        .then(() => {
+            location.reload();
+        });
+    }
+
 });
 

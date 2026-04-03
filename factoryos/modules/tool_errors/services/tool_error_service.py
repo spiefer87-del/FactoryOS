@@ -152,6 +152,36 @@ def assign_images_to_error(temp_id, error_id):
     print(f"✅ {len(images)} Bilder zugeordnet")
 
 
+def set_tool_status(error_id, status):
+
+    error = ToolError.query.get_or_404(error_id)
+
+    tool = Tool.query.get(error.tool_id)
+
+    if not tool:
+        return False
+
+    old_status = tool.tool_status
+
+    tool.tool_status = status
+
+    log_change(
+        entity_type="tool",
+        entity_id=tool.id,
+        entity_name=tool.tool_no,
+        action="status_update",
+        changes={
+            "Status": {
+                "old": old_status,
+                "new": status
+            }
+        },
+        category="masterdata"
+    )
+
+    db.session.commit()
+
+    return True
 
 # =========================
 # DELETE
