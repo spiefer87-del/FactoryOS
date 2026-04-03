@@ -1230,24 +1230,34 @@ text-align: center;
 }
 
 /* ------------------------------------------------ */
-/* GLOBAL TABLE COLUMN FIX */
+/* GLOBAL TABLE COLUMN BALANCE */
 /* ------------------------------------------------ */
 
+/* FM-Nr. kompakt */
 .factory-table th:first-child,
 .factory-table td:first-child,
 .fos-table th:first-child,
 .fos-table td:first-child {
     white-space: nowrap;
-    width: 110px;
+    width: 100px;
     text-align: center;
 }
 
-/* Werkzeug Spalte */
+/* Werkzeug schlanker */
 .factory-table th:nth-child(2),
 .factory-table td:nth-child(2),
 .fos-table th:nth-child(2),
 .fos-table td:nth-child(2) {
-    min-width: 140px;
+    width: 120px;
+    white-space: nowrap;
+}
+
+/* 🔥 Fehler bekommt mehr Raum */
+.factory-table th:nth-child(3),
+.factory-table td:nth-child(3),
+.fos-table th:nth-child(3),
+.fos-table td:nth-child(3) {
+    width: 40%;
 }
 
 /* Datum kompakt */
@@ -1256,14 +1266,14 @@ text-align: center;
 .fos-table th:nth-child(4),
 .fos-table td:nth-child(4) {
     white-space: nowrap;
-    width: 150px;
+    width: 140px;
 }
 
-/* Aktionen nicht umbrechen */
+/* Aktionen */
 .factory-table th:last-child,
 .factory-table td:last-child,
 .fos-table th:last-child,
 .fos-table td:last-child {
     white-space: nowrap;
-    width: 140px;
+    width: 120px;
 }
