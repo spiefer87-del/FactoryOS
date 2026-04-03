@@ -1257,7 +1257,8 @@ text-align: center;
 .factory-table td:nth-child(3),
 .fos-table th:nth-child(3),
 .fos-table td:nth-child(3) {
-    width: 40%;
+    text-align: left;
+    vertical-align: middle;
 }
 
 /* Datum kompakt */
