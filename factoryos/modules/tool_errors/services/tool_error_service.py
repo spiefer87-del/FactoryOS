@@ -56,6 +56,7 @@ error_no = f"FM{year:02d}-{new_number:03d}"
 
     error = ToolError(
         **new_data,
+        error_no=error_no,
         reported_by_id=user_id,
         created_at=datetime.utcnow()
     )
