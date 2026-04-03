@@ -84,7 +84,7 @@ def create_tool_error(form, user_id):
     log_change(
         entity_type="tool_error",
         entity_id=error.id,
-        entity_name=f"{tool.tool_no} - {error.error_type}" if tool else f"Tool {tool_id}",
+        entity_name=f"{error.error_no} ({tool.tool_no})",
         action="create",
         changes=changes,
         category="production"
