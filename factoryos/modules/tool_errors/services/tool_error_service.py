@@ -52,10 +52,13 @@ def create_tool_error(form, user_id):
     for img in images:
         img.tool_error_id = error.id
         
+    tool = Tool.query.get(tool_id)
+
+entity_name = f"{tool.tool_no} - {error.error_type}" if tool else f"Tool {tool_id}"    
     log_change(
         entity_type="tool_error",
         entity_id=error.id,
-        entity_name=f"Tool {error.tool_id} - {error.error_type}",
+        entity_name = f"{tool.tool_no} - {error.error_type}" if tool else f"Tool {tool_id}",
         action="create",
         changes=changes,
         category="production"
