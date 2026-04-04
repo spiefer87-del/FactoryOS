@@ -164,6 +164,13 @@ def seed_database():
 
     db.session.commit()
 
+def assign_permissions():
+    admin_role = Role.query.filter_by(name="admin").first()
+    permissions = Permission.query.all()
+
+    admin_role.permissions = permissions
+
+    db.session.commit()
 
 # ---------------------------------------------------
 # Master Seed
@@ -175,5 +182,5 @@ def run_seeds():
     seed_permissions()
     seed_users()
     seed_database()
-
+    assign_permissions()
     print("FactoryOS Seeds geladen")
