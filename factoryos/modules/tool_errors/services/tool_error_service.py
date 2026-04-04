@@ -34,12 +34,13 @@ def create_tool_error(form, user_id):
 
     tool_id_raw = form.get("tool_id")
 
-    print("FORM TOOL ID:", tool_id_raw)
-
     if not tool_id_raw:
         raise ValueError("❌ tool_id fehlt")
 
     tool_id = int(tool_id_raw)
+
+    # 🔥 NEU: Status aus Form holen
+    new_status = form.get("tool_status")
 
     new_data = {
         "tool_id": tool_id,
@@ -71,20 +72,42 @@ def create_tool_error(form, user_id):
         img.tool_error_id = error.id
         img.temp_id = None
 
-    # 🔥 schöner Name im Log
+    # =========================
+    # 🔧 TOOL + STATUS HANDLING
+    # =========================
+
     tool = Tool.query.get(tool_id)
 
     if tool:
+        # Werkzeug ins Log schöner darstellen
         changes["Werkzeug"] = {
             "old": None,
             "new": tool.tool_no
         }
         changes.pop("tool_id", None)
 
+        # 🔥 STATUS ÄNDERUNG
+        if new_status:
+            old_status = tool.tool_status
+
+            # nur ändern wenn wirklich unterschiedlich
+            if old_status != new_status:
+                tool.tool_status = new_status
+
+                # 🔥 ChangeLog ergänzen
+                changes["Werkzeug Status"] = {
+                    "old": old_status,
+                    "new": new_status
+                }
+
+    # =========================
+    # 🧾 CHANGELOG
+    # =========================
+
     log_change(
         entity_type="tool_error",
         entity_id=error.id,
-        entity_name=f"{error.error_no} ({tool.tool_no})",
+        entity_name=f"{error.error_no} ({tool.tool_no if tool else tool_id})",
         action="create",
         changes=changes,
         category="production"
