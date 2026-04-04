@@ -82,9 +82,7 @@ data-table-search="tools-table"
 
 <!-- Status -->
 <td>
-<span class="status-badge status-{{ tool.tool_status }}">
-{{ tool.tool_status }}
-</span>
+    {{ TOOL_STATUSES.get(tool.tool_status, tool.tool_status) }}
 </td>
 
 <!-- Aktionen -->
