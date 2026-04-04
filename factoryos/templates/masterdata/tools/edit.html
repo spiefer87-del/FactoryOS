@@ -41,21 +41,10 @@ Werkzeug-ID: <strong>{{ tool.id }}</strong>
 
 <div class="form-group">
 <label>Status</label>
-
 <select name="tool_status">
-
-<option value="aktiv" {% if tool.tool_status == "aktiv" %}selected{% endif %}>
-Aktiv
-</option>
-
-<option value="wartung" {% if tool.tool_status == "wartung" %}selected{% endif %}>
-Wartung
-</option>
-
-<option value="defekt" {% if tool.tool_status == "defekt" %}selected{% endif %}>
-Defekt
-</option>
-
+    {% for key, label in TOOL_STATUSES.items() %}
+        <option value="{{ key }}">{{ label }}</option>
+    {% endfor %}
 </select>
 
 </div>

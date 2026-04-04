@@ -4,6 +4,7 @@ from flask_login import login_required
 from . import bp
 from ..services.tool_service import update_tool
 from factoryos.modules.masterdata.tools.models import Tool
+from factoryos.modules.masterdata.shared.constants import TOOL_STATUSES
 
 
 @bp.route("/edit/<int:tool_id>", methods=["GET", "POST"])
@@ -22,5 +23,6 @@ def edit(tool_id):
 
     return render_template(
         "masterdata/tools/edit.html",
-        tool=tool
+        tool=tool,
+        TOOL_STATUSES=TOOL_STATUSES
     )
