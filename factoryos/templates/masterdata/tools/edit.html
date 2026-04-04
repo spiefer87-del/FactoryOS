@@ -1,70 +1,125 @@
 {% extends "layout/base.html" %}
 
 {% block content %}
-<p style="color:#666;margin-bottom:20px">
-Werkzeug-ID: <strong>{{ tool.id }}</strong>
-</p>
 
 <h2 style="margin-bottom:25px">Werkzeug bearbeiten</h2>
 
 <div class="form-card">
-
 <form method="POST">
 
 <div class="form-grid">
 
 <div class="form-group">
-<label>Werkzeugnummer</label>
-<input type="text" name="tool_no" value="{{ tool.tool_no }}" required>
+    <label>Werkzeugnummer *</label>
+    <input type="text" name="tool_no" value="{{ tool.tool_no }}" required>
+</div>
+
+<div class="form-group">
+    <label>Name</label>
+    <input type="text" name="name" value="{{ tool.name }}">
 </div>
 
 <div class="form-group full">
-    <label>Zugeordnete Artikel</label>
+    <label>Beschreibung</label>
+    <textarea name="description">{{ tool.description }}</textarea>
+</div>
 
-    {% if tool.articles %}
-        <ul>
-            {% for article in tool.articles %}
-                <li>
-                    {{ article.article_no }} - {{ article.article_name }}
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p style="color:#888">Keine Artikel zugeordnet</p>
-    {% endif %}
+<hr class="full">
+
+<div class="form-group">
+    <label>Kavitäten</label>
+    <input type="number" name="cavities" value="{{ tool.cavities }}">
 </div>
 
 <div class="form-group">
-<label>Lagerort</label>
-<input type="text" name="location" value="{{ tool.location }}">
+    <label>Kernzüge</label>
+    <input type="number" name="core_pulls" value="{{ tool.core_pulls }}">
 </div>
 
 <div class="form-group">
-<label>Status</label>
-<select name="tool_status">
-    {% for key, label in TOOL_STATUSES.items() %}
-        <option value="{{ key }}">{{ label }}</option>
-    {% endfor %}
-</select>
+    <label>Heißkanalzonen</label>
+    <input type="number" name="hotrunner_zones" value="{{ tool.hotrunner_zones }}">
+</div>
 
+<hr class="full">
+
+<div class="form-group">
+    <label>Gewicht (kg)</label>
+    <input type="number" step="0.01" name="tool_weight_kg" value="{{ tool.tool_weight_kg }}">
+</div>
+
+<div class="form-group">
+    <label>Länge (mm)</label>
+    <input type="number" step="0.01" name="tool_length_mm" value="{{ tool.tool_length_mm }}">
+</div>
+
+<div class="form-group">
+    <label>Breite (mm)</label>
+    <input type="number" step="0.01" name="tool_width_mm" value="{{ tool.tool_width_mm }}">
+</div>
+
+<div class="form-group">
+    <label>Höhe (mm)</label>
+    <input type="number" step="0.01" name="tool_height_mm" value="{{ tool.tool_height_mm }}">
+</div>
+
+<hr class="full">
+
+<div class="form-group">
+    <label>Zentrierung</label>
+    <input type="text" name="centering_type" value="{{ tool.centering_type }}">
+</div>
+
+<div class="form-group">
+    <label>Auswerferanschluss</label>
+    <input type="text" name="ejector_connection" value="{{ tool.ejector_connection }}">
+</div>
+
+<div class="form-group">
+    <label>Entformungsart</label>
+    <input type="text" name="demolding_type" value="{{ tool.demolding_type }}">
+</div>
+
+<div class="form-group">
+    <label>Automatisierung</label>
+    <input type="text" name="automation_type" value="{{ tool.automation_type }}">
+</div>
+
+<div class="form-group checkbox">
+    <label>
+        <input type="checkbox" name="has_conversion_kit"
+               {% if tool.has_conversion_kit %}checked{% endif %}>
+        Umbausatz vorhanden
+    </label>
+</div>
+
+<hr class="full">
+
+<div class="form-group">
+    <label>Lagerort</label>
+    <input type="text" name="location" value="{{ tool.location }}">
+</div>
+
+<div class="form-group">
+    <label>Status</label>
+    <select name="tool_status">
+        {% for key, label in TOOL_STATUSES.items() %}
+            <option value="{{ key }}"
+                {% if tool.tool_status == key %}selected{% endif %}>
+                {{ label }}
+            </option>
+        {% endfor %}
+    </select>
 </div>
 
 </div>
 
 <div class="form-actions">
-
-<button class="btn-primary">
-Änderungen speichern
-</button>
-
-<a href="{{ url_for('tools.list_tools') }}" class="btn-secondary">
-Abbrechen
-</a>
-
+    <button class="btn-primary">Speichern</button>
+    <a href="{{ url_for('tools.list_tools') }}" class="btn-secondary">Abbrechen</a>
 </div>
 
 </form>
-
 </div>
 
 {% endblock %}
