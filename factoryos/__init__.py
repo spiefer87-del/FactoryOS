@@ -1,4 +1,7 @@
 from flask import Flask
+from werkzeug.middleware.proxy_fix import ProxyFix
+
+
 
 from .config import Config
 from .extensions import db, login_manager, migrate
@@ -10,6 +13,8 @@ from .core.db_seed import run_seeds
 def create_app():
 
     app = Flask(__name__)
+
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
     app.config.from_object(Config)
 
