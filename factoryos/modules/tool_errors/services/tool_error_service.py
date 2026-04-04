@@ -7,6 +7,7 @@ from sqlalchemy import func
 from factoryos.extensions import db
 from factoryos.modules.masterdata.tools.models import Tool
 from factoryos.core.services.change_log_service import log_change, build_changes
+from factoryos.modules.masterdata.shared.constants import TOOL_STATUSES
 
 from ..models import ToolError, ToolErrorImage
 

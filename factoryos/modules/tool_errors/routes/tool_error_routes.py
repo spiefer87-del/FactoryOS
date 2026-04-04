@@ -20,6 +20,7 @@ from ..services.tool_error_service import (
 
 from factoryos.modules.masterdata.tools.queries.tool_queries import get_all_tools
 from factoryos.modules.tool_errors.models import ToolErrorTitlePreset
+from factoryos.modules.masterdata.shared.constants import TOOL_STATUSES
 
 
 # =========================
@@ -65,7 +66,8 @@ def create():
     return render_template(
         "tool_errors/create.html",
         tools=tools,
-        presets=presets
+        presets=presets,
+        TOOL_STATUSES=TOOL_STATUSES
     )
 
 

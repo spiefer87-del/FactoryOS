@@ -37,11 +37,10 @@
     <div class="form-group">
         <label>Werkzeugstatus</label>
 
-        <select name="tool_status" id="tool_status">
-            <option value="">-- unverändert lassen --</option>
-            <option value="aktiv">🟢 Aktiv</option>
-            <option value="defekt">🔴 Defekt</option>
-            <option value="wartung">🟡 Wartung</option>
+        <select name="tool_status">
+            {% for key, label in TOOL_STATUSES.items() %}
+                <option value="{{ key }}">{{ label }}</option>
+            {% endfor %}
         </select>
     </div>
 
