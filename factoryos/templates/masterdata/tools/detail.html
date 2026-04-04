@@ -4,21 +4,24 @@
 
 <div class="page-header">
 
-<h2>Werkzeug</h2>
+    <div>
+        <h2>{{ tool.tool_no }}</h2>
+        <div class="page-subtitle">{{ tool.name or "-" }}</div>
+    </div>
 
-<div class="page-actions">
+    <div class="page-actions">
 
-<a class="btn-small btn-edit"
-   href="{{ url_for('tools.edit', tool_id=tool.id) }}">
-   ✏ Bearbeiten
-</a>
+        <a class="btn-small btn-edit"
+           href="{{ url_for('tools.edit', tool_id=tool.id) }}">
+           ✏ Bearbeiten
+        </a>
 
-<a class="btn-small btn-delete"
-   href="{{ url_for('tools.delete', tool_id=tool.id) }}">
-   🗑 Löschen
-</a>
+        <a class="btn-small btn-delete"
+           href="{{ url_for('tools.delete', tool_id=tool.id) }}">
+           🗑 Löschen
+        </a>
 
-</div>
+    </div>
 
 </div>
 
@@ -29,85 +32,221 @@
 
 <div class="detail-card">
 
-<div class="detail-title">
+    <h3 class="section-title">Basisdaten</h3>
 
-<h3>{{ tool.tool_no }}</h3>
-<span class="detail-subtitle">{{ tool.name or "-" }}</span>
+    <div class="detail-grid">
 
-</div>
+        <div class="detail-item">
+            <label>Werkzeugnummer</label>
+            <div>{{ tool.tool_no }}</div>
+        </div>
 
+        <div class="detail-item">
+            <label>Name</label>
+            <div>{{ tool.name or "-" }}</div>
+        </div>
 
-<div class="detail-grid">
+        <div class="detail-item full">
+            <label>Beschreibung</label>
+            <div>{{ tool.description or "-" }}</div>
+        </div>
 
-<div class="detail-item">
-<label>Werkzeugnummer</label>
-<div>{{ tool.tool_no }}</div>
-</div>
+        <div class="detail-item">
+            <label>Status</label>
+            <span class="status-badge status-{{ tool.tool_status }}">
+                {{ tool.tool_status }}
+            </span>
+        </div>
 
-<div class="detail-item">
-<label>Name</label>
-<div>{{ tool.name or "-" }}</div>
-</div>
+        <div class="detail-item">
+            <label>Lagerort</label>
+            <div>{{ tool.location or "-" }}</div>
+        </div>
 
-<div class="detail-item full">
-<label>Beschreibung</label>
-<div>{{ tool.description or "-" }}</div>
-</div>
-
-<div class="detail-item">
-<label>Kavitäten</label>
-<div>{{ tool.cavities or "-" }}</div>
-</div>
-
-<div class="detail-item">
-<label>Lagerort</label>
-<div>{{ tool.location or "-" }}</div>
-</div>
-
-<div class="detail-item">
-<label>Status</label>
-<span class="status-badge status-{{ tool.tool_status }}">
-    {{ tool.tool_status }}
-</span>
-</div>
+    </div>
 
 </div>
-
-</div>
-
 
 <!-- ========================= -->
-<!-- 🔗 ZUGEORDNETE ARTIKEL -->
+<!-- 🔗 ARTIKEL -->
 <!-- ========================= -->
 
 <div class="detail-card">
 
-<h3 style="margin-bottom:15px">Zugeordnete Artikel</h3>
+    <h3 class="section-title">Zugeordnete Artikel</h3>
 
-{% if tool.articles %}
+    {% if tool.articles %}
 
-<div class="tool-list">
+        <div class="tool-list">
 
-{% for article in tool.articles %}
+            {% for article in tool.articles %}
 
-<a href="{{ url_for('articles.detail', article_id=article.id) }}"
-   class="tool-badge">
+                <a href="{{ url_for('articles.detail', article_id=article.id) }}"
+                   class="tool-badge">
 
-{{ article.article_no }}
+                    {{ article.article_no }}
 
-</a>
+                </a>
 
-{% endfor %}
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="empty-state">
+            Keine Artikel zugeordnet
+        </div>
+
+    {% endif %}
 
 </div>
 
-{% else %}
+<!-- ========================= -->
+<!-- ⚙️ TECHNISCHE DATEN -->
+<!-- ========================= -->
 
-<div class="empty-state">
-Keine Artikel zugeordnet
+<div class="detail-card">
+
+    <h3 class="section-title">Technische Daten</h3>
+
+    <div class="detail-grid">
+
+        <div class="detail-item">
+            <label>Kavitäten</label>
+            <div>{{ tool.cavities or "-" }}</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Kernzüge</label>
+            <div>{{ tool.core_pulls or "-" }}</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Heißkanalzonen</label>
+            <div>{{ tool.hotrunner_zones or "-" }}</div>
+        </div>
+
+    </div>
+
 </div>
 
-{% endif %}
+
+<!-- ========================= -->
+<!-- 📏 ABMESSUNGEN -->
+<!-- ========================= -->
+
+<div class="detail-card">
+
+    <h3 class="section-title">Abmessungen</h3>
+
+    <div class="detail-grid">
+
+        <div class="detail-item">
+            <label>Gewicht</label>
+            <div>
+                {% if tool.tool_weight_kg %}
+                    {{ tool.tool_weight_kg }} kg
+                {% else %}
+                    -
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="detail-item">
+            <label>Länge</label>
+            <div>{{ tool.tool_length_mm or "-" }} mm</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Breite</label>
+            <div>{{ tool.tool_width_mm or "-" }} mm</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Höhe</label>
+            <div>{{ tool.tool_height_mm or "-" }} mm</div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- 🔩 AUSSTATTUNG -->
+<!-- ========================= -->
+
+<div class="detail-card">
+
+    <h3 class="section-title">Ausstattung</h3>
+
+    <div class="detail-grid">
+
+        <div class="detail-item">
+            <label>Zentrierung</label>
+            <div>{{ tool.centering_type or "-" }}</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Auswerferanschluss</label>
+            <div>{{ tool.ejector_connection or "-" }}</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Entformungsart</label>
+            <div>{{ tool.demolding_type or "-" }}</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Automatisierung</label>
+            <div>{{ tool.automation_type or "-" }}</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Umbausatz</label>
+            <div>
+                {% if tool.has_conversion_kit %}
+                    ✅ Ja
+                {% else %}
+                    ❌ Nein
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+<!-- ========================= -->
+<!-- 📝 SYSTEM -->
+<!-- ========================= -->
+
+<div class="detail-card">
+
+    <h3 class="section-title">Systeminformationen</h3>
+
+    <div class="detail-grid">
+
+        <div class="detail-item">
+            <label>Erstellt am</label>
+            <div>
+                {{ tool.created_at.strftime("%d.%m.%Y %H:%M") if tool.created_at else "-" }}
+            </div>
+        </div>
+
+        <div class="detail-item">
+            <label>Erstellt von</label>
+            <div>
+                {{ tool.created_by.username if tool.created_by else "-" }}
+            </div>
+        </div>
+
+    </div>
 
 </div>
 
@@ -119,12 +258,17 @@ Keine Artikel zugeordnet
 {% include "components/changelog.html" %}
 
 
+<!-- ========================= -->
+<!-- FOOTER -->
+<!-- ========================= -->
+
 <div class="detail-footer">
 
-<a href="{{ url_for('tools.list_tools') }}" class="btn-secondary">
-← Zurück zur Liste
-</a>
+    <a href="{{ url_for('tools.list_tools') }}" class="btn-secondary">
+        ← Zurück zur Liste
+    </a>
 
 </div>
+
 
 {% endblock %}
