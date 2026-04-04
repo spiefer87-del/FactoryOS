@@ -3,6 +3,7 @@ from flask_login import login_required
 
 from . import bp
 from ..services.tool_service import create_tool
+from factoryos.modules.masterdata.shared.constants import TOOL_STATUSES
 
 
 @bp.route("/create", methods=["GET", "POST"])
@@ -18,5 +19,6 @@ def create():
         )
 
     return render_template(
-        "masterdata/tools/create.html"
+        "masterdata/tools/create.html",
+        TOOL_STATUSES=TOOL_STATUSES
     )
