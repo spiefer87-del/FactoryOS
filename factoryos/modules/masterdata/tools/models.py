@@ -24,6 +24,13 @@ class Tool(db.Model):
 
     centering_type = db.Column(db.String(50))  # z.B. HASCO, Eigenbau
 
+    ejector_connection = db.Column(db.String(50))
+    demolding_type = db.Column(db.String(100))
+    hotrunner_zones = db.Column(db.Integer)
+    automation_type = db.Column(db.String(50))
+    has_conversion_kit = db.Column(db.Boolean, default=False)
+    core_pulls = db.Column(db.Integer)
+
     location = db.Column(db.String(100))
 
     tool_status = db.Column(db.String(50), default="OK")
