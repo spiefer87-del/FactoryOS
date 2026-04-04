@@ -97,6 +97,12 @@ document.addEventListener("DOMContentLoaded", function () {
             hiddenInput.value = tool.id;
     
             dropdown.style.display = "none";
+
+            // 🔥 Status setzen
+            const statusSelect = document.getElementById("tool_status");
+            if (statusSelect && tool.status) {
+                statusSelect.value = tool.status;
+            }
         }
     
     
