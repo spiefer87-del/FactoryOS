@@ -2,7 +2,7 @@ from flask import render_template, request
 from flask_login import login_required
 from ..queries.tool_queries import get_tools
 from . import bp
-from factoryos.modules.masterdata.shared.constants import TOOL_STATUSES
+from factoryos.modules.masterdata.shared.constants import TOOL_STATUSES, TOOL_STATUS_COLORS
 
 
 @bp.route("/list")
@@ -27,5 +27,6 @@ def list_tools():
         location=location,
         statuses=statuses,
         locations=locations,
-        TOOL_STATUSES=TOOL_STATUSES
+        TOOL_STATUSES=TOOL_STATUSES,
+        TOOL_STATUS_COLORS=TOOL_STATUS_COLORS
     )
