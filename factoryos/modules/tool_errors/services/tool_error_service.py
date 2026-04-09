@@ -150,6 +150,8 @@ def upload_temp_image(file, marker_x, marker_y, description, temp_id):
         image_path=f"uploads/tool_errors/{filename}",
         marker_x=float(marker_x) if marker_x else None,
         marker_y=float(marker_y) if marker_y else None,
+        marker_px=int(request.form.get("marker_px")) if request.form.get("marker_px") else None,
+        marker_py=int(request.form.get("marker_py")) if request.form.get("marker_py") else None,
         description=description
     )
 
