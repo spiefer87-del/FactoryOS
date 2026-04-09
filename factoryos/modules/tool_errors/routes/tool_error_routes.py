@@ -178,6 +178,6 @@ def export_pdf(error_id):
 
     response = make_response(pdf_buffer.read())
     response.headers["Content-Type"] = "application/pdf"
-    response.headers["Content-Disposition"] = f"inline; filename=tool_error_{error.error_no}.pdf"
+    response.headers["Content-Disposition"] = f"attachment; filename=tool_error_{error.error_no}.pdf"
 
     return response
