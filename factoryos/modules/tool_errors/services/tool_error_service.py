@@ -3,6 +3,9 @@ import uuid
 from datetime import datetime
 from flask import current_app
 from sqlalchemy import func
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from io import BytesIO
 
 from factoryos.extensions import db
 from factoryos.modules.masterdata.tools.models import Tool
@@ -228,10 +231,11 @@ def delete_tool_error(error):
     db.session.delete(error)
     db.session.commit()
 
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
-from io import BytesIO
 
+
+# =========================
+# PDF Export
+# =========================
 
 def generate_tool_error_pdf(error):
 
