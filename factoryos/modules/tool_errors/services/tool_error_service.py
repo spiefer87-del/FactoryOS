@@ -300,23 +300,23 @@ def generate_tool_error_pdf(error):
 
         # =========================
         # 📐 Bildgröße
-# =========================
-width, height = pil_img.size
+        # =========================
+        width, height = pil_img.size
 
-# =========================
-# 📍 POSITION bestimmen
-# =========================
-x, y = None, None
+        # =========================
+        # 📍 POSITION bestimmen
+        # =========================
+        x, y = None, None
 
-# 🔥 PRIORITÄT: Pixel
-if img.marker_px is not None and img.marker_py is not None:
-    x = int(img.marker_px)
-    y = int(img.marker_py)
+        # 🔥 PRIORITÄT: Pixel
+        if img.marker_px is not None and img.marker_py is not None:
+            x = int(img.marker_px)
+            y = int(img.marker_py)
 
-# 🔁 FALLBACK: Prozent
-elif img.marker_x is not None and img.marker_y is not None:
-    x = int(img.marker_x * width)
-    y = int(img.marker_y * height)
+        # 🔁 FALLBACK: Prozent
+        elif img.marker_x is not None and img.marker_y is not None:
+            x = int(img.marker_x * width)
+            y = int(img.marker_y * height)
 
 # =========================
 # 🔴 MARKER zeichnen
