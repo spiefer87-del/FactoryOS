@@ -318,45 +318,19 @@ def generate_tool_error_pdf(error):
             x = int(img.marker_x * width)
             y = int(img.marker_y * height)
 
-# =========================
-# 🔴 MARKER zeichnen
-# =========================
-if x is not None and y is not None:
-
-    # 🔥 Markergröße relativ zur Bildgröße
-    base_size = min(width, height)
-
-    radius = int(base_size * 0.015)   # 1.5% vom Bild
-    radius = max(radius, 6)           # Mindestgröße
-    radius = min(radius, 25)          # Maximalgröße (optional)
-
-    # Kreis zeichnen
-    draw.ellipse(
-        (x - radius, y - radius, x + radius, y + radius),
-        fill="red",
-        outline="white",
-        width=3
-    )
-
         # =========================
-        # 🔴 MARKER LOGIK
+        # 🔴 MARKER zeichnen
         # =========================
-        x, y = None, None
-
-        # 🔥 PRIORITÄT: PIXEL
-        if img.marker_px is not None and img.marker_py is not None:
-            x = int(img.marker_px)
-            y = int(img.marker_py)
-
-        # 🔁 FALLBACK: PROZENT
-        elif img.marker_x is not None and img.marker_y is not None:
-            x = int(img.marker_x * width)
-            y = int(img.marker_y * height)
-
-        # 🔴 Marker zeichnen
         if x is not None and y is not None:
-            radius = 15
 
+            # 🔥 Markergröße relativ zur Bildgröße
+            base_size = min(width, height)
+
+            radius = int(base_size * 0.015)   # 1.5% vom Bild
+            radius = max(radius, 6)           # Mindestgröße
+            radius = min(radius, 25)          # Maximalgröße (optional)
+
+            # Kreis zeichnen
             draw.ellipse(
                 (x - radius, y - radius, x + radius, y + radius),
                 fill="red",
