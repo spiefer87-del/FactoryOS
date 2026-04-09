@@ -3,9 +3,13 @@ import uuid
 from datetime import datetime
 from flask import current_app
 from sqlalchemy import func
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import mm
 from io import BytesIO
+from PIL import Image as PILImage, ImageDraw
+
+
 
 from factoryos.extensions import db
 from factoryos.modules.masterdata.tools.models import Tool
@@ -239,41 +243,8 @@ def delete_tool_error(error):
 # PDF Export
 # =========================
 
-def generate_tool_error_pdf(error):
 
-    buffer = BytesIO()
 
-    doc = SimpleDocTemplate(buffer)
-
-    styles = getSampleStyleSheet()
-
-    content = []
-
-    content.append(Paragraph(f"Fehlermeldung {error.error_no}", styles["Title"]))
-    content.append(Spacer(1, 10))
-
-    content.append(Paragraph(f"Werkzeug: {error.tool.tool_no}", styles["Normal"]))
-    content.append(Paragraph(f"Fehler: {error.error_type}", styles["Normal"]))
-    content.append(Paragraph(f"Datum: {error.created_at.strftime('%d.%m.%Y %H:%M')}", styles["Normal"]))
-    content.append(Spacer(1, 10))
-
-    content.append(Paragraph("Beschreibung:", styles["Heading3"]))
-    content.append(Paragraph(error.description or "-", styles["Normal"]))
-
-    doc.build(content)
-
-    buffer.seek(0)
-
-    return buffer
-
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.units import mm
-
-from io import BytesIO
-from PIL import Image as PILImage, ImageDraw
-import os
-from flask import current_app
 
 
 def generate_tool_error_pdf(error):
