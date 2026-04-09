@@ -265,3 +265,137 @@ def generate_tool_error_pdf(error):
     buffer.seek(0)
 
     return buffer
+
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import mm
+
+from io import BytesIO
+from PIL import Image as PILImage, ImageDraw
+import os
+from flask import current_app
+
+
+def generate_tool_error_pdf(error):
+
+    buffer = BytesIO()
+
+    doc = SimpleDocTemplate(
+        buffer,
+        rightMargin=20,
+        leftMargin=20,
+        topMargin=20,
+        bottomMargin=20
+    )
+
+    styles = getSampleStyleSheet()
+    content = []
+
+    # =========================
+    # 📄 HEADER
+    # =========================
+    content.append(Paragraph(f"Fehlermeldung {error.error_no}", styles["Title"]))
+    content.append(Spacer(1, 10))
+
+    content.append(Paragraph(f"<b>Werkzeug:</b> {error.tool.tool_no}", styles["Normal"]))
+    content.append(Paragraph(f"<b>Fehler:</b> {error.error_type}", styles["Normal"]))
+    content.append(Paragraph(f"<b>Datum:</b> {error.created_at.strftime('%d.%m.%Y %H:%M')}", styles["Normal"]))
+    content.append(Spacer(1, 10))
+
+    content.append(Paragraph("<b>Beschreibung:</b>", styles["Heading3"]))
+    content.append(Paragraph(error.description or "-", styles["Normal"]))
+    content.append(Spacer(1, 20))
+
+    # =========================
+    # 📸 BILDER
+    # =========================
+    if error.images:
+        content.append(Paragraph("Bilder:", styles["Heading2"]))
+        content.append(Spacer(1, 10))
+
+    for i, img in enumerate(error.images):
+
+        image_path = os.path.join(current_app.static_folder, img.image_path)
+
+        if not os.path.exists(image_path):
+            continue
+
+        try:
+            pil_img = PILImage.open(image_path).convert("RGB")
+        except Exception:
+            continue
+
+        draw = ImageDraw.Draw(pil_img)
+
+        width, height = pil_img.size
+
+        # =========================
+        # 🔴 MARKER LOGIK
+        # =========================
+        x, y = None, None
+
+        # 🔥 PRIORITÄT: PIXEL
+        if img.marker_px is not None and img.marker_py is not None:
+            x = int(img.marker_px)
+            y = int(img.marker_py)
+
+        # 🔁 FALLBACK: PROZENT
+        elif img.marker_x is not None and img.marker_y is not None:
+            x = int(img.marker_x * width)
+            y = int(img.marker_y * height)
+
+        # 🔴 Marker zeichnen
+        if x is not None and y is not None:
+            radius = 15
+
+            draw.ellipse(
+                (x - radius, y - radius, x + radius, y + radius),
+                fill="red",
+                outline="white",
+                width=3
+            )
+
+        # =========================
+        # 📐 SKALIERUNG
+        # =========================
+        max_width_mm = 170
+        max_height_mm = 120
+
+        aspect = width / height
+
+        if width > height:
+            display_width = max_width_mm * mm
+            display_height = (max_width_mm / aspect) * mm
+        else:
+            display_height = max_height_mm * mm
+            display_width = (max_height_mm * aspect) * mm
+
+        # =========================
+        # 🔄 IN BUFFER
+        # =========================
+        img_buffer = BytesIO()
+        pil_img.save(img_buffer, format="JPEG")
+        img_buffer.seek(0)
+
+        pdf_img = Image(img_buffer, width=display_width, height=display_height)
+
+        content.append(pdf_img)
+        content.append(Spacer(1, 5))
+
+        # Beschreibung unter Bild
+        if img.description:
+            content.append(Paragraph(img.description, styles["Italic"]))
+            content.append(Spacer(1, 10))
+
+        # Seitenumbruch nach jedem Bild (optional)
+        if i < len(error.images) - 1:
+            content.append(Spacer(1, 15))
+
+    # =========================
+    # BUILD
+    # =========================
+    doc.build(content)
+
+    buffer.seek(0)
+
+    return buffer
