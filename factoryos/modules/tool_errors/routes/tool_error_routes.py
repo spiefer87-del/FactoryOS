@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, jsonify
+from flask import render_template, request, redirect, url_for, jsonify, make_response
 from flask_login import login_required, current_user
 
 from . import bp
@@ -14,13 +14,15 @@ from ..services.tool_error_service import (
     delete_tool_error,
     upload_temp_image,
     assign_images_to_error,
-    set_tool_status
+    set_tool_status,
+    generate_tool_error_pdf
 )
 
 
 from factoryos.modules.masterdata.tools.queries.tool_queries import get_all_tools
 from factoryos.modules.tool_errors.models import ToolErrorTitlePreset
 from factoryos.modules.masterdata.shared.constants import TOOL_STATUSES
+
 
 
 # =========================
@@ -159,8 +161,11 @@ def delete(error_id):
 
     return redirect(url_for("tool_error.list"))
 
-from flask import make_response
-from ..services.tool_error_service import generate_tool_error_pdf
+
+
+# =========================
+# Export PDF
+# =========================
 
 
 @bp.route("/<int:error_id>/export_pdf")
