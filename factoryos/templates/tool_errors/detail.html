@@ -6,67 +6,88 @@
 
 {% block content %}
 
-<h2>Tool Error #{{ error.id }}</h2>
+<div class="page-header">
+    <h2>Fehlermeldung {{ error.error_no }}</h2>
+
+    <div class="page-actions">
+        <a href="{{ url_for('tool_error.export_pdf', error_id=error.id) }}"
+           class="btn-small btn-primary">
+           📄 PDF Export
+        </a>
+
+        <a href="{{ url_for('tool_error.delete', error_id=error.id) }}"
+           class="btn-small btn-delete">
+           🗑 Löschen
+        </a>
+    </div>
+</div>
+
 
 <div class="detail-container">
 
-    <!-- 🔧 Infos -->
+    <!-- 🔧 INFOS -->
     <div class="detail-card">
         <h3>Informationen</h3>
 
-        <p><strong>Werkzeug:</strong> {{ error.tool.tool_no }}</p>
-        <p><strong>Fehler:</strong> {{ error.error_type }}</p>
-        <p><strong>Beschreibung:</strong> {{ error.description }}</p>
-        <p><strong>Datum:</strong> {{ error.created_at.strftime("%d.%m.%Y %H:%M") }}</p>
-    </div>
+        <div class="detail-grid">
 
-    <!-- 📸 Bilder -->
-    <div class="detail-card">
-        <h3>Bilder</h3>
+            <div class="detail-item">
+                <label>Fehlermeldung</label>
+                <div>{{ error.error_no }}</div>
+            </div>
 
-        <div class="image-gallery">
+            <div class="detail-item">
+                <label>Werkzeug</label>
+                <div>{{ error.tool.tool_no }}</div>
+            </div>
 
-            {% for image in error.images %}
+            <div class="detail-item">
+                <label>Fehler</label>
+                <div>{{ error.error_type }}</div>
+            </div>
 
-                <div class="image-wrapper">
+            <div class="detail-item">
+                <label>Datum</label>
+                <div>{{ error.created_at.strftime("%d.%m.%Y %H:%M") }}</div>
+            </div>
 
-                    <img src="{{ url_for('static', filename=image.image_path) }}">
-
-					{% if image.marker_x != None and image.marker_y != None %}
-					
-                        <div class="marker"
-                             style="
-																					left: {{ image.marker_x * 100 }}%;
-																					top: {{ image.marker_y * 100 }}%;
-                             ">
-                        </div>
-                    {% endif %}
-
-
-                </div>
-
-            {% endfor %}
+            <div class="detail-item full">
+                <label>Beschreibung</label>
+                <div>{{ error.description or "-" }}</div>
+            </div>
 
         </div>
     </div>
 
-</div>
 
-<div id="toolStatusModal" class="modal hidden">
-    <div class="modal-content">
-        <h3>Werkzeugstatus setzen?</h3>
-        <p>Soll das Werkzeug als defekt markiert werden?</p>
+    <!-- 📸 BILDER -->
+    <div class="detail-card">
+        <h3>Bilder</h3>
 
-        <button id="setDefect" class="btn-danger">
-            🔴 Defekt setzen
-        </button>
+        {% if error.images %}
+        <div class="image-gallery">
 
-        <button id="keepActive" class="btn-secondary">
-            🟢 Aktiv lassen
-        </button>
+            {% for image in error.images %}
+            <div class="image-wrapper">
+
+                <img src="{{ url_for('static', filename=image.image_path) }}">
+
+                {% if image.marker_x is not none and image.marker_y is not none %}
+                <div class="marker"
+                     style="left: {{ image.marker_x * 100 }}%;
+                            top: {{ image.marker_y * 100 }}%;">
+                </div>
+                {% endif %}
+
+            </div>
+            {% endfor %}
+
+        </div>
+        {% else %}
+            <div class="empty-state">Keine Bilder vorhanden</div>
+        {% endif %}
     </div>
-</div>
 
-<script src="{{ url_for('static', filename='js/tool_error.js') }}"></script>
+</div>
 
 {% endblock %}
