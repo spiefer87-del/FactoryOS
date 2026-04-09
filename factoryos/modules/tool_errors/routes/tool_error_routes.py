@@ -158,3 +158,21 @@ def delete(error_id):
     delete_tool_error(error)
 
     return redirect(url_for("tool_error.list"))
+
+from flask import make_response
+from ..services.tool_error_service import generate_tool_error_pdf
+
+
+@bp.route("/<int:error_id>/export_pdf")
+@login_required
+def export_pdf(error_id):
+
+    error = get_tool_error(error_id)
+
+    pdf_buffer = generate_tool_error_pdf(error)
+
+    response = make_response(pdf_buffer.read())
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers["Content-Disposition"] = f"inline; filename=tool_error_{error.error_no}.pdf"
+
+    return response
