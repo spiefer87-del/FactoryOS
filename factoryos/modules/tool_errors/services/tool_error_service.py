@@ -455,3 +455,140 @@ def draw_marker(canvas, x, y, number):
 
     canvas.line(x, y, x - 5, y + 4)
     canvas.line(x, y, x - 5, y - 4)
+
+def generate_tool_error_pdf(error):
+
+    buffer = BytesIO()
+
+    doc = SimpleDocTemplate(
+        buffer,
+        rightMargin=20,
+        leftMargin=20,
+        topMargin=20,
+        bottomMargin=20
+    )
+
+    styles = getSampleStyleSheet()
+    content = []
+
+    # HEADER
+    content.append(Paragraph(f"Fehlermeldung {error.error_no}", styles["Title"]))
+    content.append(Spacer(1, 10))
+
+    content.append(Paragraph(f"<b>Werkzeug:</b> {error.tool.tool_no}", styles["Normal"]))
+    content.append(Paragraph(f"<b>Fehler:</b> {error.error_type}", styles["Normal"]))
+    content.append(Paragraph(f"<b>Datum:</b> {error.created_at.strftime('%d.%m.%Y %H:%M')}", styles["Normal"]))
+    content.append(Spacer(1, 10))
+
+    content.append(Paragraph("<b>Beschreibung:</b>", styles["Heading3"]))
+    content.append(Paragraph(error.description or "-", styles["Normal"]))
+    content.append(Spacer(1, 20))
+
+    if error.images:
+        content.append(Paragraph("Bilder:", styles["Heading2"]))
+        content.append(Spacer(1, 10))
+
+    for i, image in enumerate(error.images):
+
+        image_path = os.path.join(current_app.static_folder, image.image_path)
+
+        if not os.path.exists(image_path):
+            continue
+
+        pil_img = PILImage.open(image_path).convert("RGB")
+        draw = ImageDraw.Draw(pil_img)
+
+        width, height = pil_img.size
+        base = min(width, height)
+
+        # =========================
+        # 📍 POSITION
+        # =========================
+        if image.marker_px is not None and image.marker_py is not None:
+            x = image.marker_px
+            y = image.marker_py
+        elif image.marker_x is not None and image.marker_y is not None:
+            x = int(image.marker_x * width)
+            y = int(image.marker_y * height)
+        else:
+            x = y = None
+
+        if x and y:
+
+            # Größen dynamisch
+            circle_radius = max(int(base * 0.025), 12)
+            arrow_length = max(int(base * 0.05), 20)
+            font_size = max(int(base * 0.03), 14)
+
+            try:
+                font = ImageFont.truetype("DejaVuSans-Bold.ttf", font_size)
+            except:
+                font = ImageFont.load_default()
+
+            marker_x = x - arrow_length
+            marker_y = y
+
+            # Kreis
+            draw.ellipse(
+                (
+                    marker_x - circle_radius,
+                    marker_y - circle_radius,
+                    marker_x + circle_radius,
+                    marker_y + circle_radius
+                ),
+                fill="red"
+            )
+
+            # Pfeil
+            draw.polygon([
+                (marker_x + circle_radius, marker_y),
+                (x, y),
+                (marker_x + circle_radius, marker_y + circle_radius * 0.8)
+            ], fill="red")
+
+            # Nummer
+            number = str(i + 1)
+
+            bbox = draw.textbbox((0, 0), number, font=font)
+            text_w = bbox[2] - bbox[0]
+            text_h = bbox[3] - bbox[1]
+
+            draw.text(
+                (marker_x - text_w / 2, marker_y - text_h / 2),
+                number,
+                fill="white",
+                font=font
+            )
+
+        # =========================
+        # 📐 SKALIERUNG
+        # =========================
+        max_width_mm = 170
+        max_height_mm = 120
+
+        aspect = width / height
+
+        if width > height:
+            display_width = max_width_mm * mm
+            display_height = (max_width_mm / aspect) * mm
+        else:
+            display_height = max_height_mm * mm
+            display_width = (max_height_mm * aspect) * mm
+
+        img_buffer = BytesIO()
+        pil_img.save(img_buffer, format="JPEG")
+        img_buffer.seek(0)
+
+        pdf_img = Image(img_buffer, width=display_width, height=display_height)
+
+        content.append(pdf_img)
+        content.append(Spacer(1, 5))
+
+        if image.description:
+            content.append(Paragraph(image.description, styles["Italic"]))
+            content.append(Spacer(1, 10))
+
+    doc.build(content)
+    buffer.seek(0)
+
+    return buffer
