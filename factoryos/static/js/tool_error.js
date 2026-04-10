@@ -316,6 +316,11 @@ document.addEventListener("DOMContentLoaded", function () {
             formData.append("image", file);
             formData.append("marker_x", markerX.value);
             formData.append("marker_y", markerY.value);
+            
+            // 🔥 NEU
+            formData.append("marker_px", document.getElementById("marker_px").value);
+            formData.append("marker_py", document.getElementById("marker_py").value);
+            
             formData.append("description", textarea.value);
             formData.append("temp_id", TEMP_ID);
 
