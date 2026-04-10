@@ -157,7 +157,25 @@ input[type="file"] {
     touch-action: none;
 }
 
+/* 🔥 NUR PREVIEW */
+.preview-wrapper {
+    position: relative;
+    display: inline-block;
+}
 
+/* Bild */
+#previewImage {
+    display: block;
+    max-width: 100%;
+}
+
+/* Marker */
+.marker-advanced {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    pointer-events: none;
+}
 
 .image-preview-container img {
     max-width: 100%;
