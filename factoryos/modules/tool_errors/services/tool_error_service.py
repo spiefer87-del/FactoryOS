@@ -303,16 +303,13 @@ def generate_tool_error_pdf(error):
         width, height = pil_img.size
         base = min(width, height)
         
-        # =========================
-        # 🔢 Marker Nummer (laufend)
-        # =========================
         marker_index = 1
         
         for img in error.images:
         
-            # ---------------------
+            # =========================
             # 📍 Position bestimmen
-            # ---------------------
+            # =========================
             if img.marker_px is not None and img.marker_py is not None:
                 x = int(img.marker_px)
                 y = int(img.marker_py)
@@ -322,68 +319,58 @@ def generate_tool_error_pdf(error):
             else:
                 continue
         
-            # ---------------------
-            # 📐 Größen skalieren
-            # ---------------------
-            line_length = int(base * 0.12)
-            line_width = max(3, int(base * 0.008))
+            # =========================
+            # 📐 Größen
+            # =========================
+            circle_radius = int(base * 0.025)
+            circle_radius = max(circle_radius, 12)
         
-            circle_radius = max(12, int(base * 0.025))
-            font_size = max(14, int(base * 0.03))
+            arrow_length = int(base * 0.05)
+            arrow_length = max(arrow_length, 20)
         
-            # ---------------------
-            # 🔤 Schrift laden
-            # ---------------------
+            font_size = int(base * 0.03)
+            font_size = max(font_size, 14)
+        
+            # =========================
+            # 🔤 Font
+            # =========================
             try:
                 font = ImageFont.truetype("DejaVuSans-Bold.ttf", font_size)
             except:
                 font = ImageFont.load_default()
         
-            # ---------------------
-            # 📍 Startpunkt (links oben)
-            # ---------------------
-            start_x = x - line_length
-            start_y = y - line_length
+            # =========================
+            # 📍 Marker Position
+            # (leicht links vom Zielpunkt)
+            # =========================
+            marker_x = x - arrow_length
+            marker_y = y
         
-            # ---------------------
-            # ➖ Linie
-            # ---------------------
-            draw.line(
-                (start_x, start_y, x, y),
-                fill="red",
-                width=line_width
-            )
-        
-            # ---------------------
-            # 🔺 Pfeilspitze
-            # ---------------------
-            arrow_size = int(base * 0.02)
-        
-            draw.polygon([
-                (x, y),
-                (x - arrow_size, y - arrow_size),
-                (x + arrow_size, y - arrow_size)
-            ], fill="red")
-        
-            # ---------------------
-            # 🔴 Kreis (Nummer)
-            # ---------------------
-            circle_x = start_x
-            circle_y = start_y
-        
+            # =========================
+            # 🔴 Kreis
+            # =========================
             draw.ellipse(
                 (
-                    circle_x - circle_radius,
-                    circle_y - circle_radius,
-                    circle_x + circle_radius,
-                    circle_y + circle_radius
+                    marker_x - circle_radius,
+                    marker_y - circle_radius,
+                    marker_x + circle_radius,
+                    marker_y + circle_radius
                 ),
                 fill="red"
             )
         
-            # ---------------------
-            # 🔢 Nummer zentrieren
-            # ---------------------
+            # =========================
+            # ▶ Pfeilspitze (Dreieck)
+            # =========================
+            draw.polygon([
+                (marker_x + circle_radius, marker_y),  # Verbindung Kreis
+                (x, y),                                # Spitze
+                (marker_x + circle_radius, marker_y + circle_radius * 0.8)
+            ], fill="red")
+        
+            # =========================
+            # 🔢 Nummer
+            # =========================
             text = str(marker_index)
         
             bbox = draw.textbbox((0, 0), text, font=font)
@@ -392,8 +379,8 @@ def generate_tool_error_pdf(error):
         
             draw.text(
                 (
-                    circle_x - text_w / 2,
-                    circle_y - text_h / 2
+                    marker_x - text_w / 2,
+                    marker_y - text_h / 2
                 ),
                 text,
                 fill="white",
@@ -401,7 +388,6 @@ def generate_tool_error_pdf(error):
             )
         
             marker_index += 1
-
         # =========================
         # 📐 SKALIERUNG
         # =========================
