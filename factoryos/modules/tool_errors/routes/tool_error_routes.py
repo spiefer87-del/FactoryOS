@@ -84,6 +84,8 @@ def upload_temp():
         file=request.files.get("image"),
         marker_x=request.form.get("marker_x"),
         marker_y=request.form.get("marker_y"),
+        marker_px=request.form.get("marker_px"),
+        marker_py=request.form.get("marker_py"),
         description=request.form.get("description"),
         temp_id=request.form.get("temp_id")
     )
