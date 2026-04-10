@@ -346,17 +346,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 imageInput.value = "";
                 textarea.value = "";
                 
-                // Prozent zurücksetzen
                 markerX.value = "";
                 markerY.value = "";
                 
-                // 🔥 PIXEL zurücksetzen (HIER ist der richtige Platz!)
                 document.getElementById("marker_px").value = "";
                 document.getElementById("marker_py").value = "";
                 
-                // Marker entfernen
+                // 🔥 Nummer zurücksetzen
+                markerCount = 0;
+                
                 if (currentMarker) currentMarker.remove();
-                let markerCount = 0;
             })
             .catch(err => {
                 console.error("❌ Upload Fehler:", err);
