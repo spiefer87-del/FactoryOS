@@ -432,3 +432,26 @@ def generate_tool_error_pdf(error):
     buffer.seek(0)
 
     return buffer
+
+
+from reportlab.lib import colors
+
+def draw_marker(canvas, x, y, number):
+
+    # 🔴 Kreis
+    canvas.setStrokeColor(colors.red)
+    canvas.setFillColor(colors.white)
+    canvas.circle(x - 15, y, 8, fill=1)
+
+    # Zahl
+    canvas.setFillColor(colors.red)
+    canvas.setFont("Helvetica-Bold", 8)
+    canvas.drawCentredString(x - 15, y - 3, str(number))
+
+    # 🔺 Pfeil (Dreieck)
+    canvas.setFillColor(colors.red)
+
+    canvas.line(x - 5, y, x, y)
+
+    canvas.line(x, y, x - 5, y + 4)
+    canvas.line(x, y, x - 5, y - 4)
