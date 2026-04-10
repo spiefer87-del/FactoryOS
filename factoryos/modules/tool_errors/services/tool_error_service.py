@@ -7,7 +7,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Page
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import mm
 from io import BytesIO
-from PIL import Image as PILImage, ImageDraw
+from PIL import Image as PILImage, ImageDraw, ImageFont
 
 
 
@@ -296,47 +296,111 @@ def generate_tool_error_pdf(error):
         except Exception:
             continue
 
+
+
         draw = ImageDraw.Draw(pil_img)
-
-        # =========================
-        # 📐 Bildgröße
-        # =========================
+        
         width, height = pil_img.size
-
+        base = min(width, height)
+        
         # =========================
-        # 📍 POSITION bestimmen
+        # 🔢 Marker Nummer (laufend)
         # =========================
-        x, y = None, None
-
-        # 🔥 PRIORITÄT: Pixel
-        if img.marker_px is not None and img.marker_py is not None:
-            x = int(img.marker_px)
-            y = int(img.marker_py)
-
-        # 🔁 FALLBACK: Prozent
-        elif img.marker_x is not None and img.marker_y is not None:
-            x = int(img.marker_x * width)
-            y = int(img.marker_y * height)
-
-        # =========================
-        # 🔴 MARKER zeichnen
-        # =========================
-        if x is not None and y is not None:
-
-            # 🔥 Markergröße relativ zur Bildgröße
-            base_size = min(width, height)
-
-            radius = int(base_size * 0.015)   # 1.5% vom Bild
-            radius = max(radius, 6)           # Mindestgröße
-            radius = min(radius, 25)          # Maximalgröße (optional)
-
-            # Kreis zeichnen
-            draw.ellipse(
-                (x - radius, y - radius, x + radius, y + radius),
+        marker_index = 1
+        
+        for img in error.images:
+        
+            # ---------------------
+            # 📍 Position bestimmen
+            # ---------------------
+            if img.marker_px is not None and img.marker_py is not None:
+                x = int(img.marker_px)
+                y = int(img.marker_py)
+            elif img.marker_x is not None and img.marker_y is not None:
+                x = int(img.marker_x * width)
+                y = int(img.marker_y * height)
+            else:
+                continue
+        
+            # ---------------------
+            # 📐 Größen skalieren
+            # ---------------------
+            line_length = int(base * 0.12)
+            line_width = max(3, int(base * 0.008))
+        
+            circle_radius = max(12, int(base * 0.025))
+            font_size = max(14, int(base * 0.03))
+        
+            # ---------------------
+            # 🔤 Schrift laden
+            # ---------------------
+            try:
+                font = ImageFont.truetype("DejaVuSans-Bold.ttf", font_size)
+            except:
+                font = ImageFont.load_default()
+        
+            # ---------------------
+            # 📍 Startpunkt (links oben)
+            # ---------------------
+            start_x = x - line_length
+            start_y = y - line_length
+        
+            # ---------------------
+            # ➖ Linie
+            # ---------------------
+            draw.line(
+                (start_x, start_y, x, y),
                 fill="red",
-                outline="white",
-                width=3
+                width=line_width
             )
+        
+            # ---------------------
+            # 🔺 Pfeilspitze
+            # ---------------------
+            arrow_size = int(base * 0.02)
+        
+            draw.polygon([
+                (x, y),
+                (x - arrow_size, y - arrow_size),
+                (x + arrow_size, y - arrow_size)
+            ], fill="red")
+        
+            # ---------------------
+            # 🔴 Kreis (Nummer)
+            # ---------------------
+            circle_x = start_x
+            circle_y = start_y
+        
+            draw.ellipse(
+                (
+                    circle_x - circle_radius,
+                    circle_y - circle_radius,
+                    circle_x + circle_radius,
+                    circle_y + circle_radius
+                ),
+                fill="red"
+            )
+        
+            # ---------------------
+            # 🔢 Nummer zentrieren
+            # ---------------------
+            text = str(marker_index)
+        
+            bbox = draw.textbbox((0, 0), text, font=font)
+            text_w = bbox[2] - bbox[0]
+            text_h = bbox[3] - bbox[1]
+        
+            draw.text(
+                (
+                    circle_x - text_w / 2,
+                    circle_y - text_h / 2
+                ),
+                text,
+                fill="white",
+                font=font
+            )
+        
+            marker_index += 1
 
         # =========================
         # 📐 SKALIERUNG
