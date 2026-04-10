@@ -306,7 +306,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            if (!markerX.value || !markerY.value) {
+            if (!markerX.value || !markerY.value || 
+                !document.getElementById("marker_px").value) {
                 alert("Bitte Marker setzen");
                 return;
             }
