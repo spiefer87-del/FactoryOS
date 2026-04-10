@@ -487,3 +487,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 
+// 🖱 Klick (Desktop)
+preview.addEventListener("click", (e) => {
+    setMarker(e.clientX, e.clientY);
+});
+
+// 📱 Touch (Mobile)
+preview.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    const t = e.touches[0];
+    setMarker(t.clientX, t.clientY);
+});
