@@ -67,16 +67,24 @@
         {% if error.images %}
         <div class="image-gallery">
 
-            {% for image in error.images %}
+            {% for img in error.images %}
             <div class="image-wrapper">
 
-                <img src="{{ url_for('static', filename=image.image_path) }}">
+                <img src="{{ url_for('static', filename=img.image_path) }}">
 
-                {% if image.marker_x is not none and image.marker_y is not none %}
-                <div class="marker"
-                     style="left: {{ image.marker_x * 100 }}%;
-                            top: {{ image.marker_y * 100 }}%;">
+                <div class="marker-advanced"
+                    style="left: calc({{ img.marker_x * 100 }}% - 18px);
+                            top: {{ img.marker_y * 100 }}%;">
+
+                    <div class="marker-circle">{{ loop.index }}</div>
+                    <div class="marker-arrow"></div>
+
                 </div>
+
+                {% if img.description %}
+                    <div class="image-description">
+                        {{ img.description }}
+                    </div>
                 {% endif %}
 
             </div>
