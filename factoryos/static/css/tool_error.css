@@ -223,16 +223,16 @@ input[type="file"] {
 }
 
 /* =========================
-   DIN MARKER
+   FINAL DIN MARKER
 ========================= */
 
 .marker-advanced{
     position:absolute;
     transform:translate(-50%, -50%);
-    width:38px;
-    height:24px;
+    width:52px;
+    height:30px;
     pointer-events:none;
-    z-index:50;
+    z-index:999;
 }
 
 /* Kreis */
@@ -241,38 +241,37 @@ input[type="file"] {
     left:0;
     top:0;
 
-    width:24px;
-    height:24px;
+    width:30px;
+    height:30px;
     border-radius:50%;
 
     background:#ffffff;
-    border:2px solid #d40000;
+    border:3px solid #d10000;
 
-    color:#d40000;
-    font-size:14px;
+    color:#d10000;
+    font-size:18px;
     font-weight:700;
-    line-height:1;
+    font-family:Arial, sans-serif;
 
     display:flex;
     align-items:center;
     justify-content:center;
 
     box-sizing:border-box;
-    font-family:Arial, sans-serif;
 }
 
 /* Spitze */
 .marker-arrow{
     position:absolute;
-    left:18px;
-    top:4px;
+    left:24px;
+    top:6px;
 
     width:0;
     height:0;
 
-    border-top:8px solid transparent;
-    border-bottom:8px solid transparent;
-    border-left:18px solid #d40000;
+    border-top:9px solid transparent;
+    border-bottom:9px solid transparent;
+    border-left:24px solid #d10000;
 }
 
 .marker {
