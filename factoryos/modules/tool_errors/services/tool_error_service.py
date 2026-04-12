@@ -305,50 +305,63 @@ def generate_tool_error_pdf(error):
         else:
             x = y = None
 
-        if x and y:
+        if x is not None and y is not None:
 
-            # Größen dynamisch
-            circle_radius = max(int(base * 0.025), 12)
-            arrow_length = max(int(base * 0.05), 20)
-            font_size = max(int(base * 0.03), 14)
+            base = min(width, height)
+
+            # Dynamische Größe
+            r = max(int(base * 0.022), 12)          # Kreisradius
+            arrow_len = int(r * 1.55)
+            arrow_h = int(r * 0.95)
+            border = max(int(r * 0.13), 2)
+
+            font_size = int(r * 1.15)
 
             try:
                 font = ImageFont.truetype("DejaVuSans-Bold.ttf", font_size)
             except:
                 font = ImageFont.load_default()
 
-            marker_x = x - arrow_length
-            marker_y = y
+            # Spitze zeigt auf Fehlerpunkt
+            tip_x = x
+            tip_y = y
 
-            # Kreis
+            # Kreis sitzt links der Spitze
+            cx = x - arrow_len - r + 2
+            cy = y
+
+            # -----------------------
+            # Weißer Kreis
+            # -----------------------
             draw.ellipse(
-                (
-                    marker_x - circle_radius,
-                    marker_y - circle_radius,
-                    marker_x + circle_radius,
-                    marker_y + circle_radius
-                ),
-                fill="red"
+                (cx-r, cy-r, cx+r, cy+r),
+                fill="white",
+                outline="red",
+                width=border
             )
 
-            # Pfeil
+            # -----------------------
+            # Pfeil (kompakt)
+            # -----------------------
             draw.polygon([
-                (marker_x + circle_radius, marker_y),
-                (x, y),
-                (marker_x + circle_radius, marker_y + circle_radius * 0.8)
+                (cx + r - 1, cy - arrow_h / 2),
+                (tip_x, tip_y),
+                (cx + r - 1, cy + arrow_h / 2)
             ], fill="red")
 
-            # Nummer
-            number = str(i + 1)
+            # -----------------------
+            # Zahl
+            # -----------------------
+            txt = str(i + 1)
 
-            bbox = draw.textbbox((0, 0), number, font=font)
-            text_w = bbox[2] - bbox[0]
-            text_h = bbox[3] - bbox[1]
+            bbox = draw.textbbox((0, 0), txt, font=font)
+            tw = bbox[2] - bbox[0]
+            th = bbox[3] - bbox[1]
 
             draw.text(
-                (marker_x - text_w / 2, marker_y - text_h / 2),
-                number,
-                fill="white",
+                (cx - tw/2, cy - th/2 - 1),
+                txt,
+                fill="red",
                 font=font
             )
 
