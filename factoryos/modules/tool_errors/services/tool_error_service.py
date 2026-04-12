@@ -270,6 +270,7 @@ def generate_tool_error_pdf(error):
     content.append(Paragraph(f"<b>Werkzeug:</b> {error.tool.tool_no}", styles["Normal"]))
     content.append(Paragraph(f"<b>Fehler:</b> {error.error_type}", styles["Normal"]))
     content.append(Paragraph(f"<b>Datum:</b> {error.created_at.strftime('%d.%m.%Y %H:%M')}", styles["Normal"]))
+    content.append(Paragraph(f"<b>Ersteller:</b> {error.reported_by.username}", styles["Normal"]))
     content.append(Spacer(1, 10))
 
     content.append(Paragraph("<b>Beschreibung:</b>", styles["Heading3"]))
