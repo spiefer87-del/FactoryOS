@@ -223,33 +223,45 @@ input[type="file"] {
 }
 
 /* Kreis */
+.marker-advanced{
+    position:absolute;
+    transform:translate(-50%, -50%);
+    width:36px;
+    height:22px;
+    pointer-events:none;
+    z-index:50;
+}
+
+/* Kreis */
 .marker-circle{
     position:absolute;
     left:0;
     top:0;
 
-    width:26px;
-    height:26px;
+    width:22px;
+    height:22px;
     border-radius:50%;
 
     background:#e12626;
     border:2px solid #000;
 
     color:#fff;
-    font-size:15px;
+    font-size:13px;
     font-weight:700;
+    line-height:1;
 
     display:flex;
     align-items:center;
     justify-content:center;
+
     box-sizing:border-box;
 }
 
-/* Pfeil */
+/* Spitze */
 .marker-arrow{
     position:absolute;
-    right:0;
-    top:6px;
+    left:18px;
+    top:4px;
 
     width:0;
     height:0;
