@@ -256,8 +256,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const rect = preview.getBoundingClientRect();
 
-        const xp = (x - rect.left) / rect.width;
-        const yp = (y - rect.top) / rect.height;
+        const relX = x - rect.left;
+        const relY = y - rect.top;
+
+        const xp = relX / rect.width;
+        const yp = relY / rect.height;
 
         const naturalWidth = preview.naturalWidth;
         const naturalHeight = preview.naturalHeight;
@@ -271,35 +274,100 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("marker_px").value = Math.round(px);
         document.getElementById("marker_py").value = Math.round(py);
 
-        // 🔥 ALTEN MARKER LÖSCHEN
         if (currentMarker) currentMarker.remove();
 
         const marker = document.createElement("div");
         marker.classList.add("marker-advanced");
-
-        marker.style.left = (xp * 100) + "%";
-        marker.style.top = (yp * 100) + "%";
 
         marker.innerHTML = `
             <div class="marker-circle">1</div>
             <div class="marker-arrow"></div>
         `;
 
+        // Spitze exakt auf Klickpunkt
+        marker.style.left = (relX - 34) + "px";
+        marker.style.top  = (relY - 12) + "px";
+
         wrapper.appendChild(marker);
         currentMarker = marker;
+
+        enableDrag(marker);
     }
 
-    // 🖱 Klick (Desktop)
+
+    // Desktop
     preview.addEventListener("click", (e) => {
         setMarker(e.clientX, e.clientY);
     });
-    
-    // 📱 Touch (Mobile)
+
+    // Mobile
     preview.addEventListener("touchstart", (e) => {
         e.preventDefault();
         const t = e.touches[0];
         setMarker(t.clientX, t.clientY);
     });
+
+
+    function enableDrag(marker) {
+
+        let dragging = false;
+
+        function move(clientX, clientY) {
+
+            const rect = preview.getBoundingClientRect();
+
+            let relX = clientX - rect.left;
+            let relY = clientY - rect.top;
+
+            relX = Math.max(0, Math.min(relX, rect.width));
+            relY = Math.max(0, Math.min(relY, rect.height));
+
+            const xp = relX / rect.width;
+            const yp = relY / rect.height;
+
+            markerX.value = xp;
+            markerY.value = yp;
+
+            const px = xp * preview.naturalWidth;
+            const py = yp * preview.naturalHeight;
+
+            document.getElementById("marker_px").value = Math.round(px);
+            document.getElementById("marker_py").value = Math.round(py);
+
+            marker.style.left = (relX - 34) + "px";
+            marker.style.top  = (relY - 12) + "px";
+        }
+
+        marker.addEventListener("mousedown", function(e){
+            dragging = true;
+            e.preventDefault();
+        });
+
+        document.addEventListener("mousemove", function(e){
+            if (!dragging) return;
+            move(e.clientX, e.clientY);
+        });
+
+        document.addEventListener("mouseup", function(){
+            dragging = false;
+        });
+
+        marker.addEventListener("touchstart", function(e){
+            dragging = true;
+            e.preventDefault();
+        });
+
+        document.addEventListener("touchmove", function(e){
+            if (!dragging) return;
+
+            const t = e.touches[0];
+            move(t.clientX, t.clientY);
+        });
+
+        document.addEventListener("touchend", function(){
+            dragging = false;
+        });
+    }
     
     // =========================
     // 🚀 UPLOAD
