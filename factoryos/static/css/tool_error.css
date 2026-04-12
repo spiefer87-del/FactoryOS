@@ -157,16 +157,15 @@ input[type="file"] {
     touch-action: none;
 }
 
-/* 🔥 NUR PREVIEW */
 .preview-wrapper {
     position: relative;
-    display: inline-block;
+    width: 100%;
+    max-width: 400px;
 }
 
-/* Bild */
 #previewImage {
+    width: 100%;
     display: block;
-    max-width: 100%;
 }
 
 /* Marker */
@@ -214,6 +213,41 @@ input[type="file"] {
 /* =========================
    MARKER
 ========================= */
+.marker-advanced {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* 🔴 Kreis */
+.marker-circle {
+    width: 26px;
+    height: 26px;
+    background: red;
+    border-radius: 50%;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    position: absolute;
+    left: -30px;
+    top: -13px;
+}
+
+/* ▶ Pfeil */
+.marker-arrow {
+    width: 0;
+    height: 0;
+
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-left: 16px solid red;
+}
 
 .marker {
     position: absolute;

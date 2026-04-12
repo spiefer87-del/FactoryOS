@@ -253,39 +253,39 @@ document.addEventListener("DOMContentLoaded", function () {
     let markerCount = 0;
 
     function setMarker(x, y) {
-    
+
         const rect = preview.getBoundingClientRect();
-    
+
         const xp = (x - rect.left) / rect.width;
         const yp = (y - rect.top) / rect.height;
-    
+
         const naturalWidth = preview.naturalWidth;
         const naturalHeight = preview.naturalHeight;
-    
+
         const px = xp * naturalWidth;
         const py = yp * naturalHeight;
-    
+
         markerX.value = xp;
         markerY.value = yp;
-    
+
         document.getElementById("marker_px").value = Math.round(px);
         document.getElementById("marker_py").value = Math.round(py);
-    
-        markerCount++;
-    
+
+        // 🔥 ALTEN MARKER LÖSCHEN
+        if (currentMarker) currentMarker.remove();
+
         const marker = document.createElement("div");
         marker.classList.add("marker-advanced");
-    
+
         marker.style.left = (xp * 100) + "%";
         marker.style.top = (yp * 100) + "%";
-    
+
         marker.innerHTML = `
-            <div class="marker-circle">${markerCount}</div>
+            <div class="marker-circle">1</div>
             <div class="marker-arrow"></div>
         `;
-    
+
         wrapper.appendChild(marker);
-    
         currentMarker = marker;
     }
 
@@ -392,10 +392,15 @@ document.addEventListener("DOMContentLoaded", function () {
     
         // 🎯 Marker
         const marker = document.createElement("div");
-        marker.classList.add("marker");
-    
+        marker.classList.add("marker-advanced");
+
         marker.style.left = (x * 100) + "%";
         marker.style.top = (y * 100) + "%";
+
+        marker.innerHTML = `
+            <div class="marker-circle">1</div>
+            <div class="marker-arrow"></div>
+        `;
     
         wrap.appendChild(marker);
     
