@@ -51,6 +51,11 @@
                 <div>{{ error.created_at.strftime("%d.%m.%Y %H:%M") }}</div>
             </div>
 
+            <div class="detail-item">
+                <label>Ersteller</label>
+                <div>{{ error.reported_by }}</div>
+            </div>
+
             <div class="detail-item full">
                 <label>Beschreibung</label>
                 <div>{{ error.description or "-" }}</div>
