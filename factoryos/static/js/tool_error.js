@@ -285,8 +285,11 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
         // Spitze exakt auf Klickpunkt
-        marker.style.left = (relX - 34) + "px";
-        marker.style.top  = (relY - 12) + "px";
+        const offsetX = 18;   // Spitze rechts
+        const offsetY = 0;    // mittig
+
+        marker.style.left = (relX - offsetX) + "px";
+        marker.style.top  = (relY - offsetY) + "px";
 
         wrapper.appendChild(marker);
         currentMarker = marker;
@@ -334,8 +337,11 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("marker_px").value = Math.round(px);
             document.getElementById("marker_py").value = Math.round(py);
 
-            marker.style.left = (relX - 34) + "px";
-            marker.style.top  = (relY - 12) + "px";
+            const offsetX = 18;
+            const offsetY = 0;
+
+            marker.style.left = (relX - offsetX) + "px";
+            marker.style.top  = (relY - offsetY) + "px";
         }
 
         marker.addEventListener("mousedown", function(e){
