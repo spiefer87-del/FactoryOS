@@ -213,40 +213,50 @@ input[type="file"] {
 /* =========================
    MARKER
 ========================= */
-.marker-advanced {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    z-index: 10;
-    pointer-events: none;
+.marker-advanced{
+    position:absolute;
+    transform:translate(-50%, -50%);
+    width:42px;
+    height:26px;
+    pointer-events:none;
+    z-index:20;
 }
 
-/* 🔴 Kreis */
-.marker-circle {
-    width: 26px;
-    height: 26px;
-    background: red;
-    border-radius: 50%;
-    color: white;
-    font-size: 14px;
-    font-weight: bold;
+/* Kreis */
+.marker-circle{
+    position:absolute;
+    left:0;
+    top:0;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width:26px;
+    height:26px;
+    border-radius:50%;
 
-    position: absolute;
-    left: -30px;
-    top: -13px;
+    background:#e12626;
+    border:2px solid #000;
+
+    color:#fff;
+    font-size:15px;
+    font-weight:700;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-sizing:border-box;
 }
 
-/* ▶ Pfeil */
-.marker-arrow {
-    width: 0;
-    height: 0;
+/* Pfeil */
+.marker-arrow{
+    position:absolute;
+    right:0;
+    top:6px;
 
-    border-top: 8px solid transparent;
-    border-bottom: 8px solid transparent;
-    border-left: 16px solid red;
+    width:0;
+    height:0;
+
+    border-top:7px solid transparent;
+    border-bottom:7px solid transparent;
+    border-left:16px solid #e12626;
 }
 
 .marker {
