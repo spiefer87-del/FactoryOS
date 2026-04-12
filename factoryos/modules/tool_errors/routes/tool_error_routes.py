@@ -135,7 +135,6 @@ def detail(error_id):
         error=error,
         TOOL_STATUSES=TOOL_STATUSES
     )
-    )
 
 
 
