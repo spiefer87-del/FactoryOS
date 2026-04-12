@@ -310,12 +310,12 @@ def generate_tool_error_pdf(error):
             base = min(width, height)
 
             # Dynamische Größe
-            r = max(int(base * 0.022), 12)          # Kreisradius
-            arrow_len = int(r * 1.55)
-            arrow_h = int(r * 0.95)
+            r = max(int(base * 0.020), 11)          # Kreisradius
+            arrow_len = int(r * 1.85)
+            arrow_h = int(r * 1.20)
             border = max(int(r * 0.13), 2)
 
-            font_size = int(r * 1.15)
+            font_size = int(r * 1.05)
 
             try:
                 font = ImageFont.truetype("DejaVuSans-Bold.ttf", font_size)
@@ -359,7 +359,7 @@ def generate_tool_error_pdf(error):
             th = bbox[3] - bbox[1]
 
             draw.text(
-                (cx - tw/2, cy - th/2 - 1),
+                (cx - tw/2, cy - th/2 - 3),
                 txt,
                 fill="red",
                 font=font
