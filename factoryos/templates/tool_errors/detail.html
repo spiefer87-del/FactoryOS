@@ -6,10 +6,22 @@
 
 {% block content %}
 
+<!-- ===================================== -->
+<!-- HEADER -->
+<!-- ===================================== -->
+
 <div class="page-header">
-    <h2>Fehlermeldung {{ error.error_no }}</h2>
+
+    <div>
+        <h2>Fehlermeldung {{ error.error_no }}</h2>
+
+        <div class="page-subtitle">
+            {{ error.error_type }}
+        </div>
+    </div>
 
     <div class="page-actions">
+
         <a href="{{ url_for('tool_error.export_pdf', error_id=error.id) }}"
            class="btn-small btn-primary">
            📄 PDF Export
@@ -19,97 +31,136 @@
            class="btn-small btn-delete">
            🗑 Löschen
         </a>
+
     </div>
+
 </div>
 
 
 <div class="detail-container">
 
-    <!-- 🔧 INFOS -->
-    <div class="detail-card">
-        <h3>Informationen</h3>
 
-        <div class="detail-grid">
+<!-- ===================================== -->
+<!-- INFORMATIONEN -->
+<!-- ===================================== -->
 
-            <div class="detail-item">
-                <label>Fehlermeldung</label>
-                <div>{{ error.error_no }}</div>
-            </div>
+<div class="detail-card">
 
-            <div class="detail-item">
-                <label>Werkzeug</label>
-                <div>{{ error.tool.tool_no }}</div>
-            </div>
+    <h3 class="section-title">Informationen</h3>
 
-            <div class="detail-card">
+    <div class="detail-grid">
 
-                <h3 class="section-title">Zugeordnete Artikel</h3>
-
-                {% if error.tool and error.tool.articles %}
-
-                    <div class="tool-list">
-
-                        {% for article in error.tool.articles %}
-
-                            <a href="{{ url_for('articles.detail', article_id=article.id) }}"
-                            class="tool-badge">
-
-                                {{ article.article_no }}
-
-                            </a>
-
-                        {% endfor %}
-
-                    </div>
-
-                {% else %}
-
-                    <div class="empty-state">
-                        Keine Artikel zugeordnet
-                    </div>
-
-                {% endif %}
-
-            </div>
-
-            <div class="detail-item">
-                <label>Fehler</label>
-                <div>{{ error.error_type }}</div>
-            </div>
-
-            <div class="detail-item">
-                <label>Datum</label>
-                <div>{{ error.created_at.strftime("%d.%m.%Y %H:%M") }}</div>
-            </div>
-
-            <div class="detail-item">
-                <label>Ersteller</label>
-                <div>{{ error.reported_by.username }}</div>
-            </div>
-
-            <div class="detail-item full">
-                <label>Beschreibung</label>
-                <div>{{ error.description or "-" }}</div>
-            </div>
-
+        <div class="detail-item">
+            <label>Fehlermeldung</label>
+            <div>{{ error.error_no }}</div>
         </div>
+
+        <div class="detail-item">
+            <label>Fehlerart</label>
+            <div>{{ error.error_type }}</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Werkzeug</label>
+
+            <div>
+                <a href="{{ url_for('tools.detail', tool_id=error.tool.id) }}"
+                   class="tool-badge">
+                    {{ error.tool.tool_no }}
+                </a>
+            </div>
+        </div>
+
+        <div class="detail-item">
+            <label>Status Werkzeug</label>
+
+            <span class="status-badge status-{{ error.tool.tool_status }}">
+                {{ error.tool.tool_status }}
+            </span>
+        </div>
+
+        <div class="detail-item">
+            <label>Erstellt am</label>
+            <div>{{ error.created_at.strftime("%d.%m.%Y %H:%M") }}</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Erstellt von</label>
+            <div>
+                {{ error.reported_by.username if error.reported_by else "-" }}
+            </div>
+        </div>
+
+        <div class="detail-item full">
+            <label>Beschreibung</label>
+            <div>{{ error.description or "-" }}</div>
+        </div>
+
     </div>
 
+</div>
 
-    <!-- 📸 BILDER -->
-    <div class="detail-card">
-        <h3>Bilder</h3>
 
-        {% if error.images %}
+<!-- ===================================== -->
+<!-- ZUGEORDNETE ARTIKEL -->
+<!-- ===================================== -->
+
+<div class="detail-card">
+
+    <h3 class="section-title">Betroffene Artikel</h3>
+
+    {% if error.tool and error.tool.articles %}
+
+        <div class="tool-list">
+
+            {% for article in error.tool.articles %}
+
+                <a href="{{ url_for('articles.detail', article_id=article.id) }}"
+                   class="tool-badge">
+
+                    {{ article.article_no }}
+                    {% if article.name %}
+                        - {{ article.name }}
+                    {% endif %}
+
+                </a>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="empty-state">
+            Keine Artikel zugeordnet
+        </div>
+
+    {% endif %}
+
+</div>
+
+
+
+<!-- ===================================== -->
+<!-- BILDER -->
+<!-- ===================================== -->
+
+<div class="detail-card">
+
+    <h3 class="section-title">Bilder</h3>
+
+    {% if error.images %}
+
         <div class="image-gallery">
 
             {% for img in error.images %}
+
             <div class="image-wrapper">
 
                 <img src="{{ url_for('static', filename=img.image_path) }}">
 
                 <div class="marker-advanced"
-                    style="left: calc({{ img.marker_x * 100 }}% - 18px);
+                     style="left: calc({{ img.marker_x * 100 }}% - 14px);
                             top: {{ img.marker_y * 100 }}%;">
 
                     <div class="marker-circle">{{ loop.index }}</div>
@@ -124,13 +175,35 @@
                 {% endif %}
 
             </div>
+
             {% endfor %}
 
         </div>
-        {% else %}
-            <div class="empty-state">Keine Bilder vorhanden</div>
-        {% endif %}
-    </div>
+
+    {% else %}
+
+        <div class="empty-state">
+            Keine Bilder vorhanden
+        </div>
+
+    {% endif %}
+
+</div>
+
+
+
+<!-- ===================================== -->
+<!-- FOOTER -->
+<!-- ===================================== -->
+
+<div class="detail-footer">
+
+    <a href="{{ url_for('tool_error.list') }}" class="btn-secondary">
+        ← Zurück zur Liste
+    </a>
+
+</div>
+
 
 </div>
 
