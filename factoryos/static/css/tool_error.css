@@ -229,8 +229,8 @@ input[type="file"] {
 .marker-advanced{
     position:absolute;
     transform:translate(-50%, -50%);
-    width:52px;
-    height:30px;
+    width:44px;
+    height:24px;
     pointer-events:none;
     z-index:999;
 }
@@ -241,15 +241,15 @@ input[type="file"] {
     left:0;
     top:0;
 
-    width:30px;
-    height:30px;
+    width:24px;
+    height:24px;
     border-radius:50%;
 
     background:#ffffff;
-    border:3px solid #d10000;
+    border:2px solid #c80000;
 
-    color:#d10000;
-    font-size:18px;
+    color:#c80000;
+    font-size:15px;
     font-weight:700;
     font-family:Arial, sans-serif;
 
@@ -263,15 +263,15 @@ input[type="file"] {
 /* Spitze */
 .marker-arrow{
     position:absolute;
-    left:24px;
-    top:6px;
+    left:22px;   /* 🔥 weiter rechts */
+    top:5px;
 
     width:0;
     height:0;
 
-    border-top:9px solid transparent;
-    border-bottom:9px solid transparent;
-    border-left:24px solid #d10000;
+    border-top:7px solid transparent;
+    border-bottom:7px solid transparent;
+    border-left:18px solid #c80000;
 }
 
 .marker {
