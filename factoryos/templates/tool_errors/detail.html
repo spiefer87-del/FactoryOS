@@ -75,7 +75,7 @@
             <label>Status Werkzeug</label>
 
             <span class="status-badge status-{{ error.tool.tool_status }}">
-                {{ error.tool.tool_status }}
+                {{ TOOL_STATUSES.get(error.tool.tool_status, error.tool.tool_status) }}
             </span>
         </div>
 
