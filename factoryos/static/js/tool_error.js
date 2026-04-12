@@ -468,15 +468,28 @@ document.addEventListener("DOMContentLoaded", function () {
         const marker = document.createElement("div");
         marker.classList.add("marker-advanced");
 
-        marker.style.left = (x * 100) + "%";
-        marker.style.top = (y * 100) + "%";
-
         marker.innerHTML = `
             <div class="marker-circle">1</div>
             <div class="marker-arrow"></div>
         `;
-    
-        wrap.appendChild(marker);
+
+        // Bildgröße abwarten
+        img.onload = function () {
+
+            const width = img.offsetWidth;
+            const height = img.offsetHeight;
+
+            const posX = x * width;
+            const posY = y * height;
+
+            const offsetX = 18;
+            const offsetY = 0;
+
+            marker.style.left = (posX - offsetX) + "px";
+            marker.style.top = (posY - offsetY) + "px";
+        };
+
+        wrap.appendChild(marker);     
     
         // 📝 Beschreibung
         if (text) {
