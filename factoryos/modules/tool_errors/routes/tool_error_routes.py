@@ -132,7 +132,9 @@ def detail(error_id):
 
     return render_template(
         "tool_errors/detail.html",
-        error=error
+        error=error,
+        TOOL_STATUSES=TOOL_STATUSES
+    )
     )
 
 
