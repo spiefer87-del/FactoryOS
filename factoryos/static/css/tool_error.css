@@ -231,8 +231,14 @@ input[type="file"] {
     transform:translate(-50%, -50%);
     width:44px;
     height:24px;
-    pointer-events:none;
+    pointer-events: auto;
+    cursor: grab;
+    touch-action: none;
     z-index:999;
+}
+
+.marker-advanced:active{
+    cursor:grabbing;
 }
 
 /* Kreis */
