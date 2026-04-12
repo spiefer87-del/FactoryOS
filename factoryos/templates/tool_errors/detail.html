@@ -41,6 +41,37 @@
                 <div>{{ error.tool.tool_no }}</div>
             </div>
 
+            <div class="detail-card">
+
+                <h3 class="section-title">Zugeordnete Artikel</h3>
+
+                {% if error.tool and error.tool.articles %}
+
+                    <div class="tool-list">
+
+                        {% for article in error.tool.articles %}
+
+                            <a href="{{ url_for('articles.detail', article_id=article.id) }}"
+                            class="tool-badge">
+
+                                {{ article.article_no }}
+
+                            </a>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <div class="empty-state">
+                        Keine Artikel zugeordnet
+                    </div>
+
+                {% endif %}
+
+            </div>
+
             <div class="detail-item">
                 <label>Fehler</label>
                 <div>{{ error.error_type }}</div>
