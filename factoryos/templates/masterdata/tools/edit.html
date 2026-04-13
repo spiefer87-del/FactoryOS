@@ -1,13 +1,23 @@
+<!-- templates/masterdata/tools/edit.html -->
+
 {% extends "layout/base.html" %}
 
 {% block content %}
 
-<h2 style="margin-bottom:25px">Werkzeug bearbeiten</h2>
+<h2 style="margin-bottom:25px;">Werkzeug bearbeiten</h2>
 
 <div class="form-card">
-<form method="POST">
+<form method="POST" enctype="multipart/form-data">
 
 <div class="form-grid">
+
+<!-- ================================= -->
+<!-- IDENTIFIKATION -->
+<!-- ================================= -->
+
+<div class="full">
+    <h3 class="section-title">Identifikation</h3>
+</div>
 
 <div class="form-group">
     <label>Werkzeugnummer *</label>
@@ -16,86 +26,131 @@
 
 <div class="form-group">
     <label>Externe Werkzeugnummer</label>
-    <input type="text"
-           name="external_tool_no"
-           class="form-control"
-           value="{{ tool.external_tool_no if tool else '' }}">
+    <input type="text" name="external_tool_no" value="{{ tool.external_tool_no or '' }}">
 </div>
-    
+
 <div class="form-group">
     <label>Name</label>
-    <input type="text" name="name" value="{{ tool.name }}">
+    <input type="text" name="name" value="{{ tool.name or '' }}">
+</div>
+
+<div class="form-group">
+    <label>Gebaut von</label>
+    <input type="text" name="built_by" value="{{ tool.built_by or '' }}">
+</div>
+
+<div class="form-group">
+    <label>Baujahr</label>
+    <input type="number" name="build_year" value="{{ tool.build_year or '' }}">
+</div>
+
+<div class="form-group">
+    <label>Schusszähler</label>
+    <input type="number" name="shot_counter" value="{{ tool.shot_counter or '' }}">
 </div>
 
 <div class="form-group full">
     <label>Beschreibung</label>
-    <textarea name="description">{{ tool.description }}</textarea>
+    <textarea name="description">{{ tool.description or '' }}</textarea>
 </div>
 
 <hr class="full">
 
+
+<!-- ================================= -->
+<!-- TECHNISCHE DATEN -->
+<!-- ================================= -->
+
+<div class="full">
+    <h3 class="section-title">Technische Daten</h3>
+</div>
+
 <div class="form-group">
     <label>Kavitäten</label>
-    <input type="number" name="cavities" value="{{ tool.cavities }}">
+    <input type="number" name="cavities" value="{{ tool.cavities or '' }}">
 </div>
 
 <div class="form-group">
     <label>Kernzüge</label>
-    <input type="number" name="core_pulls" value="{{ tool.core_pulls }}">
+    <input type="number" name="core_pulls" value="{{ tool.core_pulls or '' }}">
 </div>
 
 <div class="form-group">
     <label>Heißkanalzonen</label>
-    <input type="number" name="hotrunner_zones" value="{{ tool.hotrunner_zones }}">
+    <input type="number" name="hotrunner_zones" value="{{ tool.hotrunner_zones or '' }}">
 </div>
 
 <hr class="full">
 
+
+<!-- ================================= -->
+<!-- ABMESSUNGEN -->
+<!-- ================================= -->
+
+<div class="full">
+    <h3 class="section-title">Abmessungen</h3>
+</div>
+
 <div class="form-group">
     <label>Gewicht (kg)</label>
-    <input type="number" step="0.01" name="tool_weight_kg" value="{{ tool.tool_weight_kg }}">
+    <input type="number" step="0.01" name="tool_weight_kg" value="{{ tool.tool_weight_kg or '' }}">
 </div>
 
 <div class="form-group">
     <label>Länge (mm)</label>
-    <input type="number" step="0.01" name="tool_length_mm" value="{{ tool.tool_length_mm }}">
+    <input type="number" step="0.01" name="tool_length_mm" value="{{ tool.tool_length_mm or '' }}">
 </div>
 
 <div class="form-group">
     <label>Breite (mm)</label>
-    <input type="number" step="0.01" name="tool_width_mm" value="{{ tool.tool_width_mm }}">
+    <input type="number" step="0.01" name="tool_width_mm" value="{{ tool.tool_width_mm or '' }}">
 </div>
 
 <div class="form-group">
     <label>Höhe (mm)</label>
-    <input type="number" step="0.01" name="tool_height_mm" value="{{ tool.tool_height_mm }}">
+    <input type="number" step="0.01" name="tool_height_mm" value="{{ tool.tool_height_mm or '' }}">
 </div>
 
 <hr class="full">
 
+
+<!-- ================================= -->
+<!-- AUSSTATTUNG -->
+<!-- ================================= -->
+
+<div class="full">
+    <h3 class="section-title">Ausstattung</h3>
+</div>
+
 <div class="form-group">
-    <label>Zentrierung</label>
-    <input type="text" name="centering_type" value="{{ tool.centering_type }}">
+    <label>Zentrierung Düsenseite</label>
+    <input type="text" name="centering_nozzle_side" value="{{ tool.centering_nozzle_side or '' }}">
+</div>
+
+<div class="form-group">
+    <label>Zentrierung Auswerferseite</label>
+    <input type="text" name="centering_ejector_side" value="{{ tool.centering_ejector_side or '' }}">
 </div>
 
 <div class="form-group">
     <label>Auswerferanschluss</label>
-    <input type="text" name="ejector_connection" value="{{ tool.ejector_connection }}">
+    <input type="text" name="ejector_connection" value="{{ tool.ejector_connection or '' }}">
 </div>
 
 <div class="form-group">
     <label>Entformungsart</label>
-    <input type="text" name="demolding_type" value="{{ tool.demolding_type }}">
+    <input type="text" name="demolding_type" value="{{ tool.demolding_type or '' }}">
 </div>
 
 <div class="form-group">
     <label>Automatisierung</label>
-    <input type="text" name="automation_type" value="{{ tool.automation_type }}">
+    <input type="text" name="automation_type" value="{{ tool.automation_type or '' }}">
 </div>
 
 <div class="form-group checkbox">
     <label>
-        <input type="checkbox" name="has_conversion_kit"
+        <input type="checkbox"
+               name="has_conversion_kit"
                {% if tool.has_conversion_kit %}checked{% endif %}>
         Umbausatz vorhanden
     </label>
@@ -103,9 +158,18 @@
 
 <hr class="full">
 
+
+<!-- ================================= -->
+<!-- ORGANISATION -->
+<!-- ================================= -->
+
+<div class="full">
+    <h3 class="section-title">Organisation</h3>
+</div>
+
 <div class="form-group">
     <label>Lagerort</label>
-    <input type="text" name="location" value="{{ tool.location }}">
+    <input type="text" name="location" value="{{ tool.location or '' }}">
 </div>
 
 <div class="form-group">
@@ -123,8 +187,8 @@
 </div>
 
 <div class="form-actions">
-    <button class="btn-primary">Speichern</button>
-    <a href="{{ url_for('tools.list_tools') }}" class="btn-secondary">Abbrechen</a>
+    <button type="submit" class="btn-primary">Speichern</button>
+    <a href="{{ url_for('tools.detail', tool_id=tool.id) }}" class="btn-secondary">Abbrechen</a>
 </div>
 
 </form>
