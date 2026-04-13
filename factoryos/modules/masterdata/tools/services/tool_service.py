@@ -10,6 +10,7 @@ def create_tool(data):
 
     tool = Tool(
         tool_no=data.get("tool_no"),
+        external_tool_no=data.get("external_tool_no"),
         name=data.get("name"),
         description=data.get("description"),
         location=data.get("location"),
@@ -55,6 +56,7 @@ def update_tool(tool, data):
 
     new_data = {
         "tool_no": data.get("tool_no"),
+        "external_tool_no": data.get("external_tool_no"),
         "name": data.get("name"),
         "description": data.get("description"),
         "location": data.get("location"),
