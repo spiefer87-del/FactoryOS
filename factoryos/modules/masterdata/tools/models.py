@@ -10,6 +10,7 @@ class Tool(db.Model):
 
     # Identifikation
     tool_no = db.Column(db.String(100), unique=True, nullable=False)
+    external_tool_no = db.Column(db.String(100))
 
     name = db.Column(db.String(100))
     description = db.Column(db.Text)
