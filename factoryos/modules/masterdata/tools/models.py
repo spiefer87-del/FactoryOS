@@ -28,9 +28,8 @@ class Tool(db.Model):
     tool_width_mm = db.Column(db.Float)
     tool_height_mm = db.Column(db.Float)
 
-    centering_type = db.Column(db.String(50))  # z.B. HASCO, Eigenbau
-    centering_nozzle_side = db.Column(db.String(100))
-    centering_ejector_side = db.Column(db.String(100))
+    centering_nozzle_side = db.Column(db.String(50))
+    centering_ejector_side = db.Column(db.String(50))
 
     ejector_connection = db.Column(db.String(50))
     demolding_type = db.Column(db.String(100))
