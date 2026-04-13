@@ -6,7 +6,7 @@ from factoryos.modules.masterdata.tools.models import Tool
 from factoryos.core.queries.change_log_queries import get_logs
 from ..queries.tool_queries import get_tool
 
-
+from factoryos.modules.masterdata.tools.constants import TOOL_STATUSES
 
 @bp.route("/<int:tool_id>")
 @login_required
@@ -35,5 +35,6 @@ def detail(tool_id):
     return render_template(
         "masterdata/tools/detail.html",
         tool=tool,
-        logs=logs   # 🔥 WICHTIG
+        logs=logs,
+        TOOL_STATUSES=TOOL_STATUSES
     )
