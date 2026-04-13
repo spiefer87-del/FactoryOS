@@ -2,14 +2,22 @@
 
 {% block content %}
 
-<h2 style="margin-bottom:25px">Werkzeug anlegen</h2>
+<h2 style="margin-bottom:25px;">Werkzeug anlegen</h2>
 
 <div class="form-card">
-<form method="POST">
+
+<form method="POST" enctype="multipart/form-data">
 
 <div class="form-grid">
 
-<!-- 🔹 Identifikation -->
+<!-- ================================== -->
+<!-- 🔹 IDENTIFIKATION -->
+<!-- ================================== -->
+
+<div class="full">
+    <h3 class="section-title">Identifikation</h3>
+</div>
+
 <div class="form-group">
     <label>Werkzeugnummer *</label>
     <input type="text" name="tool_no" required>
@@ -17,15 +25,27 @@
 
 <div class="form-group">
     <label>Externe Werkzeugnummer</label>
-    <input type="text"
-           name="external_tool_no"
-           class="form-control"
-           value="{{ tool.external_tool_no if tool else '' }}">
+    <input type="text" name="external_tool_no">
 </div>
-    
+
 <div class="form-group">
-    <label>Name</label>
+    <label>Werkzeugname</label>
     <input type="text" name="name">
+</div>
+
+<div class="form-group">
+    <label>Form gebaut von</label>
+    <input type="text" name="built_by">
+</div>
+
+<div class="form-group">
+    <label>Baujahr</label>
+    <input type="number" name="build_year">
+</div>
+
+<div class="form-group">
+    <label>Schusszähler</label>
+    <input type="number" name="shot_counter">
 </div>
 
 <div class="form-group full">
@@ -35,25 +55,57 @@
 
 <hr class="full">
 
-<!-- 🔹 Technische Daten -->
+
+<!-- ================================== -->
+<!-- 🔹 TECHNISCHE DATEN -->
+<!-- ================================== -->
+
+<div class="full">
+    <h3 class="section-title">Technische Daten</h3>
+</div>
+
 <div class="form-group">
     <label>Kavitäten</label>
     <input type="number" name="cavities">
 </div>
 
 <div class="form-group">
-    <label>Kernzüge</label>
+    <label>Kernzüge vorhanden?</label>
+    <select name="has_core_pulls" id="has_core_pulls">
+        <option value="0">Nein</option>
+        <option value="1">Ja</option>
+    </select>
+</div>
+
+<div class="form-group hidden" id="core_pull_group">
+    <label>Anzahl Kernzüge</label>
     <input type="number" name="core_pulls">
 </div>
 
 <div class="form-group">
+    <label>Heißkanal vorhanden?</label>
+    <select name="has_hotrunner" id="has_hotrunner">
+        <option value="0">Nein</option>
+        <option value="1">Ja</option>
+    </select>
+</div>
+
+<div class="form-group hidden" id="hotrunner_group">
     <label>Heißkanalzonen</label>
     <input type="number" name="hotrunner_zones">
 </div>
 
 <hr class="full">
 
-<!-- 🔹 Abmessungen -->
+
+<!-- ================================== -->
+<!-- 🔹 ABMESSUNGEN -->
+<!-- ================================== -->
+
+<div class="full">
+    <h3 class="section-title">Abmessungen</h3>
+</div>
+
 <div class="form-group">
     <label>Gewicht (kg)</label>
     <input type="number" step="0.01" name="tool_weight_kg">
@@ -76,10 +128,23 @@
 
 <hr class="full">
 
-<!-- 🔹 Ausstattung -->
+
+<!-- ================================== -->
+<!-- 🔹 AUSSTATTUNG -->
+<!-- ================================== -->
+
+<div class="full">
+    <h3 class="section-title">Ausstattung</h3>
+</div>
+
 <div class="form-group">
-    <label>Zentrierung</label>
-    <input type="text" name="centering_type">
+    <label>Zentrierung Düsenseite</label>
+    <input type="text" name="centering_nozzle_side">
+</div>
+
+<div class="form-group">
+    <label>Zentrierung Auswerferseite</label>
+    <input type="text" name="centering_ejector_side">
 </div>
 
 <div class="form-group">
@@ -106,7 +171,15 @@
 
 <hr class="full">
 
-<!-- 🔹 Organisation -->
+
+<!-- ================================== -->
+<!-- 🔹 ORGANISATION -->
+<!-- ================================== -->
+
+<div class="full">
+    <h3 class="section-title">Organisation</h3>
+</div>
+
 <div class="form-group">
     <label>Lagerort</label>
     <input type="text" name="location">
@@ -121,15 +194,61 @@
     </select>
 </div>
 
+<hr class="full">
+
+
+<!-- ================================== -->
+<!-- 🔹 BILDER -->
+<!-- ================================== -->
+
+<div class="full">
+    <h3 class="section-title">Bilder</h3>
 </div>
 
-<!-- 🔹 Actions -->
+<div class="form-group full">
+    <label>Bilder hochladen</label>
+    <input type="file" name="images" multiple accept="image/*">
+</div>
+
+</div>
+
+
+<!-- ================================== -->
+<!-- ACTIONS -->
+<!-- ================================== -->
+
 <div class="form-actions">
-    <button class="btn-primary">Speichern</button>
+    <button type="submit" class="btn-primary">Speichern</button>
     <a href="{{ url_for('tools.list_tools') }}" class="btn-secondary">Abbrechen</a>
 </div>
 
 </form>
 </div>
+
+
+<!-- ================================== -->
+<!-- JS -->
+<!-- ================================== -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const hotrunner = document.getElementById("has_hotrunner");
+    const hotrunnerGroup = document.getElementById("hotrunner_group");
+
+    const corepull = document.getElementById("has_core_pulls");
+    const coreGroup = document.getElementById("core_pull_group");
+
+    function toggleFields() {
+        hotrunnerGroup.classList.toggle("hidden", hotrunner.value !== "1");
+        coreGroup.classList.toggle("hidden", corepull.value !== "1");
+    }
+
+    hotrunner.addEventListener("change", toggleFields);
+    corepull.addEventListener("change", toggleFields);
+
+    toggleFields();
+});
+</script>
 
 {% endblock %}
