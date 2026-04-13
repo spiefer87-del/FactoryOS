@@ -41,7 +41,7 @@ class Tool(db.Model):
 
     location = db.Column(db.String(100))
 
-    tool_status = db.Column(db.String(50), default="OK")
+    tool_status = db.Column(db.String(50), default="aktiv")
 
     created_at = db.Column(db.DateTime)
     created_by_id = db.Column(db.Integer, db.ForeignKey("users.id"))
