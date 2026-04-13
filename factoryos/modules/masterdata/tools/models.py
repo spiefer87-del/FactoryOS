@@ -16,6 +16,11 @@ class Tool(db.Model):
     description = db.Column(db.Text)
 
     # 🔧 Werkzeugdaten
+    built_by = db.Column(db.String(150))
+    build_year = db.Column(db.Integer)
+    shot_counter = db.Column(db.Integer)
+    last_service_at = db.Column(db.DateTime)
+    
     cavities = db.Column(db.Integer)
 
     tool_weight_kg = db.Column(db.Float)
@@ -24,6 +29,8 @@ class Tool(db.Model):
     tool_height_mm = db.Column(db.Float)
 
     centering_type = db.Column(db.String(50))  # z.B. HASCO, Eigenbau
+    centering_nozzle_side = db.Column(db.String(100))
+    centering_ejector_side = db.Column(db.String(100))
 
     ejector_connection = db.Column(db.String(50))
     demolding_type = db.Column(db.String(100))
@@ -46,3 +53,23 @@ class Tool(db.Model):
         secondary=article_tools,
         back_populates="tools"
     )
+
+    images = db.relationship(
+        "ToolImage",
+        backref="tool",
+        cascade="all, delete-orphan"
+    )
+
+class ToolImage(db.Model):
+    __tablename__ = "tool_images"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    tool_id = db.Column(db.Integer, db.ForeignKey("tools.id"))
+
+    image_path = db.Column(db.String(255))
+
+    title = db.Column(db.String(100))
+    description = db.Column(db.Text)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
