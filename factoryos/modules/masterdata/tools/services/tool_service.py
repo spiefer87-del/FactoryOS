@@ -54,6 +54,31 @@ def create_tool(data):
     db.session.add(tool)
     db.session.flush()
 
+    files = request.files.getlist("images")
+
+    for file in files:
+        if file and file.filename:
+    
+            filename = secure_filename(file.filename)
+    
+            folder = os.path.join(
+                current_app.static_folder,
+                "uploads/tools"
+            )
+    
+            os.makedirs(folder, exist_ok=True)
+    
+            filepath = os.path.join(folder, filename)
+            file.save(filepath)
+    
+            img = ToolImage(
+                tool_id=tool.id,
+                image_path=f"uploads/tools/{filename}"
+            )
+    
+            db.session.add(img)
+    
+
     # ==========================================
     # CHANGELOG
     # ==========================================
@@ -118,6 +143,41 @@ def update_tool(tool, data):
 
         "has_conversion_kit": True if data.get("has_conversion_kit") else False,
     }
+
+    # Bilder löschen
+    delete_ids = request.form.getlist("delete_images")
+    
+    for image_id in delete_ids:
+        img = ToolImage.query.get(image_id)
+        if img:
+            db.session.delete(img)
+    
+    
+    # Neue Bilder
+    files = request.files.getlist("images")
+    
+    for file in files:
+        if file and file.filename:
+    
+            filename = secure_filename(file.filename)
+    
+            folder = os.path.join(
+                current_app.static_folder,
+                "uploads/tools"
+            )
+    
+            os.makedirs(folder, exist_ok=True)
+    
+            filepath = os.path.join(folder, filename)
+            file.save(filepath)
+    
+            img = ToolImage(
+                tool_id=tool.id,
+                image_path=f"uploads/tools/{filename}"
+            )
+    
+            db.session.add(img)
+
 
     changes = build_changes(tool, new_data, new_data.keys())
 
