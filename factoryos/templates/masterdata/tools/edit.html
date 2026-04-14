@@ -186,6 +186,70 @@
 
 </div>
 
+<!-- ================================= -->
+<!-- Werkzeug Bilder -->
+<!-- ================================= -->
+
+<hr class="full">
+
+<div class="full">
+    <h3 class="section-title">Bilder</h3>
+</div>
+
+
+<!-- ===================================== -->
+<!-- Bestehende Bilder -->
+<!-- ===================================== -->
+
+{% if tool.images %}
+<div class="full image-gallery">
+
+    {% for img in tool.images %}
+    <div class="image-wrapper">
+
+        <img src="{{ url_for('static', filename=img.image_path) }}">
+
+        {% if img.title %}
+            <div class="image-title">{{ img.title }}</div>
+        {% endif %}
+
+        {% if img.description %}
+            <div class="image-description">
+                {{ img.description }}
+            </div>
+        {% endif %}
+
+        <label class="delete-image-check">
+            <input type="checkbox"
+                   name="delete_images"
+                   value="{{ img.id }}">
+            Bild löschen
+        </label>
+
+    </div>
+    {% endfor %}
+
+</div>
+{% else %}
+<div class="full empty-state">
+    Keine Bilder vorhanden
+</div>
+{% endif %}
+
+
+
+<!-- ===================================== -->
+<!-- Neue Bilder hochladen -->
+<!-- ===================================== -->
+
+<div class="form-group full">
+    <label>Neue Bilder hinzufügen</label>
+    <input type="file"
+           name="images"
+           multiple
+           accept="image/*">
+</div>
+
 <div class="form-actions">
     <button type="submit" class="btn-primary">Speichern</button>
     <a href="{{ url_for('tools.detail', tool_id=tool.id) }}" class="btn-secondary">Abbrechen</a>
