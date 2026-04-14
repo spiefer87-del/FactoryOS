@@ -12,7 +12,8 @@ def create():
 
     if request.method == "POST":
 
-        create_tool(request.form)
+        files = request.files.getlist("images")
+        create_tool(request.form, files)
 
         return redirect(
             url_for("tools.list_tools")
