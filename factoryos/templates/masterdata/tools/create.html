@@ -212,55 +212,6 @@
 
 </div>
 
-<hr>
-
-<h3>Bilder</h3>
-
-<div class="form-group full">
-    <input type="file" name="images" multiple>
-</div>
-
-{% if tool.images %}
-<div class="image-admin-grid">
-
-{% for img in tool.images|sort(attribute='sort_order') %}
-<div class="image-admin-card">
-
-    <img src="{{ url_for('static', filename=img.image_path) }}">
-
-    <div class="image-actions">
-
-        {% if img.is_primary %}
-            <span class="badge-primary">⭐ Hauptbild</span>
-        {% else %}
-            <a href="{{ url_for('tools.image_primary', image_id=img.id) }}"
-               class="btn-small">
-               Als Hauptbild
-            </a>
-        {% endif %}
-
-        <label>
-            <input type="checkbox"
-                   name="delete_images"
-                   value="{{ img.id }}">
-            Löschen
-        </label>
-
-    </div>
-
-    <input type="text"
-           value="{{ img.title or '' }}"
-           placeholder="Titel"
-           disabled>
-
-    <textarea disabled
-              placeholder="Beschreibung">{{ img.description or '' }}</textarea>
-
-</div>
-{% endfor %}
-
-</div>
-{% endif %}
     
 <!-- ================================== -->
 <!-- ACTIONS -->
