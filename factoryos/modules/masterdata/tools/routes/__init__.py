@@ -13,3 +13,4 @@ from .edit_routes import *
 from .delete_routes import *
 from .detail_routes import *
 from .search_routes import *
+from .image_routes import *
