@@ -12,7 +12,7 @@ from factoryos.core.services.change_log_service import (
 # CREATE
 # =====================================================
 
-def create_tool(data):
+def create_tool(data, files):
 
     tool = Tool(
         # 🔹 Identifikation
@@ -53,8 +53,6 @@ def create_tool(data):
 
     db.session.add(tool)
     db.session.flush()
-
-    files = request.files.getlist("images")
 
     for file in files:
         if file and file.filename:
