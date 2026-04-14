@@ -73,7 +73,7 @@ def create_tool(data, files):
     
             img = ToolImage(
                 tool_id=tool.id,
-                image_path=f"uploads/tools/{filename}"
+                image_path=f"uploads/tools/{tool.tool_no}/images/{filename}"
             )
     
             db.session.add(img)
