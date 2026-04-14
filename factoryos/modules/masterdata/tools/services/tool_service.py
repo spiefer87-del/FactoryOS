@@ -61,7 +61,9 @@ def create_tool(data, files):
     
             folder = os.path.join(
                 current_app.static_folder,
-                "uploads/tools"
+                "uploads/tools",
+                tool.tool_no,
+                "images"
             )
     
             os.makedirs(folder, exist_ok=True)
