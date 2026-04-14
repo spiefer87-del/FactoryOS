@@ -1,3 +1,6 @@
+import shutil
+import uuid
+
 from factoryos.extensions import db
 from factoryos.modules.masterdata.tools.models import Tool, ToolImage
 from factoryos.modules.tool_errors.models import ToolError
@@ -57,7 +60,7 @@ def create_tool(data, files):
     for file in files:
         if file and file.filename:
     
-            filename = secure_filename(file.filename)
+            filename = f"{uuid.uuid4()}_{secure_filename(file.filename)}"
     
             folder = os.path.join(
                 current_app.static_folder,
@@ -154,7 +157,7 @@ def update_tool(tool, data, files, delete_ids):
     for file in files:
         if file and file.filename:
     
-            filename = secure_filename(file.filename)
+            filename = f"{uuid.uuid4()}_{secure_filename(file.filename)}"
     
             folder = os.path.join(
                 current_app.static_folder,
@@ -208,6 +211,17 @@ def delete_tool(tool):
 
     # 🔥 Bilder löschen
     ToolImage.query.filter_by(tool_id=tool.id).delete()
+
+
+
+    folder = os.path.join(
+        current_app.static_folder,
+        "uploads/tools",
+        tool.tool_no
+    )
+    
+    if os.path.exists(folder):
+        shutil.rmtree(folder)
 
     # 🔥 ChangeLog
     log_change(
