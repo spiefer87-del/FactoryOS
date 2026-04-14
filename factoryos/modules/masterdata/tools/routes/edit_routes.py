@@ -15,7 +15,15 @@ def edit(tool_id):
 
     if request.method == "POST":
 
-        update_tool(tool, request.form)
+        files = request.files.getlist("images")
+        delete_ids = request.form.getlist("delete_images")
+
+        update_tool(
+            tool,
+            request.form,
+            files,
+            delete_ids
+        )
 
         return redirect(
             url_for("tools.list_tools")
