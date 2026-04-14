@@ -104,7 +104,7 @@ def create_tool(data, files):
 # UPDATE
 # =====================================================
 
-def update_tool(tool, data):
+def update_tool(tool, data, files, delete_ids):
 
     new_data = {
 
@@ -144,17 +144,12 @@ def update_tool(tool, data):
         "has_conversion_kit": True if data.get("has_conversion_kit") else False,
     }
 
-    # Bilder löschen
-    delete_ids = request.form.getlist("delete_images")
     
     for image_id in delete_ids:
         img = ToolImage.query.get(image_id)
         if img:
             db.session.delete(img)
     
-    
-    # Neue Bilder
-    files = request.files.getlist("images")
     
     for file in files:
         if file and file.filename:
@@ -163,7 +158,9 @@ def update_tool(tool, data):
     
             folder = os.path.join(
                 current_app.static_folder,
-                "uploads/tools"
+                "uploads/tools",
+                tool.tool_no,
+                "images"
             )
     
             os.makedirs(folder, exist_ok=True)
@@ -173,7 +170,7 @@ def update_tool(tool, data):
     
             img = ToolImage(
                 tool_id=tool.id,
-                image_path=f"uploads/tools/{filename}"
+                image_path=f"uploads/tools/{tool.tool_no}/images/{filename}"
             )
     
             db.session.add(img)
