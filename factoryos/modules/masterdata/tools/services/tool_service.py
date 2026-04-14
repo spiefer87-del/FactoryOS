@@ -1,13 +1,13 @@
-import os
-import uuid
-import shutil
-
-from flask import current_app
-from werkzeug.utils import secure_filename
-
 from factoryos.extensions import db
 from factoryos.modules.masterdata.tools.models import Tool, ToolImage
 from factoryos.modules.tool_errors.models import ToolError
+
+from factoryos.modules.masterdata.tools.services.tool_storage_service import (
+    save_tool_images,
+    delete_tool_images_by_ids,
+    delete_tool_folder,
+    rename_tool_folder
+)
 
 from factoryos.core.services.change_log_service import (
     log_change,
@@ -61,29 +61,7 @@ def create_tool(data, files):
     db.session.add(tool)
     db.session.flush()
 
-    for file in files:
-        if file and file.filename:
-    
-            filename = f"{uuid.uuid4()}_{secure_filename(file.filename)}"
-    
-            folder = os.path.join(
-                current_app.static_folder,
-                "uploads/tools",
-                tool.tool_no,
-                "images"
-            )
-    
-            os.makedirs(folder, exist_ok=True)
-    
-            filepath = os.path.join(folder, filename)
-            file.save(filepath)
-    
-            img = ToolImage(
-                tool_id=tool.id,
-                image_path=f"uploads/tools/{tool.tool_no}/images/{filename}"
-            )
-    
-            db.session.add(img)
+    save_tool_images(tool, files)
     
 
     # ==========================================
@@ -152,41 +130,18 @@ def update_tool(tool, data, files, delete_ids):
     }
 
     
-    for image_id in delete_ids:
-        img = ToolImage.query.get(image_id)
-        if img:
-            db.session.delete(img)
-    
-    
-    for file in files:
-        if file and file.filename:
-    
-            filename = f"{uuid.uuid4()}_{secure_filename(file.filename)}"
-    
-            folder = os.path.join(
-                current_app.static_folder,
-                "uploads/tools",
-                tool.tool_no,
-                "images"
-            )
-    
-            os.makedirs(folder, exist_ok=True)
-    
-            filepath = os.path.join(folder, filename)
-            file.save(filepath)
-    
-            img = ToolImage(
-                tool_id=tool.id,
-                image_path=f"uploads/tools/{tool.tool_no}/images/{filename}"
-            )
-    
-            db.session.add(img)
+    old_tool_no = tool.tool_no
+
+    delete_tool_images_by_ids(delete_ids)
+    save_tool_images(tool, files)
 
 
     changes = build_changes(tool, new_data, new_data.keys())
 
     for key, value in new_data.items():
         setattr(tool, key, value)
+
+    rename_tool_folder(old_tool_no, tool.tool_no)
 
     if changes:
         log_change(
@@ -213,19 +168,7 @@ def delete_tool(tool):
     # 🔥 abhängige Fehlermeldungen löschen
     ToolError.query.filter_by(tool_id=tool.id).delete()
 
-    # 🔥 Bilder löschen
-    ToolImage.query.filter_by(tool_id=tool.id).delete()
-
-
-
-    folder = os.path.join(
-        current_app.static_folder,
-        "uploads/tools",
-        tool.tool_no
-    )
-    
-    if os.path.exists(folder):
-        shutil.rmtree(folder)
+    delete_tool_folder(tool.tool_no)
 
     # 🔥 ChangeLog
     log_change(
