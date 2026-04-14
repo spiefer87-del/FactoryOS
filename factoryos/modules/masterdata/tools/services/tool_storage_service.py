@@ -72,7 +72,9 @@ def save_tool_image(tool, file, title=None, description=None):
         tool_id=tool.id,
         image_path=f"uploads/tools/{tool.tool_no}/images/{filename}",
         title=title,
-        description=description
+        description=description,
+        sort_order=0,
+        is_primary=False
     )
 
     db.session.add(image)
