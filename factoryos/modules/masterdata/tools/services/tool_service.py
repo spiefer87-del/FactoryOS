@@ -1,5 +1,5 @@
 from factoryos.extensions import db
-from factoryos.modules.masterdata.tools.models import Tool, ToolImage
+from factoryos.modules.masterdata.tools.models import Tool
 from factoryos.modules.tool_errors.models import ToolError
 
 from factoryos.modules.masterdata.tools.services.tool_storage_service import (
@@ -132,16 +132,14 @@ def update_tool(tool, data, files, delete_ids):
     
     old_tool_no = tool.tool_no
 
-    delete_tool_images_by_ids(delete_ids)
-    save_tool_images(tool, files)
-
-
     changes = build_changes(tool, new_data, new_data.keys())
 
     for key, value in new_data.items():
         setattr(tool, key, value)
 
     rename_tool_folder(old_tool_no, tool.tool_no)
+    delete_tool_images_by_ids(delete_ids)
+    save_tool_images(tool, files)
 
     if changes:
         log_change(
@@ -165,8 +163,10 @@ def delete_tool(tool):
 
     tool_name = tool.tool_no
 
-    # 🔥 abhängige Fehlermeldungen löschen
-    ToolError.query.filter_by(tool_id=tool.id).delete()
+    errors = ToolError.query.filter_by(tool_id=tool.id).all()
+
+    for error in errors:
+        db.session.delete(error)
 
     delete_tool_folder(tool.tool_no)
 
