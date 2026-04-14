@@ -71,4 +71,7 @@ class ToolImage(db.Model):
     title = db.Column(db.String(100))
     description = db.Column(db.Text)
 
+    sort_order = db.Column(db.Integer, default=0)
+    is_primary = db.Column(db.Boolean, default=False)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
