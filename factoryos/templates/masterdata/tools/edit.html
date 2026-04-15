@@ -56,7 +56,6 @@
 
 <hr class="full">
 
-
 <!-- ================================= -->
 <!-- TECHNISCHE DATEN -->
 <!-- ================================= -->
@@ -71,17 +70,32 @@
 </div>
 
 <div class="form-group">
-    <label>Kernzüge</label>
+    <label>Kernzüge vorhanden?</label>
+    <select id="has_core_pulls">
+        <option value="0" {% if not tool.core_pulls %}selected{% endif %}>Nein</option>
+        <option value="1" {% if tool.core_pulls %}selected{% endif %}>Ja</option>
+    </select>
+</div>
+
+<div class="form-group" id="core_pull_group">
+    <label>Anzahl Kernzüge</label>
     <input type="number" name="core_pulls" value="{{ tool.core_pulls or '' }}">
 </div>
 
 <div class="form-group">
+    <label>Heißkanal vorhanden?</label>
+    <select id="has_hotrunner">
+        <option value="0" {% if not tool.hotrunner_zones %}selected{% endif %}>Nein</option>
+        <option value="1" {% if tool.hotrunner_zones %}selected{% endif %}>Ja</option>
+    </select>
+</div>
+
+<div class="form-group" id="hotrunner_group">
     <label>Heißkanalzonen</label>
     <input type="number" name="hotrunner_zones" value="{{ tool.hotrunner_zones or '' }}">
 </div>
 
 <hr class="full">
-
 
 <!-- ================================= -->
 <!-- ABMESSUNGEN -->
@@ -112,7 +126,6 @@
 </div>
 
 <hr class="full">
-
 
 <!-- ================================= -->
 <!-- AUSSTATTUNG -->
@@ -158,7 +171,6 @@
 
 <hr class="full">
 
-
 <!-- ================================= -->
 <!-- ORGANISATION -->
 <!-- ================================= -->
@@ -184,22 +196,15 @@
     </select>
 </div>
 
-</div>
-
-<!-- ================================= -->
-<!-- Werkzeug Bilder -->
-<!-- ================================= -->
-
 <hr class="full">
 
+<!-- ================================= -->
+<!-- BILDER -->
+<!-- ================================= -->
+
 <div class="full">
-    <h3 class="section-title">Bilder</h3>
+    <h3 class="section-title">Werkzeugbilder</h3>
 </div>
-
-
-<!-- ===================================== -->
-<!-- Bestehende Bilder -->
-<!-- ===================================== -->
 
 {% if tool.images %}
 <div class="full image-gallery">
@@ -208,6 +213,15 @@
     <div class="image-wrapper">
 
         <img src="{{ url_for('static', filename=img.image_path) }}">
+
+        {% if img.is_primary %}
+            <div class="badge-primary">⭐ Hauptbild</div>
+        {% else %}
+            <a href="{{ url_for('tools.image_primary', image_id=img.id) }}"
+               class="btn-small">
+               Als Hauptbild
+            </a>
+        {% endif %}
 
         {% if img.title %}
             <div class="image-title">{{ img.title }}</div>
@@ -236,18 +250,14 @@
 </div>
 {% endif %}
 
-
-
-<!-- ===================================== -->
-<!-- Neue Bilder hochladen -->
-<!-- ===================================== -->
-
 <div class="form-group full">
     <label>Neue Bilder hinzufügen</label>
     <input type="file"
            name="images"
            multiple
            accept="image/*">
+</div>
+
 </div>
 
 <div class="form-actions">
@@ -257,5 +267,29 @@
 
 </form>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const hotrunner = document.getElementById("has_hotrunner");
+    const hotrunnerGroup = document.getElementById("hotrunner_group");
+
+    const corepull = document.getElementById("has_core_pulls");
+    const coreGroup = document.getElementById("core_pull_group");
+
+    function toggleFields() {
+        hotrunnerGroup.style.display =
+            hotrunner.value === "1" ? "block" : "none";
+
+        coreGroup.style.display =
+            corepull.value === "1" ? "block" : "none";
+    }
+
+    hotrunner.addEventListener("change", toggleFields);
+    corepull.addEventListener("change", toggleFields);
+
+    toggleFields();
+});
+</script>
 
 {% endblock %}
