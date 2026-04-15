@@ -7,15 +7,16 @@
 <h2 style="margin-bottom:25px;">Werkzeug bearbeiten</h2>
 
 <div class="form-card">
+
 <form method="POST" enctype="multipart/form-data">
 
 <div class="form-grid">
 
-<!-- ================================= -->
-<!-- IDENTIFIKATION -->
-<!-- ================================= -->
+<!-- ================================== -->
+<!-- 🔹 IDENTIFIKATION -->
+<!-- ================================== -->
 
-<div class="full">
+<div class="form-group full">
     <h3 class="section-title">Identifikation</h3>
 </div>
 
@@ -30,12 +31,12 @@
 </div>
 
 <div class="form-group">
-    <label>Name</label>
+    <label>Werkzeugname</label>
     <input type="text" name="name" value="{{ tool.name or '' }}">
 </div>
 
 <div class="form-group">
-    <label>Gebaut von</label>
+    <label>Form gebaut von</label>
     <input type="text" name="built_by" value="{{ tool.built_by or '' }}">
 </div>
 
@@ -56,11 +57,11 @@
 
 <hr class="full">
 
-<!-- ================================= -->
-<!-- TECHNISCHE DATEN -->
-<!-- ================================= -->
+<!-- ================================== -->
+<!-- 🔹 TECHNISCHE DATEN -->
+<!-- ================================== -->
 
-<div class="full">
+<div class="form-group full">
     <h3 class="section-title">Technische Daten</h3>
 </div>
 
@@ -97,11 +98,11 @@
 
 <hr class="full">
 
-<!-- ================================= -->
-<!-- ABMESSUNGEN -->
-<!-- ================================= -->
+<!-- ================================== -->
+<!-- 🔹 ABMESSUNGEN -->
+<!-- ================================== -->
 
-<div class="full">
+<div class="form-group full">
     <h3 class="section-title">Abmessungen</h3>
 </div>
 
@@ -127,11 +128,11 @@
 
 <hr class="full">
 
-<!-- ================================= -->
-<!-- AUSSTATTUNG -->
-<!-- ================================= -->
+<!-- ================================== -->
+<!-- 🔹 AUSSTATTUNG -->
+<!-- ================================== -->
 
-<div class="full">
+<div class="form-group full">
     <h3 class="section-title">Ausstattung</h3>
 </div>
 
@@ -171,11 +172,11 @@
 
 <hr class="full">
 
-<!-- ================================= -->
-<!-- ORGANISATION -->
-<!-- ================================= -->
+<!-- ================================== -->
+<!-- 🔹 ORGANISATION -->
+<!-- ================================== -->
 
-<div class="full">
+<div class="form-group full">
     <h3 class="section-title">Organisation</h3>
 </div>
 
@@ -198,67 +199,68 @@
 
 <hr class="full">
 
-<!-- ================================= -->
-<!-- BILDER -->
-<!-- ================================= -->
+<!-- ================================== -->
+<!-- 🔹 BILDER -->
+<!-- ================================== -->
 
-<div class="full">
+<div class="form-group full">
     <h3 class="section-title">Werkzeugbilder</h3>
 </div>
 
 {% if tool.images %}
-<div class="full image-gallery">
+<div class="form-group full">
 
-    {% for img in tool.images %}
-    <div class="image-wrapper">
+    <div class="image-gallery">
 
-        <img src="{{ url_for('static', filename=img.image_path) }}">
+        {% for img in tool.images %}
+        <div class="image-wrapper">
 
-        {% if img.is_primary %}
-            <div class="badge-primary">⭐ Hauptbild</div>
-        {% else %}
-            <a href="{{ url_for('tools.image_primary', image_id=img.id) }}"
-               class="btn-small">
-               Als Hauptbild
-            </a>
-        {% endif %}
+            <img src="{{ url_for('static', filename=img.image_path) }}">
 
-        {% if img.title %}
-            <div class="image-title">{{ img.title }}</div>
-        {% endif %}
+            {% if img.is_primary %}
+                <div class="badge-primary">⭐ Hauptbild</div>
+            {% else %}
+                <a href="{{ url_for('tools.image_primary', image_id=img.id) }}"
+                   class="btn-small">
+                   Als Hauptbild
+                </a>
+            {% endif %}
 
-        {% if img.description %}
-            <div class="image-description">
-                {{ img.description }}
-            </div>
-        {% endif %}
+            {% if img.title %}
+                <div class="image-title">{{ img.title }}</div>
+            {% endif %}
 
-        <label class="delete-image-check">
-            <input type="checkbox"
-                   name="delete_images"
-                   value="{{ img.id }}">
-            Bild löschen
-        </label>
+            {% if img.description %}
+                <div class="image-description">
+                    {{ img.description }}
+                </div>
+            {% endif %}
+
+            <label class="delete-image-check">
+                <input type="checkbox"
+                       name="delete_images"
+                       value="{{ img.id }}">
+                Bild löschen
+            </label>
+
+        </div>
+        {% endfor %}
 
     </div>
-    {% endfor %}
 
-</div>
-{% else %}
-<div class="full empty-state">
-    Keine Bilder vorhanden
 </div>
 {% endif %}
 
 <div class="form-group full">
     <label>Neue Bilder hinzufügen</label>
-    <input type="file"
-           name="images"
-           multiple
-           accept="image/*">
+    <input type="file" name="images" multiple accept="image/*">
 </div>
 
 </div>
+
+<!-- ================================== -->
+<!-- ACTIONS -->
+<!-- ================================== -->
 
 <div class="form-actions">
     <button type="submit" class="btn-primary">Speichern</button>
@@ -267,6 +269,10 @@
 
 </form>
 </div>
+
+<!-- ================================== -->
+<!-- JS -->
+<!-- ================================== -->
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -278,11 +284,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const coreGroup = document.getElementById("core_pull_group");
 
     function toggleFields() {
-        hotrunnerGroup.style.display =
-            hotrunner.value === "1" ? "block" : "none";
-
-        coreGroup.style.display =
-            corepull.value === "1" ? "block" : "none";
+        hotrunnerGroup.classList.toggle("hidden", hotrunner.value !== "1");
+        coreGroup.classList.toggle("hidden", corepull.value !== "1");
     }
 
     hotrunner.addEventListener("change", toggleFields);
