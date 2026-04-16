@@ -152,6 +152,8 @@ def render_svg_to_png(svg_string):
     return png_output
 
 
+
+
 def generate_svg_with_markers(image_path, characteristics):
 
     from PIL import Image as PILImage
@@ -170,7 +172,7 @@ def generate_svg_with_markers(image_path, characteristics):
          viewBox="0 0 {width} {height}"
          width="{width}"
          height="{height}">
-         
+
         <image href="data:image/png;base64,{base64_image}"
                x="0"
                y="0"
@@ -183,30 +185,35 @@ def generate_svg_with_markers(image_path, characteristics):
         if c.pos_x is None or c.pos_y is None:
             continue
 
+        # ==========================================
+        # EXAKT WIE BROWSER .marker BOX
+        # left/top = gespeicherte DB Pixel
+        # ==========================================
         x = float(c.pos_x)
         y = float(c.pos_y)
 
-        # exakt wie Browser Markergröße
+        # Marker Container = 30x30
+        # Browser Circle sitzt mittig rechts
         circle_x = x + 20
-        circle_y = y + 12
+        circle_y = y + 15
 
         svg.append(f'''
         <g>
 
-            <!-- Pfeil -->
+            <!-- Pfeil exakt wie CSS -->
             <polygon points="
-                {x+2},{y+12}
-                {x+16},{y+6}
-                {x+16},{y+18}
+                {x+2},{y+15}
+                {x+12},{y+9}
+                {x+12},{y+21}
             "
             fill="#c40000"
             stroke="#8a0000"
-            stroke-width="1"/>
+            stroke-width="1.2"/>
 
             <!-- Kreis -->
             <circle cx="{circle_x}"
                     cy="{circle_y}"
-                    r="13"
+                    r="12"
                     fill="white"
                     stroke="#c40000"
                     stroke-width="3"/>
@@ -215,7 +222,7 @@ def generate_svg_with_markers(image_path, characteristics):
             <text x="{circle_x}"
                   y="{circle_y+4}"
                   text-anchor="middle"
-                  font-size="14"
+                  font-size="13"
                   font-weight="bold"
                   fill="#c40000"
                   font-family="Arial">
