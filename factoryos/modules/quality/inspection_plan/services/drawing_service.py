@@ -11,73 +11,23 @@ from factoryos.modules.quality.inspection_plan.models import (
     QualityInspectionDimensionSnippet
 )
 
+from factoryos.core.image_engine import save_standard_image
+
 
 
 def upload_drawing(section, file):
 
-    filename = secure_filename(file.filename)
-    ext = filename.lower().split(".")[-1]
-
-    unique = f"{uuid.uuid4()}_{filename}"
-
-    upload_folder = os.path.join(
-        current_app.static_folder,
-        "qm_drawings"
+    result = save_standard_image(
+        file=file,
+        subfolder="qm_drawings",
+        max_size=(1600, 1200),
+        create_thumb=False,
+        fixed_canvas=True
     )
 
-    os.makedirs(upload_folder, exist_ok=True)
-
-    save_path = os.path.join(upload_folder, unique)
-
-    file.save(save_path)
-
-    # 🔥 HIER EINFÜGEN (GANZ WICHTIG!)
-    from PIL import Image as PILImage
-
-    
-
-    # =============================
-
-    preview_filename = unique + ".png"
-    preview_path = os.path.join(upload_folder, preview_filename)
-
-    
-
-    from PIL import Image as PILImage
-
-    TARGET_WIDTH = 800  # 🔥 hier steuerst du alles!
-    
-    # ================================
-    # PREVIEW ERZEUGEN + NORMALISIEREN
-    # ================================
-    
-    if ext == "pdf":
-    
-        pages = convert_from_path(save_path, dpi=300)
-        img = pages[0]
-    
-    else:
-    
-        img = PILImage.open(save_path)
-    
-    # 🔥 IMMER RGB
-    img = img.convert("RGB")
-    
-    # 🔥 SKALIEREN (SEHR WICHTIG)
-    ratio = TARGET_WIDTH / img.width
-    new_height = int(img.height * ratio)
-    
-    img = img.resize((TARGET_WIDTH, new_height), PILImage.LANCZOS)
-    
-    # 🔥 SPEICHERN
-    img.save(preview_path, "PNG")
-    
-    img = PILImage.open(preview_path)
-    
-    section.image_width = img.width
-    section.image_height = img.height
-
-    section.drawing_path = f"qm_drawings/{preview_filename}"
+    section.drawing_path = result["path"]
+    section.image_width = 1600
+    section.image_height = 1200
 
     section.version.is_dirty = True
 
