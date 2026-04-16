@@ -200,16 +200,16 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 .marker::before{
     content:"";
     position:absolute;
-    left:-7px;
+    left:-5px;
     top:50%;
     transform:translateY(-50%);
 
     width:0;
     height:0;
 
-    border-top:9px solid transparent;
-    border-bottom:9px solid transparent;
-    border-right:20px solid #c40000;
+    border-top:8px solid transparent;
+    border-bottom:8px solid transparent;
+    border-right:17px solid #c40000;
 }
 
 .marker:hover .marker-circle{
