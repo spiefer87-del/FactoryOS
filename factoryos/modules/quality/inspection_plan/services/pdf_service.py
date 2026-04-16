@@ -20,7 +20,7 @@ import os
 
 from flask import current_app
 
-from factoryos.modules.quality.inspection_plan.services.marker_service import render_svg_to_png, generate_svg_with_markers
+from factoryos.modules.quality.inspection_plan.services.marker_service import render_qm_markers_to_image
 
 from ..models import QualityInspectionPlanVersion
 from factoryos.modules.masterdata.articles.models import Article
@@ -187,12 +187,10 @@ def build_dimension_section(section):
 
         if os.path.exists(img_path):
 
-            svg = generate_svg_with_markers(
+            image_with_markers = render_qm_markers_to_image(
                 img_path,
                 section.characteristics
-            )
-            
-            image_with_markers = render_svg_to_png(svg)
+            ) 
 
             img = Image(image_with_markers)
 
