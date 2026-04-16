@@ -214,3 +214,85 @@ def render_svg_to_png(svg_string):
     png_output.seek(0)
 
     return png_output
+
+def generate_svg_with_markers(image_path, characteristics):
+
+    from PIL import Image as PILImage
+    import base64
+
+    img = PILImage.open(image_path)
+    width, height = img.width, img.height
+
+    with open(image_path, "rb") as f:
+        base64_image = base64.b64encode(f.read()).decode("utf-8")
+
+    svg = []
+
+    svg.append(f'''
+    <svg xmlns="http://www.w3.org/2000/svg"
+         viewBox="0 0 {width} {height}"
+         width="{width}"
+         height="{height}"
+         preserveAspectRatio="xMidYMid meet">
+
+        <image href="data:image/png;base64,{base64_image}"
+               x="0"
+               y="0"
+               width="{width}"
+               height="{height}" />
+    ''')
+
+    for c in characteristics:
+
+        if c.pos_x is None or c.pos_y is None:
+            continue
+
+        x = float(c.pos_x)
+        y = float(c.pos_y)
+
+        # Markergröße
+        r = 13
+        pointer = 10
+
+        # Kreis etwas rechts vom eigentlichen Punkt
+        cx = x + 18
+        cy = y
+
+        svg.append(f'''
+        <g>
+
+            <!-- Pfeilspitze -->
+            <polygon points="
+                {x},{y}
+                {cx-r+2},{cy-6}
+                {cx-r+2},{cy+6}
+            "
+            fill="#c40000"
+            stroke="#7a0000"
+            stroke-width="1.5"/>
+
+            <!-- Kreis -->
+            <circle cx="{cx}"
+                    cy="{cy}"
+                    r="{r}"
+                    fill="white"
+                    stroke="#c40000"
+                    stroke-width="3"/>
+
+            <!-- Nummer -->
+            <text x="{cx}"
+                  y="{cy+4}"
+                  text-anchor="middle"
+                  font-size="14"
+                  font-weight="bold"
+                  fill="#c40000"
+                  font-family="Arial">
+                {c.sort_order}
+            </text>
+
+        </g>
+        ''')
+
+    svg.append("</svg>")
+
+    return "".join(svg)
