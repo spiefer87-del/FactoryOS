@@ -172,24 +172,23 @@ def render_qm_markers_to_image(image_path, characteristics):
             font = ImageFont.load_default()
 
         # =================================================
-        # POSITION
-        # Spitze = Messpunkt
-        # Kreis rechts daneben
         # =================================================
-        tip_x = x
-        tip_y = y
-
-        cx = x + arrow_len + r - 1
+        # Kreis links / Spitze rechts
+        cx = x
         cy = y
+
+        tip_x = x + r + arrow_len
+        tip_y = y
+    
 
         # =================================================
         # SPITZE
         # =================================================
         draw.polygon(
             [
+                (cx + r - 1, cy - arrow_h / 2),
                 (tip_x, tip_y),
-                (cx - r + 2, cy - arrow_h / 2),
-                (cx - r + 2, cy + arrow_h / 2)
+                (cx + r - 1, cy + arrow_h / 2)
             ],
             fill="#c80000"
         )
