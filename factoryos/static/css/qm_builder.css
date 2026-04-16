@@ -161,61 +161,62 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 /* ===================================== */
 /* QS MARKER SMALL PRO                   */
 /* ===================================== */
+/* =========================
+   QS MARKER FINAL
+========================= */
+
 .marker{
     position:absolute;
-    width:30px;
-    height:24px;
     transform:translate(-50%, -50%);
+    width:44px;
+    height:24px;
     cursor:grab;
-    z-index:50;
+    z-index:999;
 }
 
-/* Kreis kleiner */
+.marker:active{
+    cursor:grabbing;
+}
+
+/* Kreis */
 .marker-circle{
     position:absolute;
-    right:0;
-    top:0px;
+    left:0;
+    top:0;
 
-    width:20px;
-    height:20px;
+    width:24px;
+    height:24px;
     border-radius:50%;
 
-    background:#fff;
-    color:#c40000;
+    background:#ffffff;
+    border:2px solid #c80000;
 
-    border:3px solid #c40000;
+    color:#c80000;
+    font-size:15px;
+    font-weight:700;
+    font-family:Arial, sans-serif;
 
     display:flex;
     align-items:center;
     justify-content:center;
 
-    font-size:11px;
-    font-weight:800;
-    line-height:1;
+    box-sizing:border-box;
 
-    box-shadow:0 2px 5px rgba(0,0,0,0.18);
+    box-shadow:0 2px 5px rgba(0,0,0,0.15);
 }
 
-/* Spitze deutlicher */
-.marker::before{
-    content:"";
+/* Spitze */
+.marker-arrow{
     position:absolute;
-    left:8px;
-    top:50%;
-    transform:translateY(-50%);
+    left:22px;
+    top:5px;
 
     width:0;
     height:0;
 
-    border-top:10px solid transparent;
-    border-bottom:10px solid transparent;
-    border-right:20px solid #c40000;
-
-    z-index:0;
-}
-
-.marker:hover .marker-circle{
-    transform:scale(1.06);
+    border-top:7px solid transparent;
+    border-bottom:7px solid transparent;
+    border-left:18px solid #c80000;
 }
 
 
