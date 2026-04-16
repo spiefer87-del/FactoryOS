@@ -185,44 +185,47 @@ def generate_svg_with_markers(image_path, characteristics):
         if c.pos_x is None or c.pos_y is None:
             continue
 
-        # ==========================================
-        # EXAKT WIE BROWSER .marker BOX
-        # left/top = gespeicherte DB Pixel
-        # ==========================================
-        x = float(c.pos_x)
-        y = float(c.pos_y)
+        # =====================================
+        # CSS translate(-50%, -50%) berücksichtigen
+        # =====================================
 
-        # Marker Container = 30x30
-        # Browser Circle sitzt mittig rechts
-        circle_x = x + 20
-        circle_y = y + 15
+        pos_x = float(c.pos_x)
+        pos_y = float(c.pos_y)
+
+        marker_width = 28
+        marker_height = 22
+
+        x = pos_x - marker_width / 2
+        y = pos_y - marker_height / 2
+
+        # Kreis rechts
+        cx = x + 18
+        cy = y + 11
 
         svg.append(f'''
         <g>
 
-            <!-- Pfeil exakt wie CSS -->
+            <!-- große Pfeilspitze -->
             <polygon points="
-                {x+2},{y+15}
-                {x+12},{y+9}
-                {x+12},{y+21}
+                {x+1},{y+11}
+                {x+12},{y+4}
+                {x+12},{y+18}
             "
-            fill="#c40000"
-            stroke="#8a0000"
-            stroke-width="1.2"/>
+            fill="#c40000"/>
 
             <!-- Kreis -->
-            <circle cx="{circle_x}"
-                    cy="{circle_y}"
-                    r="12"
+            <circle cx="{cx}"
+                    cy="{cy}"
+                    r="11"
                     fill="white"
                     stroke="#c40000"
                     stroke-width="3"/>
 
             <!-- Zahl -->
-            <text x="{circle_x}"
-                  y="{circle_y+4}"
+            <text x="{cx}"
+                  y="{cy+4}"
                   text-anchor="middle"
-                  font-size="13"
+                  font-size="12"
                   font-weight="bold"
                   fill="#c40000"
                   font-family="Arial">
