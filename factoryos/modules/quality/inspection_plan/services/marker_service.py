@@ -151,6 +151,7 @@ def render_svg_to_png(svg_string):
 
     return png_output
 
+
 def generate_svg_with_markers(image_path, characteristics):
 
     from PIL import Image as PILImage
@@ -168,9 +169,8 @@ def generate_svg_with_markers(image_path, characteristics):
     <svg xmlns="http://www.w3.org/2000/svg"
          viewBox="0 0 {width} {height}"
          width="{width}"
-         height="{height}"
-         preserveAspectRatio="xMidYMid meet">
-
+         height="{height}">
+         
         <image href="data:image/png;base64,{base64_image}"
                x="0"
                y="0"
@@ -186,38 +186,34 @@ def generate_svg_with_markers(image_path, characteristics):
         x = float(c.pos_x)
         y = float(c.pos_y)
 
-        # Markergröße
-        r = 13
-        pointer = 10
-
-        # Kreis etwas rechts vom eigentlichen Punkt
-        cx = x + 18
-        cy = y
+        # exakt wie Browser Markergröße
+        circle_x = x + 20
+        circle_y = y + 12
 
         svg.append(f'''
         <g>
 
-            <!-- Pfeilspitze -->
+            <!-- Pfeil -->
             <polygon points="
-                {x},{y}
-                {cx-r+2},{cy-6}
-                {cx-r+2},{cy+6}
+                {x+2},{y+12}
+                {x+16},{y+6}
+                {x+16},{y+18}
             "
             fill="#c40000"
-            stroke="#7a0000"
-            stroke-width="1.5"/>
+            stroke="#8a0000"
+            stroke-width="1"/>
 
             <!-- Kreis -->
-            <circle cx="{cx}"
-                    cy="{cy}"
-                    r="{r}"
+            <circle cx="{circle_x}"
+                    cy="{circle_y}"
+                    r="13"
                     fill="white"
                     stroke="#c40000"
                     stroke-width="3"/>
 
-            <!-- Nummer -->
-            <text x="{cx}"
-                  y="{cy+4}"
+            <!-- Zahl -->
+            <text x="{circle_x}"
+                  y="{circle_y+4}"
                   text-anchor="middle"
                   font-size="14"
                   font-weight="bold"
