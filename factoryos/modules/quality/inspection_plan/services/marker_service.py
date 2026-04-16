@@ -1,18 +1,25 @@
+# factoryos/modules/quality/inspection_plan/services/marker_service.py
+
+import os
+from io import BytesIO
+
+from PIL import Image as PILImage
+from PIL import ImageDraw
+from PIL import ImageFont
+
 from factoryos.extensions import db
 
-from ..models import QualityInspectionSection
-from ..models import QualityInspectionCharacteristic
-
-from PIL import Image as PILImage, ImageDraw, ImageFont
-from io import BytesIO
-
-import cairosvg
-from io import BytesIO
-
-import base64
+from ..models import (
+    QualityInspectionSection,
+    QualityInspectionCharacteristic
+)
 
 from factoryos.modules.quality.inspection_plan.services.change_log_service import log_change
 
+
+# =====================================================
+# CRUD MARKER
+# =====================================================
 
 def create_marker(section_id, pos_x, pos_y):
 
@@ -35,15 +42,6 @@ def create_characteristic_with_marker(data):
 
     section_id = data.get("section_id")
 
-    name = data.get("name")
-    target_value = data.get("target_value")
-    tol_minus = data.get("tolerance_minus")
-    tol_plus = data.get("tolerance_plus")
-    unit = data.get("unit")
-
-    pos_x = data.get("pos_x")
-    pos_y = data.get("pos_y")
-
     last = (
         QualityInspectionCharacteristic.query
         .filter_by(section_id=section_id)
@@ -51,23 +49,17 @@ def create_characteristic_with_marker(data):
         .first()
     )
 
-    order = 1
-
-    if last:
-        order = last.sort_order + 1
+    order = 1 if not last else last.sort_order + 1
 
     characteristic = QualityInspectionCharacteristic(
-
         section_id=section_id,
-        name=name,
-        target_value=target_value,
-        tolerance_minus=tol_minus,
-        tolerance_plus=tol_plus,
-        unit=unit,
-
-        pos_x=pos_x,
-        pos_y=pos_y,
-
+        name=data.get("name"),
+        target_value=data.get("target_value"),
+        tolerance_minus=data.get("tolerance_minus"),
+        tolerance_plus=data.get("tolerance_plus"),
+        unit=data.get("unit"),
+        pos_x=data.get("pos_x"),
+        pos_y=data.get("pos_y"),
         sort_order=order
     )
 
@@ -78,7 +70,7 @@ def create_characteristic_with_marker(data):
     log_change(
         section.version,
         "ADD_MARKER",
-        f"Merkmal '{name}' auf Zeichnung gesetzt"
+        f"Merkmal '{characteristic.name}' auf Zeichnung gesetzt"
     )
 
     db.session.commit()
@@ -116,7 +108,6 @@ def delete_marker(char_id):
     )
 
     db.session.delete(char)
-
     db.session.commit()
 
     reorder_characteristics(section_id)
@@ -124,117 +115,122 @@ def delete_marker(char_id):
 
 def reorder_characteristics(section_id):
 
-    characteristics = (
+    chars = (
         QualityInspectionCharacteristic.query
         .filter_by(section_id=section_id)
         .order_by(QualityInspectionCharacteristic.sort_order.asc())
         .all()
     )
 
-    for i, c in enumerate(characteristics, start=1):
+    for i, c in enumerate(chars, start=1):
         c.sort_order = i
-
 
     db.session.commit()
 
-    
-def render_svg_to_png(svg_string):
 
-    png_output = BytesIO()
+# =====================================================
+# FINAL PDF / EXPORT RENDER ENGINE
+# =====================================================
 
-    cairosvg.svg2png(
-        bytestring=svg_string.encode("utf-8"),
-        write_to=png_output
-    )
+def render_qm_markers_to_image(image_path, characteristics):
+    """
+    Rendert Marker direkt per PIL auf Zeichnung.
+    1:1 Pixelpositionen aus DB.
+    Output: BytesIO PNG
+    """
 
-    png_output.seek(0)
+    img = PILImage.open(image_path).convert("RGB")
+    draw = ImageDraw.Draw(img)
 
-    return png_output
-
-
-
-
-def generate_svg_with_markers(image_path, characteristics):
-
-    from PIL import Image as PILImage
-    import base64
-
-    img = PILImage.open(image_path)
-    width, height = img.width, img.height
-
-    with open(image_path, "rb") as f:
-        base64_image = base64.b64encode(f.read()).decode("utf-8")
-
-    svg = []
-
-    svg.append(f'''
-    <svg xmlns="http://www.w3.org/2000/svg"
-         viewBox="0 0 {width} {height}"
-         width="{width}"
-         height="{height}">
-
-        <image href="data:image/png;base64,{base64_image}"
-               x="0"
-               y="0"
-               width="{width}"
-               height="{height}" />
-    ''')
+    width, height = img.size
+    base = min(width, height)
 
     for c in characteristics:
 
         if c.pos_x is None or c.pos_y is None:
             continue
 
-        # =====================================
-        # CSS translate(-50%, -50%) berücksichtigen
-        # =====================================
+        x = int(c.pos_x)
+        y = int(c.pos_y)
 
-        pos_x = float(c.pos_x)
-        pos_y = float(c.pos_y)
+        # =================================================
+        # MARKER SCALE
+        # =================================================
+        r = max(int(base * 0.016), 10)         # Kreisradius
+        arrow_len = int(r * 1.45)             # Spitzenlänge
+        arrow_h = int(r * 1.15)               # Spitzenhöhe
+        border = max(int(r * 0.16), 2)
 
-        marker_width = 28
-        marker_height = 22
+        font_size = int(r * 1.10)
 
-        x = pos_x - marker_width / 2
-        y = pos_y - marker_height / 2
+        try:
+            font = ImageFont.truetype(
+                "DejaVuSans-Bold.ttf",
+                font_size
+            )
+        except:
+            font = ImageFont.load_default()
 
-        # Kreis rechts
-        cx = x + 18
-        cy = y + 11
+        # =================================================
+        # POSITION
+        # Spitze = Messpunkt
+        # Kreis rechts daneben
+        # =================================================
+        tip_x = x
+        tip_y = y
 
-        svg.append(f'''
-        <g>
+        cx = x + arrow_len + r - 1
+        cy = y
 
-            <!-- große Pfeilspitze -->
-            <polygon points="
-                {x+1},{y+11}
-                {x+12},{y+4}
-                {x+12},{y+18}
-            "
-            fill="#c40000"/>
+        # =================================================
+        # SPITZE
+        # =================================================
+        draw.polygon(
+            [
+                (tip_x, tip_y),
+                (cx - r + 2, cy - arrow_h / 2),
+                (cx - r + 2, cy + arrow_h / 2)
+            ],
+            fill="#c80000"
+        )
 
-            <!-- Kreis -->
-            <circle cx="{cx}"
-                    cy="{cy}"
-                    r="11"
-                    fill="white"
-                    stroke="#c40000"
-                    stroke-width="3"/>
+        # =================================================
+        # KREIS
+        # =================================================
+        draw.ellipse(
+            (
+                cx - r,
+                cy - r,
+                cx + r,
+                cy + r
+            ),
+            fill="white",
+            outline="#c80000",
+            width=border
+        )
 
-            <!-- Zahl -->
-            <text x="{cx}"
-                  y="{cy+4}"
-                  text-anchor="middle"
-                  font-size="12"
-                  font-weight="bold"
-                  fill="#c40000"
-                  font-family="Arial">
-                {c.sort_order}
-            </text>
+        # =================================================
+        # TEXT
+        # =================================================
+        txt = str(c.sort_order)
 
-        </g>
-        ''')
+        bbox = draw.textbbox((0, 0), txt, font=font)
 
-    svg.append("</svg>")
+        tw = bbox[2] - bbox[0]
+        th = bbox[3] - bbox[1]
 
-    return "".join(svg)
+        draw.text(
+            (
+                cx - tw / 2,
+                cy - th / 2 - 2
+            ),
+            txt,
+            fill="#c80000",
+            font=font
+        )
+
+    output = BytesIO()
+    img.save(output, format="PNG")
+    output.seek(0)
+
+    return output
