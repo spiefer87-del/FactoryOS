@@ -161,11 +161,10 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 /* ===================================== */
 /* QS MARKER SMALL PRO                   */
 /* ===================================== */
-
 .marker{
     position:absolute;
-    width:28px;
-    height:22px;
+    width:34px;
+    height:24px;
     transform:translate(-50%, -50%);
     cursor:grab;
     z-index:50;
@@ -174,11 +173,11 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 /* Kreis */
 .marker-circle{
     position:absolute;
-    right:0;
+    left:0;
     top:0;
 
-    width:22px;
-    height:22px;
+    width:24px;
+    height:24px;
     border-radius:50%;
 
     background:#fff;
@@ -197,20 +196,20 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
     box-shadow:0 2px 6px rgba(0,0,0,0.18);
 }
 
-/* Pfeil */
+/* Spitze deutlich größer */
 .marker::before{
     content:"";
     position:absolute;
-    left:0;
+    left:18px;
     top:50%;
     transform:translateY(-50%);
 
     width:0;
     height:0;
 
-    border-top:5px solid transparent;
-    border-bottom:5px solid transparent;
-    border-right:10px solid #c40000;
+    border-top:8px solid transparent;
+    border-bottom:8px solid transparent;
+    border-left:14px solid #c40000;
 }
 
 /* Hover */
