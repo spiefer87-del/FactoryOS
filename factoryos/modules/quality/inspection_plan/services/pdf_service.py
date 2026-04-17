@@ -170,13 +170,19 @@ def build_section(section):
 # ===============================
 # DIMENSION SECTION (MIT MARKERN)
 # ===============================
+# ==========================================================
+# FIX FÜR DEINEN PDF SERVICE
+# Nur build_dimension_section austauschen
+# ==========================================================
+
 def build_dimension_section(section):
 
     elements = []
-
     block = []
 
-    # ===== Zeichnung mit Markern =====
+    # ======================================================
+    # ZEICHNUNG + FINAL MARKER ENGINE
+    # ======================================================
     if section.drawing_path:
 
         img_path = os.path.join(
@@ -186,29 +192,50 @@ def build_dimension_section(section):
 
         if os.path.exists(img_path):
 
+            # ----------------------------------------------
+            # DB OBJECTS -> MARKER LISTE UMWANDELN
+            # ----------------------------------------------
+            markers = []
+
+            for c in section.characteristics:
+                if c.pos_x is not None and c.pos_y is not None:
+
+                    markers.append({
+                        "x": float(c.pos_x),
+                        "y": float(c.pos_y),
+                        "number": int(c.sort_order)
+                    })
+
+            # ----------------------------------------------
+            # FINAL RENDER ENGINE
+            # ----------------------------------------------
             image_with_markers = render_qm_markers(
                 img_path,
-                section.characteristics,
+                markers,
                 1600
-            ) 
+            )
 
             img = Image(image_with_markers)
 
-            # 🔥 echtes Verhältnis aus DB!
+            # ----------------------------------------------
+            # EXAKTES SEITENVERHÄLTNIS
+            # ----------------------------------------------
             if section.image_width and section.image_height:
                 ratio = section.image_height / section.image_width
             else:
-                ratio = 1  # fallback
-            
+                ratio = 1
+
             target_width = 16 * cm
-            
+
             img.drawWidth = target_width
             img.drawHeight = target_width * ratio
 
             block.append(img)
             block.append(Spacer(1, 10))
 
-    # ===== Tabelle =====
+    # ======================================================
+    # TABELLE
+    # ======================================================
     if section.characteristics:
 
         data = [
@@ -241,12 +268,13 @@ def build_dimension_section(section):
 
         block.append(table)
 
-    # ===== Zusammenhalten (WICHTIG) =====
+    # ======================================================
+    # KEEP TOGETHER
+    # ======================================================
     if block:
         elements.append(KeepTogether(block))
 
     return elements
-
 
 # ===============================
 # GAUGE SECTION
