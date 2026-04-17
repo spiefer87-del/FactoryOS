@@ -209,7 +209,7 @@ def build_dimension_section(section):
             # ----------------------------------------------
             # FINAL RENDER ENGINE
             # ----------------------------------------------
-            image_with_markers = render_qm_markers(
+            img = render_qm_markers(
                 img_path,
                 markers,
                 1600
