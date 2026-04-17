@@ -173,8 +173,22 @@ def render_qm_markers(
         target_h_mm = pdf_max_height_mm
         target_w_mm = pdf_max_height_mm * aspect
 
-    target_w_px = int(target_w_mm * 11.811)   # mm -> px @300dpi approx
+    MAX_RENDER_PX = 4200
+
+    target_w_px = int(target_w_mm * 11.811)
     target_h_px = int(target_h_mm * 11.811)
+
+    # Begrenzen
+    if target_w_px > MAX_RENDER_PX:
+        scale = MAX_RENDER_PX / target_w_px
+        target_w_px = int(target_w_px * scale)
+        target_h_px = int(target_h_px * scale)
+
+    if target_h_px > MAX_RENDER_PX:
+        scale = MAX_RENDER_PX / target_h_px
+        target_w_px = int(target_w_px * scale)
+        target_h_px = int(target_h_px * scale)
+    
 
     # ------------------------------------------------------
     # 2. BILD EXAKT AUF ENDFORMAT SKALIEREN
