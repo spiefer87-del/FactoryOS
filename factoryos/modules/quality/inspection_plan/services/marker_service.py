@@ -204,13 +204,14 @@ def render_qm_markers(
     # 3. FONT
     # ------------------------------------------------------
     try:
-        font_size = int(circle_r * 1.05)
+        font_size = int(circle_r * 1.18)
 
         font = ImageFont.truetype(
             "DejaVuSans-Bold.ttf",
             font_size
         )
     except:
+        font_size = int(circle_r * 1.05)
         font = ImageFont.load_default()
 
     # ------------------------------------------------------
@@ -240,11 +241,11 @@ def render_qm_markers(
         # App Maße exakt
         base = min(target_w_px, target_h_px)
 
-        circle_r = max(int(base * 0.022), 14)
-        border = max(int(circle_r * 0.18), 3)
+        circle_r = max(int(base * 0.017), 11)
+        border = max(int(circle_r * 0.16), 2)
 
-        arrow_len = int(circle_r * 1.45)
-        arrow_half_h = int(circle_r * 0.58)
+        arrow_len = int(circle_r * 1.25)
+        arrow_half_h = int(circle_r * 0.52)
 
         cx = x - arrow_len - circle_r + 1
         cy = y
