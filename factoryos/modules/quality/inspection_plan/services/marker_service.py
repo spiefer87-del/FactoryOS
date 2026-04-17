@@ -132,36 +132,78 @@ def reorder_characteristics(section_id):
 # FINAL PDF / EXPORT RENDER ENGINE
 # =====================================================
 
-def render_qm_markers_to_image(image_path, characteristics):
+# factoryos/modules/quality/inspection_plan/services/marker_service.py
+
+from io import BytesIO
+from PIL import Image as PILImage
+from PIL import ImageDraw
+from PIL import ImageFont
+
+
+# ==========================================================
+# FINAL PDF / APP MARKER ENGINE
+# ==========================================================
+
+def render_qm_markers_scaled_for_pdf(
+    image_path,
+    characteristics,
+    target_width_px
+):
     """
-    Rendert Marker direkt per PIL auf Zeichnung.
-    1:1 Pixelpositionen aus DB.
-    Output: BytesIO PNG
+    FINAL ENGINE
+
+    - Bild wird zuerst skaliert
+    - Marker danach NEU auf Zielgröße gerendert
+    - exakt wie Builder
+    - perfekte Position
+    - perfekte Größe
     """
 
+    # ------------------------------------------------------
+    # ORIGINAL LADEN
+    # ------------------------------------------------------
     img = PILImage.open(image_path).convert("RGB")
+
+    orig_w, orig_h = img.size
+
+    scale = target_width_px / orig_w
+    target_height = int(orig_h * scale)
+
+    # ------------------------------------------------------
+    # BILD SKALIEREN
+    # ------------------------------------------------------
+    img = img.resize(
+        (target_width_px, target_height),
+        PILImage.LANCZOS
+    )
+
     draw = ImageDraw.Draw(img)
 
-    width, height = img.size
-    base = min(width, height)
-
+    # ------------------------------------------------------
+    # MARKER
+    # ------------------------------------------------------
     for c in characteristics:
 
         if c.pos_x is None or c.pos_y is None:
             continue
 
-        x = int(c.pos_x)
-        y = int(c.pos_y)
+        # ===============================================
+        # SKALIERTE POSITION
+        # ===============================================
+        x = int(c.pos_x * scale)
+        y = int(c.pos_y * scale)
 
-        # =================================================
-        # MARKER SCALE
-        # =================================================
-        r = max(int(base * 0.016), 10)         # Kreisradius
-        arrow_len = int(r * 1.45)             # Spitzenlänge
-        arrow_h = int(r * 1.15)               # Spitzenhöhe
+        # ===============================================
+        # FINAL DESIGN
+        # ===============================================
+        r = max(int(12 * scale), 10)
+
+        arrow_len = int(r * 1.35)
+        arrow_h = int(r * 0.95)
+
         border = max(int(r * 0.16), 2)
 
-        font_size = int(r * 1.10)
+        font_size = int(r * 1.05)
 
         try:
             font = ImageFont.truetype(
@@ -171,19 +213,19 @@ def render_qm_markers_to_image(image_path, characteristics):
         except:
             font = ImageFont.load_default()
 
-        # =================================================
-        # =================================================
+        # ===============================================
+        # Builder Style:
         # Kreis links / Spitze rechts
+        # ===============================================
         cx = x
         cy = y
 
         tip_x = x + r + arrow_len
         tip_y = y
-    
 
-        # =================================================
-        # SPITZE
-        # =================================================
+        # -----------------------------------------------
+        # Spitze
+        # -----------------------------------------------
         draw.polygon(
             [
                 (cx + r - 1, cy - arrow_h / 2),
@@ -193,9 +235,9 @@ def render_qm_markers_to_image(image_path, characteristics):
             fill="#c80000"
         )
 
-        # =================================================
-        # KREIS
-        # =================================================
+        # -----------------------------------------------
+        # Kreis
+        # -----------------------------------------------
         draw.ellipse(
             (
                 cx - r,
@@ -208,9 +250,9 @@ def render_qm_markers_to_image(image_path, characteristics):
             width=border
         )
 
-        # =================================================
-        # TEXT
-        # =================================================
+        # -----------------------------------------------
+        # Zahl
+        # -----------------------------------------------
         txt = str(c.sort_order)
 
         bbox = draw.textbbox((0, 0), txt, font=font)
@@ -221,7 +263,7 @@ def render_qm_markers_to_image(image_path, characteristics):
         draw.text(
             (
                 cx - tw / 2,
-                cy - th / 2 - 2
+                cy - th / 2 - 1
             ),
             txt,
             fill="#c80000",
