@@ -7,6 +7,9 @@ from PIL import Image as PILImage
 from PIL import ImageDraw
 from PIL import ImageFont
 
+from reportlab.platypus import Image
+from reportlab.lib.units import mm
+
 from factoryos.extensions import db
 
 from ..models import (
@@ -127,21 +130,11 @@ def reorder_characteristics(section_id):
 
     db.session.commit()
 
-# ==========================================================
-# FACTORYOS - ULTIMATE PDF ENGINE FINAL
-# QM MARKER 1:1 APP → PDF PIXEL PERFECT
-# ==========================================================
 
-import os
-from io import BytesIO
-from PIL import Image as PILImage, ImageDraw, ImageFont
-from reportlab.platypus import Image
-from reportlab.lib.units import mm
-
-
-# ==========================================================
-# FINAL ENGINE
-# ==========================================================
+# =====================================================
+# FACTORYOS FINAL PDF MARKER ENGINE
+# 1:1 App Marker Export
+# =====================================================
 
 def render_qm_markers(
     image_path,
@@ -150,20 +143,16 @@ def render_qm_markers(
     pdf_max_height_mm=250
 ):
     """
-    markers = [
-        {"x":1234,"y":888,"number":1},
-        ...
-    ]
-
-    returns ReportLab Image()
+    Gibt ReportLab Image zurück.
+    Nutzt exakt dieselben Marker-Proportionen wie Frontend.
     """
 
     img = PILImage.open(image_path).convert("RGB")
     orig_w, orig_h = img.size
 
-    # ------------------------------------------------------
-    # 1. ZIELGRÖSE FÜR PDF FESTLEGEN
-    # ------------------------------------------------------
+    # -----------------------------------------
+    # PDF Zielgröße
+    # -----------------------------------------
     aspect = orig_w / orig_h
 
     if aspect >= 1:
@@ -173,26 +162,27 @@ def render_qm_markers(
         target_h_mm = pdf_max_height_mm
         target_w_mm = pdf_max_height_mm * aspect
 
-    MAX_RENDER_PX = 4200
+    # 300 DPI ungefähr
+    PX_PER_MM = 11.811
 
-    target_w_px = int(target_w_mm * 11.811)
-    target_h_px = int(target_h_mm * 11.811)
+    target_w_px = int(target_w_mm * PX_PER_MM)
+    target_h_px = int(target_h_mm * PX_PER_MM)
 
-    # Begrenzen
-    if target_w_px > MAX_RENDER_PX:
-        scale = MAX_RENDER_PX / target_w_px
-        target_w_px = int(target_w_px * scale)
-        target_h_px = int(target_h_px * scale)
+    MAX_RENDER = 4200
 
-    if target_h_px > MAX_RENDER_PX:
-        scale = MAX_RENDER_PX / target_h_px
-        target_w_px = int(target_w_px * scale)
-        target_h_px = int(target_h_px * scale)
-    
+    if target_w_px > MAX_RENDER:
+        factor = MAX_RENDER / target_w_px
+        target_w_px = int(target_w_px * factor)
+        target_h_px = int(target_h_px * factor)
 
-    # ------------------------------------------------------
-    # 2. BILD EXAKT AUF ENDFORMAT SKALIEREN
-    # ------------------------------------------------------
+    if target_h_px > MAX_RENDER:
+        factor = MAX_RENDER / target_h_px
+        target_w_px = int(target_w_px * factor)
+        target_h_px = int(target_h_px * factor)
+
+    # -----------------------------------------
+    # Bild skalieren
+    # -----------------------------------------
     img = img.resize((target_w_px, target_h_px), PILImage.LANCZOS)
 
     draw = ImageDraw.Draw(img)
@@ -200,11 +190,9 @@ def render_qm_markers(
     scale_x = target_w_px / orig_w
     scale_y = target_h_px / orig_h
 
-
-
-    # ------------------------------------------------------
-    # 4. MARKER ZEICHNEN (1:1 APP STYLE)
-    # ------------------------------------------------------
+    # -----------------------------------------
+    # Marker zeichnen
+    # -----------------------------------------
     for m in markers:
 
         # ORM oder Dict kompatibel
@@ -221,43 +209,45 @@ def render_qm_markers(
         if raw_no is None:
             raw_no = m["number"]
 
-        x = int(float(raw_x) * scale_x)
-        y = int(float(raw_y) * scale_y)
+        # gespeicherte Pixelkoordinaten
+        x = float(raw_x) * scale_x
+        y = float(raw_y) * scale_y
 
         number = str(raw_no)
 
-        # App Maße exakt
-        # ==================================
-        # Größen
-        # ==================================
-        base = min(target_w_px, target_h_px)
+        # ---------------------------------
+        # 1:1 Frontend CSS Maße
+        # marker width:44 height:24
+        # circle:24
+        # arrow left:22
+        # ---------------------------------
 
-        circle_r = max(int(base * 0.0135), 9)
-        border   = max(int(circle_r * 0.14), 2)
+        ui_scale = target_w_px / orig_w
 
-        arrow_len    = int(circle_r * 1.10)
-        arrow_half_h = int(circle_r * 0.48)
+        circle_r = max(int(12 * ui_scale), 8)
+        border = max(int(2 * ui_scale), 1)
 
-        # ==================================
-        # POS_X / POS_Y = KREISMITTE
-        # ==================================
-        cx = x
-        cy = y
+        arrow_len = max(int(18 * ui_scale), 10)
+        arrow_half_h = max(int(7 * ui_scale), 4)
 
-        # Spitze rechts vom Kreis
-        tip_x = cx + circle_r + arrow_len
+        # gespeicherter Punkt = MITTE marker-box
+        # circle sitzt links
+        cx = int(x - (10 * ui_scale))
+        cy = int(y)
+
+        tip_x = int(x + (12 * ui_scale))
         tip_y = cy
 
-        # Font JETZT erzeugen
+        # Font
         try:
             font = ImageFont.truetype(
                 "DejaVuSans-Bold.ttf",
-                int(circle_r * 1.28)
+                max(int(circle_r * 1.15), 10)
             )
         except:
             font = ImageFont.load_default()
 
-        # ---------- Spitze ----------
+        # Spitze
         draw.polygon(
             [
                 (tip_x, tip_y),
@@ -267,7 +257,7 @@ def render_qm_markers(
             fill="#c80000"
         )
 
-        # ---------- Kreis ----------
+        # Kreis
         draw.ellipse(
             (
                 cx - circle_r,
@@ -280,21 +270,24 @@ def render_qm_markers(
             width=border
         )
 
-        # ---------- Zahl ----------
+        # Zahl zentrieren
         bbox = draw.textbbox((0, 0), number, font=font)
         tw = bbox[2] - bbox[0]
         th = bbox[3] - bbox[1]
 
         draw.text(
-            (cx - tw / 2, cy - th / 2 - 1),
+            (
+                cx - tw / 2,
+                cy - th / 2 - 1
+            ),
             number,
             fill="#c80000",
             font=font
         )
 
-    # ------------------------------------------------------
-    # 5. RETURN REPORTLAB IMAGE
-    # ------------------------------------------------------
+    # -----------------------------------------
+    # ReportLab Image zurück
+    # -----------------------------------------
     output = BytesIO()
     img.save(output, format="PNG")
     output.seek(0)
@@ -304,7 +297,3 @@ def render_qm_markers(
         width=target_w_mm * mm,
         height=target_h_mm * mm
     )
-
-
-
-        
