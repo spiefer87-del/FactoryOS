@@ -213,9 +213,24 @@ def render_qm_markers(
     # ------------------------------------------------------
     for m in markers:
 
-        x = int(m["x"] * scale_x)
-        y = int(m["y"] * scale_y)
-        number = str(m["number"])
+        # ORM oder Dict kompatibel
+        raw_x = getattr(m, "pos_x", None)
+        raw_y = getattr(m, "pos_y", None)
+        raw_no = getattr(m, "sort_order", None)
+
+        if raw_x is None:
+            raw_x = m["x"]
+
+        if raw_y is None:
+            raw_y = m["y"]
+
+        if raw_no is None:
+            raw_no = m["number"]
+
+        x = int(float(raw_x) * scale_x)
+        y = int(float(raw_y) * scale_y)
+
+        number = str(raw_no)
 
         # App Maße exakt
         circle_r = 16
