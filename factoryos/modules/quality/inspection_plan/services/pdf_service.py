@@ -215,7 +215,6 @@ def build_dimension_section(section):
                 1600
             )
 
-            img = Image(image_with_markers)
 
             # ----------------------------------------------
             # EXAKTES SEITENVERHÄLTNIS
