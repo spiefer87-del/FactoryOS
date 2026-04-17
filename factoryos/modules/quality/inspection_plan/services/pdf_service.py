@@ -20,8 +20,7 @@ import os
 
 from flask import current_app
 
-from factoryos.modules.quality.inspection_plan.services.marker_service import render_qm_markers_scaled_for_pdf 
-
+from factoryos.modules.quality.inspection_plan.services.marker_service import render_qm_markers
 from ..models import QualityInspectionPlanVersion
 from factoryos.modules.masterdata.articles.models import Article
 
@@ -187,7 +186,7 @@ def build_dimension_section(section):
 
         if os.path.exists(img_path):
 
-            image_with_markers = render_qm_markers_scaled_for_pdf(
+            image_with_markers = render_qm_markers(
                 img_path,
                 section.characteristics,
                 1600
