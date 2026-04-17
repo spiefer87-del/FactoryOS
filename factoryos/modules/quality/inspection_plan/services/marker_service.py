@@ -127,151 +127,139 @@ def reorder_characteristics(section_id):
 
     db.session.commit()
 
+# ==========================================================
+# FACTORYOS - ULTIMATE PDF ENGINE FINAL
+# QM MARKER 1:1 APP → PDF PIXEL PERFECT
+# ==========================================================
 
-# =====================================================
-# FINAL PDF / EXPORT RENDER ENGINE
-# =====================================================
-
-# factoryos/modules/quality/inspection_plan/services/marker_service.py
-
+import os
 from io import BytesIO
-from PIL import Image as PILImage
-from PIL import ImageDraw
-from PIL import ImageFont
+from PIL import Image as PILImage, ImageDraw, ImageFont
+from reportlab.platypus import Image
+from reportlab.lib.units import mm
 
 
 # ==========================================================
-# FINAL PDF / APP MARKER ENGINE
+# FINAL ENGINE
 # ==========================================================
 
-def render_qm_markers_scaled_for_pdf(
+def render_qm_markers(
     image_path,
-    characteristics,
-    target_width_px
+    markers,
+    pdf_max_width_mm=170,
+    pdf_max_height_mm=250
 ):
     """
-    FINAL ENGINE
+    markers = [
+        {"x":1234,"y":888,"number":1},
+        ...
+    ]
 
-    - Bild wird zuerst skaliert
-    - Marker danach NEU auf Zielgröße gerendert
-    - exakt wie Builder
-    - perfekte Position
-    - perfekte Größe
+    returns ReportLab Image()
     """
 
-    # ------------------------------------------------------
-    # ORIGINAL LADEN
-    # ------------------------------------------------------
     img = PILImage.open(image_path).convert("RGB")
-
     orig_w, orig_h = img.size
 
-    scale = target_width_px / orig_w
-    target_height = int(orig_h * scale)
+    # ------------------------------------------------------
+    # 1. ZIELGRÖSE FÜR PDF FESTLEGEN
+    # ------------------------------------------------------
+    aspect = orig_w / orig_h
+
+    if aspect >= 1:
+        target_w_mm = pdf_max_width_mm
+        target_h_mm = pdf_max_width_mm / aspect
+    else:
+        target_h_mm = pdf_max_height_mm
+        target_w_mm = pdf_max_height_mm * aspect
+
+    target_w_px = int(target_w_mm * 11.811)   # mm -> px @300dpi approx
+    target_h_px = int(target_h_mm * 11.811)
 
     # ------------------------------------------------------
-    # BILD SKALIEREN
+    # 2. BILD EXAKT AUF ENDFORMAT SKALIEREN
     # ------------------------------------------------------
-    img = img.resize(
-        (target_width_px, target_height),
-        PILImage.LANCZOS
-    )
+    img = img.resize((target_w_px, target_h_px), PILImage.LANCZOS)
 
     draw = ImageDraw.Draw(img)
 
+    scale_x = target_w_px / orig_w
+    scale_y = target_h_px / orig_h
+
     # ------------------------------------------------------
-    # MARKER
+    # 3. FONT
     # ------------------------------------------------------
-    for c in characteristics:
+    try:
+        font = ImageFont.truetype("DejaVuSans-Bold.ttf", 18)
+    except:
+        font = ImageFont.load_default()
 
-        if c.pos_x is None or c.pos_y is None:
-            continue
+    # ------------------------------------------------------
+    # 4. MARKER ZEICHNEN (1:1 APP STYLE)
+    # ------------------------------------------------------
+    for m in markers:
 
-        # ===============================================
-        # SKALIERTE POSITION
-        # ===============================================
-        x = int(c.pos_x * scale)
-        y = int(c.pos_y * scale)
+        x = int(m["x"] * scale_x)
+        y = int(m["y"] * scale_y)
+        number = str(m["number"])
 
-        # ===============================================
-        # FINAL DESIGN
-        # ===============================================
-        r = max(int(12 * scale), 10)
+        # App Maße exakt
+        circle_r = 16
+        border = 3
+        arrow_len = 22
+        arrow_half_h = 9
 
-        arrow_len = int(r * 1.35)
-        arrow_h = int(r * 0.95)
-
-        border = max(int(r * 0.16), 2)
-
-        font_size = int(r * 1.05)
-
-        try:
-            font = ImageFont.truetype(
-                "DejaVuSans-Bold.ttf",
-                font_size
-            )
-        except:
-            font = ImageFont.load_default()
-
-        # ===============================================
-        # Builder Style:
-        # Kreis links / Spitze rechts
-        # ===============================================
-        cx = x
+        cx = x - arrow_len - circle_r + 1
         cy = y
 
-        tip_x = x + r + arrow_len
-        tip_y = y
-
-        # -----------------------------------------------
-        # Spitze
-        # -----------------------------------------------
+        # ---------- Spitze ----------
         draw.polygon(
             [
-                (cx + r - 1, cy - arrow_h / 2),
-                (tip_x, tip_y),
-                (cx + r - 1, cy + arrow_h / 2)
+                (x, y),
+                (cx + circle_r - 1, y - arrow_half_h),
+                (cx + circle_r - 1, y + arrow_half_h)
             ],
             fill="#c80000"
         )
 
-        # -----------------------------------------------
-        # Kreis
-        # -----------------------------------------------
+        # ---------- Kreis ----------
         draw.ellipse(
             (
-                cx - r,
-                cy - r,
-                cx + r,
-                cy + r
+                cx - circle_r,
+                cy - circle_r,
+                cx + circle_r,
+                cy + circle_r
             ),
             fill="white",
             outline="#c80000",
             width=border
         )
 
-        # -----------------------------------------------
-        # Zahl
-        # -----------------------------------------------
-        txt = str(c.sort_order)
-
-        bbox = draw.textbbox((0, 0), txt, font=font)
-
+        # ---------- Zahl ----------
+        bbox = draw.textbbox((0, 0), number, font=font)
         tw = bbox[2] - bbox[0]
         th = bbox[3] - bbox[1]
 
         draw.text(
-            (
-                cx - tw / 2,
-                cy - th / 2 - 1
-            ),
-            txt,
+            (cx - tw / 2, cy - th / 2 - 1),
+            number,
             fill="#c80000",
             font=font
         )
 
+    # ------------------------------------------------------
+    # 5. RETURN REPORTLAB IMAGE
+    # ------------------------------------------------------
     output = BytesIO()
     img.save(output, format="PNG")
     output.seek(0)
 
-    return output
+    return Image(
+        output,
+        width=target_w_mm * mm,
+        height=target_h_mm * mm
+    )
+
+
+
+        
