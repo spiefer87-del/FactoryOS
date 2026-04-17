@@ -200,18 +200,7 @@ def render_qm_markers(
     scale_x = target_w_px / orig_w
     scale_y = target_h_px / orig_h
 
-    # ------------------------------------------------------
-    # 3. FONT
-    # ------------------------------------------------------
-    try:
-        font_size = int(circle_r * 1.18)
 
-        font = ImageFont.truetype(
-            "DejaVuSans-Bold.ttf",
-            font_size
-        )
-    except:
-        font = ImageFont.load_default()
 
     # ------------------------------------------------------
     # 4. MARKER ZEICHNEN (1:1 APP STYLE)
@@ -238,23 +227,42 @@ def render_qm_markers(
         number = str(raw_no)
 
         # App Maße exakt
+        # ==================================
+        # Größen
+        # ==================================
         base = min(target_w_px, target_h_px)
 
-        circle_r = max(int(base * 0.017), 11)
-        border = max(int(circle_r * 0.16), 2)
+        circle_r = max(int(base * 0.0135), 9)
+        border   = max(int(circle_r * 0.14), 2)
 
-        arrow_len = int(circle_r * 1.25)
-        arrow_half_h = int(circle_r * 0.52)
+        arrow_len    = int(circle_r * 1.10)
+        arrow_half_h = int(circle_r * 0.48)
 
-        cx = x - arrow_len - circle_r + 1
+        # ==================================
+        # POS_X / POS_Y = KREISMITTE
+        # ==================================
+        cx = x
         cy = y
+
+        # Spitze rechts vom Kreis
+        tip_x = cx + circle_r + arrow_len
+        tip_y = cy
+
+        # Font JETZT erzeugen
+        try:
+            font = ImageFont.truetype(
+                "DejaVuSans-Bold.ttf",
+                int(circle_r * 1.28)
+            )
+        except:
+            font = ImageFont.load_default()
 
         # ---------- Spitze ----------
         draw.polygon(
             [
-                (x, y),
-                (cx + circle_r - 1, y - arrow_half_h),
-                (cx + circle_r - 1, y + arrow_half_h)
+                (tip_x, tip_y),
+                (cx + circle_r - 1, cy - arrow_half_h),
+                (cx + circle_r - 1, cy + arrow_half_h)
             ],
             fill="#c80000"
         )
