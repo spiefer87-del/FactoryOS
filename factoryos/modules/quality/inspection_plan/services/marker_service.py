@@ -211,7 +211,6 @@ def render_qm_markers(
             font_size
         )
     except:
-        font_size = int(circle_r * 1.05)
         font = ImageFont.load_default()
 
     # ------------------------------------------------------
