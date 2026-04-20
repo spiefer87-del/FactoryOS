@@ -272,14 +272,15 @@ def render_qm_markers(
 
         # Zahl zentrieren
         bbox = draw.textbbox((0, 0), number, font=font)
+        
         tw = bbox[2] - bbox[0]
         th = bbox[3] - bbox[1]
-
+        
+        tx = cx - tw / 2 - bbox[0]
+        ty = cy - th / 2 - bbox[1]
+        
         draw.text(
-            (
-                cx - tw / 2,
-                cy - th / 2 - 1
-            ),
+            (tx, ty),
             number,
             fill="#c80000",
             font=font
