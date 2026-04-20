@@ -17,6 +17,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Image
+from reportlab.lib.utils import ImageReader
 
 import os
 
@@ -357,12 +358,17 @@ def export_section_drawing_pdf(section_id):
     )
 
     # Bild randlos platzieren
+    
+    image_reader = ImageReader(img.filename)
+    
     c.drawImage(
-        img.filename,
+        image_reader,
         0,
         0,
         width=page_w,
-        height=page_h
+        height=page_h,
+        preserveAspectRatio=True,
+        mask='auto'
     )
 
     c.save()
