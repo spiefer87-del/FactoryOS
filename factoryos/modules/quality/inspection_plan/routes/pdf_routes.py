@@ -3,7 +3,7 @@ from flask_login import login_required
 
 from factoryos.extensions import db
 from ..models import QualityInspectionPlanVersion
-from factoryos.modules.quality.inspection_plan.services.pdf_service import generate_inspection_plan_pdf
+from factoryos.modules.quality.inspection_plan.services.pdf_service import generate_inspection_plan_pdf, export_section_drawing_pdf
 
 from . import bp
 
@@ -29,4 +29,15 @@ def quality_export_pdf(version_id):
         full_path,
         as_attachment=True,
         download_name=f"Pruefplan_Rev_{version.revision}.pdf"
+    )
+
+
+@bp.route("/export-section-drawing/<int:section_id>")
+@login_required
+def quality_export_section_drawing(section_id):
+
+    file_path = export_section_drawing_pdf(section_id)
+
+    return redirect(
+        url_for("static", filename=file_path)
     )
