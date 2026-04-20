@@ -313,9 +313,14 @@ def build_gauge_section(section):
     return elements
 
 
+
 def export_section_drawing_pdf(section_id):
     """
-    Exportiert NUR Zeichnung + Marker als eigenes PDF
+    Exportiert NUR die Zeichnung mit Markern.
+    Keine Überschrift.
+    Keine Tabellen.
+    Keine A4-Seite.
+    PDF hat exakt Bildgröße.
     """
 
     section = QualityInspectionSection.query.get_or_404(section_id)
@@ -326,43 +331,40 @@ def export_section_drawing_pdf(section_id):
     pdf_dir = os.path.join(current_app.static_folder, "qm_exports")
     os.makedirs(pdf_dir, exist_ok=True)
 
-    filename = f"section_drawing_{section.id}.pdf"
+    filename = f"drawing_{section.id}.pdf"
     pdf_path = os.path.join(pdf_dir, filename)
-
-    doc = SimpleDocTemplate(
-        pdf_path,
-        pagesize=A4,
-        leftMargin=1.2 * cm,
-        rightMargin=1.2 * cm,
-        topMargin=1.2 * cm,
-        bottomMargin=1.2 * cm
-    )
-
-    styles = getSampleStyleSheet()
-    elements = []
-
-    title = section.title or "Zeichnung"
-
-    elements.append(
-        Paragraph(title, styles["Heading1"])
-    )
-
-    elements.append(Spacer(1, 0.5 * cm))
 
     img_path = os.path.join(
         current_app.static_folder,
         section.drawing_path
     )
 
+    # Markerbild erzeugen
     img = render_qm_markers(
         image_path=img_path,
         markers=section.characteristics,
-        pdf_max_width_mm=185,
-        pdf_max_height_mm=255
+        pdf_max_width_mm=500,
+        pdf_max_height_mm=500
     )
 
-    elements.append(img)
+    # Exakte Bildgröße verwenden
+    page_w = img.drawWidth
+    page_h = img.drawHeight
 
-    doc.build(elements)
+    c = canvas.Canvas(
+        pdf_path,
+        pagesize=(page_w, page_h)
+    )
+
+    # Bild randlos platzieren
+    c.drawImage(
+        img.filename,
+        0,
+        0,
+        width=page_w,
+        height=page_h
+    )
+
+    c.save()
 
     return f"qm_exports/{filename}"
