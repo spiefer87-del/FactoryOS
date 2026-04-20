@@ -352,10 +352,12 @@ def export_section_drawing_pdf(section_id):
     page_w = img.drawWidth
     page_h = img.drawHeight
     
-    # WICHTIG:
-    img.filename.seek(0)
+    source = img.filename
     
-    image_reader = ImageReader(img.filename)
+    if hasattr(source, "seek"):
+        source.seek(0)
+    
+    image_reader = ImageReader(source)
     
     c.drawImage(
         image_reader,
