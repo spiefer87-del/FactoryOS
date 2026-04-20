@@ -341,23 +341,14 @@ def export_section_drawing_pdf(section_id):
     )
 
     # Markerbild erzeugen
-    img = render_qm_markers(
-        image_path=img_path,
-        markers=section.characteristics,
-        pdf_max_width_mm=500,
-        pdf_max_height_mm=500
-    )
-
-    # Exakte Bildgröße verwenden
+    
+    img = render_qm_markers(...)
+    
     page_w = img.drawWidth
     page_h = img.drawHeight
-
-    c = canvas.Canvas(
-        pdf_path,
-        pagesize=(page_w, page_h)
-    )
-
-    # Bild randlos platzieren
+    
+    # WICHTIG:
+    img.filename.seek(0)
     
     image_reader = ImageReader(img.filename)
     
@@ -367,7 +358,6 @@ def export_section_drawing_pdf(section_id):
         0,
         width=page_w,
         height=page_h,
-        preserveAspectRatio=True,
         mask='auto'
     )
 
