@@ -310,3 +310,70 @@ def build_gauge_section(section):
     elements.append(table)
 
     return elements
+
+# factoryos/modules/quality/inspection_plan/services/drawing_pdf_service.py
+
+import os
+from reportlab.platypus import SimpleDocTemplate, Spacer, Paragraph
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import cm
+from reportlab.lib.styles import getSampleStyleSheet
+from flask import current_app
+
+from ..models import QualityInspectionSection
+from .marker_service import render_qm_markers
+
+
+def export_section_drawing_pdf(section_id):
+    """
+    Exportiert NUR Zeichnung + Marker als eigenes PDF
+    """
+
+    section = QualityInspectionSection.query.get_or_404(section_id)
+
+    if not section.drawing_path:
+        raise Exception("Keine Zeichnung vorhanden")
+
+    pdf_dir = os.path.join(current_app.static_folder, "qm_exports")
+    os.makedirs(pdf_dir, exist_ok=True)
+
+    filename = f"section_drawing_{section.id}.pdf"
+    pdf_path = os.path.join(pdf_dir, filename)
+
+    doc = SimpleDocTemplate(
+        pdf_path,
+        pagesize=A4,
+        leftMargin=1.2 * cm,
+        rightMargin=1.2 * cm,
+        topMargin=1.2 * cm,
+        bottomMargin=1.2 * cm
+    )
+
+    styles = getSampleStyleSheet()
+    elements = []
+
+    title = section.title or "Zeichnung"
+
+    elements.append(
+        Paragraph(title, styles["Heading1"])
+    )
+
+    elements.append(Spacer(1, 0.5 * cm))
+
+    img_path = os.path.join(
+        current_app.static_folder,
+        section.drawing_path
+    )
+
+    img = render_qm_markers(
+        image_path=img_path,
+        markers=section.characteristics,
+        pdf_max_width_mm=185,
+        pdf_max_height_mm=255
+    )
+
+    elements.append(img)
+
+    doc.build(elements)
+
+    return f"qm_exports/{filename}"
