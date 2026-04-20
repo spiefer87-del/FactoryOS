@@ -19,6 +19,8 @@ from reportlab.pdfgen import canvas
 from reportlab.platypus import Image
 from reportlab.lib.utils import ImageReader
 
+from io import BytesIO
+
 import os
 
 from flask import current_app
@@ -343,31 +345,30 @@ def export_section_drawing_pdf(section_id):
     # Markerbild erzeugen
 
     img = render_qm_markers(
-        image_path=img_path,
-        markers=section.characteristics,
-        pdf_max_width_mm=500,
-        pdf_max_height_mm=500
+        image_path=image_path,
+        markers=markers
     )
     
     page_w = img.drawWidth
     page_h = img.drawHeight
     
-    source = img.filename
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=(page_w, page_h))
     
-    if hasattr(source, "seek"):
-        source.seek(0)
-    
-    image_reader = ImageReader(source)
+    raw = img.filename.getvalue()      # <- WICHTIG
+    reader = ImageReader(BytesIO(raw))
     
     c.drawImage(
-        image_reader,
+        reader,
         0,
         0,
         width=page_w,
         height=page_h,
         mask='auto'
     )
-
+    
+    c.showPage()
     c.save()
-
-    return f"qm_exports/{filename}"
+    
+    buffer.seek(0)
+    return buffer
