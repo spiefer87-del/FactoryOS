@@ -341,8 +341,13 @@ def export_section_drawing_pdf(section_id):
     )
 
     # Markerbild erzeugen
-    
-    img = render_qm_markers(...)
+
+    img = render_qm_markers(
+        image_path=img_path,
+        markers=section.characteristics,
+        pdf_max_width_mm=500,
+        pdf_max_height_mm=500
+    )
     
     page_w = img.drawWidth
     page_h = img.drawHeight
