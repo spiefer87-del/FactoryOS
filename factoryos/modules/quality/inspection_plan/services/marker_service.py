@@ -227,8 +227,8 @@ def render_qm_markers(
         circle_r = max(int(12 * ui_scale), 8)
         border = max(int(2 * ui_scale), 1)
 
-        arrow_len = max(int(18 * ui_scale), 10)
-        arrow_half_h = max(int(7 * ui_scale), 4)
+        arrow_len = max(int(18 * ui_scale), 12)
+        arrow_half_h = max(int(7 * ui_scale), 3)
 
         # gespeicherter Punkt = MITTE marker-box
         # circle sitzt links
@@ -251,8 +251,8 @@ def render_qm_markers(
         draw.polygon(
             [
                 (tip_x, tip_y),
-                (cx + circle_r - 1, cy - arrow_half_h),
-                (cx + circle_r - 1, cy + arrow_half_h)
+                (cx + circle_r - 2, cy - arrow_half_h),
+                (cx + circle_r - 2, cy + arrow_half_h)
             ],
             fill="#c80000"
         )
