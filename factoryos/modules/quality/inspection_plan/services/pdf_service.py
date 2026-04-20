@@ -1,3 +1,5 @@
+# factoryos/modules/quality/inspection_plan/services/drawing_pdf_service.py
+
 from reportlab.platypus import (
     SimpleDocTemplate,
     Paragraph,
@@ -21,9 +23,8 @@ import os
 from flask import current_app
 
 from factoryos.modules.quality.inspection_plan.services.marker_service import render_qm_markers
-from ..models import QualityInspectionPlanVersion
+from ..models import QualityInspectionPlanVersion, QualityInspectionSection
 from factoryos.modules.masterdata.articles.models import Article
-
 
 # ===============================
 # Seitenzahlen (wie früher)
@@ -310,18 +311,6 @@ def build_gauge_section(section):
     elements.append(table)
 
     return elements
-
-# factoryos/modules/quality/inspection_plan/services/drawing_pdf_service.py
-
-import os
-from reportlab.platypus import SimpleDocTemplate, Spacer, Paragraph
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import cm
-from reportlab.lib.styles import getSampleStyleSheet
-from flask import current_app
-
-from ..models import QualityInspectionSection
-from .marker_service import render_qm_markers
 
 
 def export_section_drawing_pdf(section_id):
