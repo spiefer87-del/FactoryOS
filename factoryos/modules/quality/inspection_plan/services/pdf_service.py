@@ -345,7 +345,7 @@ def export_section_drawing_pdf(section_id):
     # Markerbild erzeugen
 
     img = render_qm_markers(
-        image_path=image_path,
+        img_path=img_path,
         markers=markers
     )
     
