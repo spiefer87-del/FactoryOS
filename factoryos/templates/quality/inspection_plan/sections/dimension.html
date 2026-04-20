@@ -81,6 +81,17 @@ data-section="{{ section.id }}">
 
 </button>
 
+# BUTTON im dimension.html
+
+<a
+class="btn btn-outline-danger btn-sm mt-2"
+href="{{ url_for('inspection.quality_export_section_drawing', section_id=section.id) }}"
+target="_blank">
+
+📄 Zeichnung PDF
+
+</a>
+            
 {% endif %}
 
 {% else %}
