@@ -294,7 +294,5 @@ def render_qm_markers(
     output.seek(0)
 
     return Image(
-        output,
-        width=target_w_mm * mm,
-        height=target_h_mm * mm
+        output
     )
