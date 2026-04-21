@@ -321,8 +321,8 @@ def build_gauge_section(section):
 def export_section_drawing_pdf(section_id):
 
     img = render_qm_markers(
-        image_path=image_path,
-        markers=markers
+        image_path=img_path,
+        markers=section.characteristics
     )
 
     page_w = img.drawWidth
