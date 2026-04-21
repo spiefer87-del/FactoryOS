@@ -32,12 +32,9 @@ def quality_export_pdf(version_id):
     )
 
 
+
 @bp.route("/export-section-drawing/<int:section_id>")
 @login_required
 def quality_export_section_drawing(section_id):
 
-    file_path = export_section_drawing_pdf(section_id)
-
-    return redirect(
-        url_for("static", filename=file_path)
-    )
+    return export_section_drawing(section_id)
