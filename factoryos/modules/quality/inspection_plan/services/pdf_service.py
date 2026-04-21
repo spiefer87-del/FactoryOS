@@ -213,11 +213,13 @@ def build_dimension_section(section):
             # ----------------------------------------------
             # FINAL RENDER ENGINE
             # ----------------------------------------------
-            img = render_qm_markers(
+            img_buffer = render_qm_markers(
                 img_path,
                 markers,
                 1600
             )
+            
+            img = Image(img_buffer)
 
 
             # ----------------------------------------------
