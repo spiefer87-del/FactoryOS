@@ -320,6 +320,12 @@ def build_gauge_section(section):
 
 def export_section_drawing_pdf(section_id):
 
+
+    img_path = os.path.join(
+        current_app.static_folder,
+        section.drawing_path
+    )
+
     img = render_qm_markers(
         image_path=img_path,
         markers=section.characteristics
