@@ -317,49 +317,23 @@ def build_gauge_section(section):
 
 
 
+
 def export_section_drawing_pdf(section_id):
-    """
-    Exportiert NUR die Zeichnung mit Markern.
-    Keine Überschrift.
-    Keine Tabellen.
-    Keine A4-Seite.
-    PDF hat exakt Bildgröße.
-    """
-
-    section = QualityInspectionSection.query.get_or_404(section_id)
-
-    if not section.drawing_path:
-        raise Exception("Keine Zeichnung vorhanden")
-
-    pdf_dir = os.path.join(current_app.static_folder, "qm_exports")
-    os.makedirs(pdf_dir, exist_ok=True)
-
-    filename = f"drawing_{section.id}.pdf"
-    pdf_path = os.path.join(pdf_dir, filename)
-
-    img_path = os.path.join(
-        current_app.static_folder,
-        section.drawing_path
-    )
-
-    # Markerbild erzeugen
 
     img = render_qm_markers(
-        image_path=img_path,
-        markers=section.characteristics,
-        pdf_max_width_mm=500,
-        pdf_max_height_mm=500
+        image_path=image_path,
+        markers=markers
     )
-    
+
     page_w = img.drawWidth
     page_h = img.drawHeight
-    
+
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=(page_w, page_h))
-    
-    raw = img.filename.getvalue()      # <- WICHTIG
-    reader = ImageReader(BytesIO(raw))
-    
+
+    # DIREKT DAS BILDOBJEKT VERWENDEN
+    reader = ImageReader(img._imgdata)
+
     c.drawImage(
         reader,
         0,
@@ -368,9 +342,9 @@ def export_section_drawing_pdf(section_id):
         height=page_h,
         mask='auto'
     )
-    
+
     c.showPage()
     c.save()
-    
+
     buffer.seek(0)
     return buffer
