@@ -320,6 +320,7 @@ def build_gauge_section(section):
 
 def export_section_drawing_pdf(section_id):
 
+    section = QualityInspectionSection.query.get_or_404(section_id)
 
     img_path = os.path.join(
         current_app.static_folder,
