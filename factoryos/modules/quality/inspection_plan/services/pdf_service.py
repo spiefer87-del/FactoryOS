@@ -23,7 +23,7 @@ from io import BytesIO
 
 import os
 
-from flask import current_app
+from flask import current_app, send_file
 
 from factoryos.modules.quality.inspection_plan.services.marker_service import render_qm_markers
 from ..models import QualityInspectionPlanVersion, QualityInspectionSection
