@@ -293,6 +293,4 @@ def render_qm_markers(
     img.save(output, format="PNG")
     output.seek(0)
 
-    return Image(
-        output
-    )
+    return output
