@@ -317,41 +317,24 @@ def build_gauge_section(section):
 
 
 
-
-def export_section_drawing_pdf(section_id):
+def export_section_drawing(section_id):
 
     section = QualityInspectionSection.query.get_or_404(section_id)
 
-    img_path = os.path.join(
+
+    image_path = os.path.join(
         current_app.static_folder,
         section.drawing_path
     )
 
-    img = render_qm_markers(
-        image_path=img_path,
+    img_buffer = render_qm_markers(
+        image_path=image_path,
         markers=section.characteristics
     )
 
-    page_w = img.drawWidth
-    page_h = img.drawHeight
-
-    buffer = BytesIO()
-    c = canvas.Canvas(buffer, pagesize=(page_w, page_h))
-
-    # DIREKT DAS BILDOBJEKT VERWENDEN
-    reader = ImageReader(img._imgdata)
-
-    c.drawImage(
-        reader,
-        0,
-        0,
-        width=page_w,
-        height=page_h,
-        mask='auto'
+    return send_file(
+        img_buffer,
+        mimetype="image/png",
+        as_attachment=True,
+        download_name=f"Zeichnung_{section.id}.png"
     )
-
-    c.showPage()
-    c.save()
-
-    buffer.seek(0)
-    return buffer
