@@ -167,7 +167,7 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 
 .marker{
     position:absolute;
-    transform:translate(-50%, -50%);
+    transform:translate(-50%, -50%) rotate(var(--rotation, 0deg));
     width:44px;
     height:24px;
     cursor:grab;
