@@ -8,7 +8,8 @@ from factoryos.modules.quality.inspection_plan.services.marker_service import (
     create_marker,
     create_characteristic_with_marker,
     update_marker_position,
-    delete_marker
+    delete_marker,
+    update_marker_rotation
 )
 
 from . import bp
