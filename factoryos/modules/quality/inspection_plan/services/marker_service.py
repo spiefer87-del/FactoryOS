@@ -252,43 +252,109 @@ def render_qm_markers(
         except:
             font = ImageFont.load_default()
 
-        # Spitze
-        draw.polygon(
+        # ==========================================
+        # MARKER ALS EIGENE EBENE
+        # ==========================================
+        
+        marker_size = int(circle_r * 5)
+        
+        marker_img = PILImage.new(
+            "RGBA",
+            (marker_size, marker_size),
+            (255, 255, 255, 0)
+        )
+        
+        marker_draw = ImageDraw.Draw(marker_img)
+        
+        # ------------------------------------------
+        # LOKALE POSITIONEN
+        # ------------------------------------------
+        
+        local_cx = int(marker_size * 0.35)
+        local_cy = int(marker_size * 0.50)
+        
+        local_tip_x = local_cx + arrow_len
+        local_tip_y = local_cy
+        
+        # ------------------------------------------
+        # SPITZE
+        # ------------------------------------------
+        
+        marker_draw.polygon(
             [
-                (tip_x, tip_y),
-                (cx + circle_r - 2, cy - arrow_half_h),
-                (cx + circle_r - 2, cy + arrow_half_h)
+                (local_tip_x, local_tip_y),
+                (
+                    local_cx + circle_r - 2,
+                    local_cy - arrow_half_h
+                ),
+                (
+                    local_cx + circle_r - 2,
+                    local_cy + arrow_half_h
+                )
             ],
             fill="#c80000"
         )
-
-        # Kreis
-        draw.ellipse(
+        
+        # ------------------------------------------
+        # KREIS
+        # ------------------------------------------
+        
+        marker_draw.ellipse(
             (
-                cx - circle_r,
-                cy - circle_r,
-                cx + circle_r,
-                cy + circle_r
+                local_cx - circle_r,
+                local_cy - circle_r,
+                local_cx + circle_r,
+                local_cy + circle_r
             ),
             fill="white",
             outline="#c80000",
             width=border
         )
-
-        # Zahl zentrieren
-        bbox = draw.textbbox((0, 0), number, font=font)
+        
+        # ------------------------------------------
+        # ZAHL
+        # ------------------------------------------
+        
+        bbox = marker_draw.textbbox(
+            (0, 0),
+            number,
+            font=font
+        )
         
         tw = bbox[2] - bbox[0]
         th = bbox[3] - bbox[1]
         
-        tx = cx - tw / 2 - bbox[0]
-        ty = cy - th / 2 - bbox[1]
+        tx = local_cx - tw / 2 - bbox[0]
+        ty = local_cy - th / 2 - bbox[1]
         
-        draw.text(
+        marker_draw.text(
             (tx, ty),
             number,
             fill="#c80000",
             font=font
+        )
+        
+        # ==========================================
+        # ROTATION
+        # ==========================================
+        
+        marker_img = marker_img.rotate(
+            -rotation,
+            expand=True,
+            resample=PILImage.BICUBIC
+        )
+        
+        # ==========================================
+        # POSITION AUF HAUPTBILD
+        # ==========================================
+        
+        paste_x = int(x - marker_img.width / 2)
+        paste_y = int(y - marker_img.height / 2)
+        
+        img.paste(
+            marker_img,
+            (paste_x, paste_y),
+            marker_img
         )
 
     # -----------------------------------------
