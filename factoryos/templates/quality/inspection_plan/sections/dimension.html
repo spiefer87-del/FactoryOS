@@ -50,12 +50,14 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
         {% if c.pos_x is not none and c.pos_y is not none %}
 
         <div class="marker"
-            data-id="{{ c.id }}"
-            data-status="{{ version.status }}"
-            style="
-            left: {{ c.pos_x }}px;
-            top: {{ c.pos_y }}px;
-            ">
+                data-id="{{ c.id }}"
+                data-status="{{ version.status }}"
+                data-rotation="{{ c.rotation or 0 }}"
+                style="
+                left: {{ c.pos_x }}px;
+                top: {{ c.pos_y }}px;
+                --rotation: {{ c.rotation or 0 }}deg;
+                ">
 
             <div class="marker-circle">{{ c.sort_order }}</div>
             <div class="marker-arrow"></div>
