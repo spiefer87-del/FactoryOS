@@ -1,5 +1,7 @@
 let isDragging = false
 let hasMoved = false
+let pressTimer = null
+let longPressTriggered = false
 
 document.addEventListener("DOMContentLoaded", function(){
 
@@ -141,26 +143,96 @@ document.addEventListener("DOMContentLoaded", function(){
         }, 50)
     })
 
-    /* ================= DELETE ================= */
+    /* ================= ROTATE + DELETE ================= */
 
     document.querySelectorAll(".marker").forEach(marker => {
-
+    
+        // Browser Kontextmenü deaktivieren
         marker.addEventListener("contextmenu", function(e){
-
             e.preventDefault()
-
-            if(marker.dataset.status !== "draft") return
-            if(!confirm("Marker und Merkmal löschen?")) return
-
-            const id = marker.dataset.id
-
-            fetch("/quality/inspection-plans/delete_characteristic_marker",{
-                method:"POST",
-                headers:{"Content-Type":"application/json"},
-                body:JSON.stringify({ id: id })
-            })
-            .then(() => location.reload())
         })
+    
+        // ================= RIGHT CLICK START =================
+    
+        marker.addEventListener("mousedown", function(e){
+    
+            // nur rechte Maustaste
+            if(e.button !== 2) return
+    
+            if(marker.dataset.status !== "draft") return
+    
+            e.preventDefault()
+    
+            longPressTriggered = false
+    
+            // LONG PRESS = DELETE
+            pressTimer = setTimeout(() => {
+    
+                longPressTriggered = true
+    
+                if(!confirm("Marker und Merkmal löschen?")) return
+    
+                fetch("/quality/inspection-plans/delete_characteristic_marker",{
+                    method:"POST",
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+                    body:JSON.stringify({
+                        id: marker.dataset.id
+                    })
+                })
+                .then(() => location.reload())
+    
+            }, 700)
+    
+        })
+    
+        // ================= RIGHT CLICK END =================
+    
+        marker.addEventListener("mouseup", function(e){
+    
+            if(e.button !== 2) return
+    
+            clearTimeout(pressTimer)
+    
+            // wenn delete schon ausgelöst wurde
+            if(longPressTriggered) return
+    
+            // ================= ROTATE =================
+    
+            let rotation = parseFloat(
+                marker.dataset.rotation || 0
+            )
+    
+            rotation += 15
+    
+            if(rotation >= 360){
+                rotation = 0
+            }
+    
+            // dataset speichern
+            marker.dataset.rotation = rotation
+    
+            // CSS Variable setzen
+            marker.style.setProperty(
+                "--rotation",
+                rotation + "deg"
+            )
+    
+            // DB speichern
+            fetch("/quality/inspection-plans/rotate_characteristic_marker",{
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    id: marker.dataset.id,
+                    rotation: rotation
+                })
+            })
+    
+        })
+    
     })
 
 })
