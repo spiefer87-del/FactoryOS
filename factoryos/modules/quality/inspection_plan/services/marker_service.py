@@ -294,3 +294,17 @@ def render_qm_markers(
     output.seek(0)
 
     return output
+
+def update_marker_rotation(char_id, rotation):
+
+    char = QualityInspectionCharacteristic.query.get_or_404(char_id)
+
+    char.rotation = rotation
+
+    log_change(
+        char.section.version,
+        "ROTATE_MARKER",
+        f"Marker '{char.name}' gedreht"
+    )
+
+    db.session.commit()
