@@ -199,6 +199,7 @@ def render_qm_markers(
         raw_x = getattr(m, "pos_x", None)
         raw_y = getattr(m, "pos_y", None)
         raw_no = getattr(m, "sort_order", None)
+        raw_rotation = getattr(m, "rotation", 0)
 
         if raw_x is None:
             raw_x = m["x"]
@@ -209,11 +210,15 @@ def render_qm_markers(
         if raw_no is None:
             raw_no = m["number"]
 
+        if raw_rotation is None:
+            raw_rotation = m.get("rotation", 0)
+
         # gespeicherte Pixelkoordinaten
         x = float(raw_x) * scale_x
         y = float(raw_y) * scale_y
 
         number = str(raw_no)
+        rotation = float(raw_rotation)
 
         # ---------------------------------
         # 1:1 Frontend CSS Maße
