@@ -22,6 +22,7 @@ class QualityInspectionCharacteristic(db.Model):
 
     pos_x = db.Column(db.Float)
     pos_y = db.Column(db.Float)
+    rotation = db.Column(db.Float, default=0)
 
     # WICHTIG
     sort_order = db.Column(db.Integer, default=0)
