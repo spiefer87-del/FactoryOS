@@ -109,3 +109,33 @@ def quality_add_point():
         "status": "ok",
         "id": characteristic.id
     })
+
+@bp.route("/rotate_characteristic_marker", methods=["POST"])
+@login_required
+def quality_rotate_characteristic_marker():
+
+    data = request.get_json()
+
+    char = db.session.get(
+        QualityInspectionCharacteristic,
+        data["id"]
+    )
+
+    if not char:
+        return jsonify({
+            "error": "marker not found"
+        }), 404
+
+    if char.section.version.status != "draft":
+        return jsonify({
+            "error": "revision locked"
+        }), 403
+
+    update_marker_rotation(
+        data["id"],
+        data["rotation"]
+    )
+
+    return jsonify({
+        "success": True
+    })
