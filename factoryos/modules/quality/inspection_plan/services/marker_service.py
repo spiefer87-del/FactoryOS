@@ -310,12 +310,38 @@ def render_qm_markers(
             outline="#c80000",
             width=border
         )
+
+        # ==========================================
+        # MARKER ROTIEREN (OHNE TEXT)
+        # ==========================================
         
-        # ------------------------------------------
-        # ZAHL
-        # ------------------------------------------
+        rotated_marker = marker_img.rotate(
+            -rotation,
+            expand=True,
+            resample=PILImage.BICUBIC
+        )
+
         
-        bbox = marker_draw.textbbox(
+        
+        
+        # ==========================================
+        # POSITION AUF HAUPTBILD
+        # ==========================================
+        
+        paste_x = int(x - rotated_marker.width / 2)
+        paste_y = int(y - rotated_marker.height / 2)
+        
+        img.paste(
+            rotated_marker,
+            (paste_x, paste_y),
+            rotated_marker
+        )
+        
+        # ==========================================
+        # ZAHL IMMER GERADE ZEICHNEN
+        # ==========================================
+        
+        bbox = draw.textbbox(
             (0, 0),
             number,
             font=font
@@ -324,37 +350,14 @@ def render_qm_markers(
         tw = bbox[2] - bbox[0]
         th = bbox[3] - bbox[1]
         
-        tx = local_cx - tw / 2 - bbox[0]
-        ty = local_cy - th / 2 - bbox[1]
+        tx = x - (10 * ui_scale) - tw / 2 - bbox[0]
+        ty = y - th / 2 - bbox[1]
         
-        marker_draw.text(
+        draw.text(
             (tx, ty),
             number,
             fill="#c80000",
             font=font
-        )
-        
-        # ==========================================
-        # ROTATION
-        # ==========================================
-        
-        marker_img = marker_img.rotate(
-            -rotation,
-            expand=True,
-            resample=PILImage.BICUBIC
-        )
-        
-        # ==========================================
-        # POSITION AUF HAUPTBILD
-        # ==========================================
-        
-        paste_x = int(x - marker_img.width / 2)
-        paste_y = int(y - marker_img.height / 2)
-        
-        img.paste(
-            marker_img,
-            (paste_x, paste_y),
-            marker_img
         )
 
     # -----------------------------------------
