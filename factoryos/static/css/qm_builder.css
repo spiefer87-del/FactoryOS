@@ -105,10 +105,20 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 
     z-index: 100;
 
-    background: white;
+    background: rgba(255,255,255,0.96);
 
-    padding-bottom: 10px;
+    backdrop-filter: blur(8px);
+
+    border-bottom: 1px solid #ddd;
+
+    padding: 10px;
+
     margin-bottom: 10px;
+
+    display:flex;
+    flex-wrap:wrap;
+    gap:15px;
+    align-items:center;
 
 }
 
