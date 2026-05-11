@@ -13,6 +13,24 @@
                value="{{ article.article_name if article else '' }}"
                required>
     </div>
+    
+    <div class="form-group">
+        <label>Zeichnungsnummer</label>
+    
+        <input
+            type="text"
+            name="drawing_no"
+            value="{{ article.drawing_no if article else '' }}">
+    </div>
+    
+    <div class="form-group">
+        <label>Zeichnungsrevision</label>
+    
+        <input
+            type="text"
+            name="drawing_revision"
+            value="{{ article.drawing_revision if article else '' }}">
+    </div>
 
     <div class="form-group full">
     <label>Werkzeuge</label>
