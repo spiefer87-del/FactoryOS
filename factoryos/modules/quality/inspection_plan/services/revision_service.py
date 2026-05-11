@@ -87,7 +87,8 @@ def copy_characteristics(old_section, new_section):
             unit=c.unit,
             sort_order=c.sort_order,
             pos_x=c.pos_x,
-            pos_y=c.pos_y
+            pos_y=c.pos_y,
+            rotation=c.rotation
         ))
 
 
