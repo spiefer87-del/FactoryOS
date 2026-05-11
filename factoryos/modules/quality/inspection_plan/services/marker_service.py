@@ -273,7 +273,7 @@ def render_qm_markers(
         local_cx = int(marker_size * 0.35)
         local_cy = int(marker_size * 0.50)
         
-        local_tip_x = local_cx + arrow_len
+        local_tip_x = local_cx + circle_r + arrow_len
         local_tip_y = local_cy
         
         # ------------------------------------------
