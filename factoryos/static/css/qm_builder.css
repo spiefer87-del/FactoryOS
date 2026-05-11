@@ -167,23 +167,16 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 
 .marker{
     position:absolute;
-    transform:translate(-50%, -50%);
+
     width:44px;
     height:24px;
+
     cursor:grab;
     z-index:999;
+
+    transform-origin:center center;
 }
 
-.marker-rotator{
-    position:absolute;
-    left:0;
-    top:0;
-
-    width:44px;
-    height:24px;
-
-    pointer-events:none;
-}
 
 .marker:active{
     cursor:grabbing;
@@ -237,4 +230,15 @@ font-weight:bold;
 font-size:6px;
 text-anchor:middle;
 dominant-baseline:middle;
+}
+
+.marker-number{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    width:100%;
+    height:100%;
+
+    transform: rotate(calc(var(--rotation, 0deg) * -1));
 }
