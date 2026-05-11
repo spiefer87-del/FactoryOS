@@ -21,9 +21,9 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
 
 </div>
 
-<!-- ================= TOOLBAR ================= -->
-
 <div class="drawing-toolbar">
+
+    <!-- ================= ZOOM ================= -->
 
     <div class="zoom-controls">
 
@@ -44,6 +44,8 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
 
     </div>
 
+    <!-- ================= OPTIONS ================= -->
+
     <div class="form-check mt-2">
 
         <input
@@ -60,6 +62,33 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
         </label>
 
     </div>
+
+    <!-- ================= ACTIONS ================= -->
+
+    {% if version.status == "draft" %}
+
+    <div class="drawing-actions mt-2 d-flex gap-2 flex-wrap">
+
+        <button
+            class="btn btn-outline-info btn-sm detect-features"
+            data-section="{{ section.id }}">
+
+            🔍 Bohrungen erkennen
+
+        </button>
+
+        <a
+            class="btn btn-outline-danger btn-sm"
+            href="{{ url_for('inspection.quality_export_section_drawing', section_id=section.id) }}"
+            target="_blank">
+
+            📄 Zeichnung Export
+
+        </a>
+
+    </div>
+
+    {% endif %}
 
 </div>
 
@@ -111,29 +140,6 @@ action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }
     </div>
     <div class="scroll-hint">← ziehen →</div>
 </div>
-
-<!-- ===== Bohrungen erkennen ===== -->
-
-{% if version.status == "draft" %}
-
-<button
-class="btn btn-outline-info btn-sm mt-2 detect-features"
-data-section="{{ section.id }}">
-
-🔍 Bohrungen erkennen
-
-</button>
-
-<a
-class="btn btn-outline-danger btn-sm mt-2"
-href="{{ url_for('inspection.quality_export_section_drawing', section_id=section.id) }}"
-target="_blank">
-
-📄 Zeichnung PDF
-
-</a>
-            
-{% endif %}
 
 {% else %}
 
