@@ -5,6 +5,43 @@ let longPressTriggered = false
 
 document.addEventListener("DOMContentLoaded", function(){
 
+    // ======================================
+    // AUTO MODAL STATUS LADEN
+    // ======================================
+    
+    const autoOpenCheckbox =
+        document.getElementById("autoOpenModal")
+    
+    if(autoOpenCheckbox){
+    
+        const saved =
+            localStorage.getItem("qm_auto_open_modal")
+    
+        if(saved !== null){
+    
+            autoOpenCheckbox.checked =
+                saved === "true"
+    
+        }
+    
+    }
+
+    if(autoOpenCheckbox){
+
+        autoOpenCheckbox.addEventListener(
+            "change",
+            function(){
+    
+                localStorage.setItem(
+                    "qm_auto_open_modal",
+                    autoOpenCheckbox.checked
+                )
+    
+            }
+        )
+    
+    }
+
     let activeMarker = null
     let offsetX = 0
     let offsetY = 0
