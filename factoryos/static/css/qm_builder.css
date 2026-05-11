@@ -167,11 +167,22 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
 
 .marker{
     position:absolute;
-    transform:translate(-50%, -50%) rotate(var(--rotation, 0deg));
+    transform:translate(-50%, -50%);
     width:44px;
     height:24px;
     cursor:grab;
     z-index:999;
+}
+
+.marker-rotator{
+    position:absolute;
+    left:0;
+    top:0;
+
+    width:44px;
+    height:24px;
+
+    pointer-events:none;
 }
 
 .marker:active{
