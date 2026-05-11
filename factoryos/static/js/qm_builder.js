@@ -435,13 +435,32 @@ document.addEventListener("DOMContentLoaded", function(){
                 zoom = parsed.zoom || 1
     
                 setTimeout(() => {
-    
+
                     area.scrollLeft =
                         parsed.scrollLeft || 0
-    
+                
                     area.scrollTop =
                         parsed.scrollTop || 0
-    
+                
+                    // ======================================
+                    // OPTIONAL: LETZTEN MARKER ZENTRIEREN
+                    // ======================================
+                
+                    if(parsed.lastMarkerX){
+                
+                        area.scrollLeft =
+                            (parsed.lastMarkerX * zoom)
+                            - area.clientWidth / 2
+                
+                    }
+                
+                    if(parsed.lastMarkerY){
+                
+                        area.scrollTop =
+                            (parsed.lastMarkerY * zoom)
+                            - area.clientHeight / 2
+                    }
+                
                 }, 50)
     
             }catch(err){
