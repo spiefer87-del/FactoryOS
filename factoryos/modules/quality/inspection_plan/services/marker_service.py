@@ -338,9 +338,40 @@ def render_qm_markers(
         )
         
         # ==========================================
-        # ZAHL IMMER GERADE ZEICHNEN
+        # ZAHL IMMER IM KREIS ZENTRIEREN
         # ==========================================
         
+        # ursprüngliche Kreisposition im lokalen Marker
+        orig_circle_x = local_cx
+        orig_circle_y = local_cy
+        
+        # Mittelpunkt des ursprünglichen Markerbildes
+        marker_center_x = marker_size / 2
+        marker_center_y = marker_size / 2
+        
+        # Rotation berechnen
+        import math
+        
+        angle = math.radians(rotation)
+        
+        dx = orig_circle_x - marker_center_x
+        dy = orig_circle_y - marker_center_y
+        
+        rot_x = (
+            dx * math.cos(angle)
+            - dy * math.sin(angle)
+        )
+        
+        rot_y = (
+            dx * math.sin(angle)
+            + dy * math.cos(angle)
+        )
+        
+        # finale Kreisposition im Hauptbild
+        final_circle_x = paste_x + rotated_marker.width / 2 + rot_x
+        final_circle_y = paste_y + rotated_marker.height / 2 + rot_y
+        
+        # Textgröße
         bbox = draw.textbbox(
             (0, 0),
             number,
@@ -350,8 +381,9 @@ def render_qm_markers(
         tw = bbox[2] - bbox[0]
         th = bbox[3] - bbox[1]
         
-        tx = x - (10 * ui_scale) - tw / 2 - bbox[0]
-        ty = y - th / 2 - bbox[1]
+        # Text exakt zentrieren
+        tx = final_circle_x - tw / 2 - bbox[0]
+        ty = final_circle_y - th / 2 - bbox[1]
         
         draw.text(
             (tx, ty),
