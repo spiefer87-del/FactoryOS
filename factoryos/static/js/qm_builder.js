@@ -202,7 +202,37 @@ document.addEventListener("DOMContentLoaded", function(){
         marker.addEventListener("contextmenu", function(e){
             e.preventDefault()
         })
-    
+
+        /* ================= DOUBLE CLICK EDIT ================= */
+
+        marker.addEventListener("dblclick", function(e){
+        
+            e.stopPropagation()
+        
+            const id = marker.dataset.id
+        
+            const row = document.querySelector(
+                `.characteristic-row[data-id="${id}"]`
+            )
+        
+            if(row){
+        
+                row.scrollIntoView({
+                    behavior:"smooth",
+                    block:"center"
+                })
+        
+                row.classList.add("table-warning")
+        
+                setTimeout(() => {
+        
+                    row.classList.remove("table-warning")
+        
+                }, 2000)
+            }
+        
+        })
+        
         // ================= RIGHT CLICK START =================
     
         marker.addEventListener("mousedown", function(e){
