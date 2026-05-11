@@ -20,6 +20,7 @@ class Article(db.Model):
     cycle_time_s = db.Column(db.Float)
     pack_unit = db.Column(db.Integer)
     drawing_no = db.Column(db.String(100))
+    drawing_revision = db.Column(db.String(20))
 
 
     tools = db.relationship(
