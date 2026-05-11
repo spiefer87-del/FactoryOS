@@ -444,14 +444,16 @@ document.addEventListener("DOMContentLoaded", function(){
         // BUTTONS
         // ==========================================
     
+        const section = area.closest(".qm-section")
+
         const zoomInBtn =
-            area.querySelector(".zoom-in")
-    
+            section.querySelector(".zoom-in")
+        
         const zoomOutBtn =
-            area.querySelector(".zoom-out")
-    
+            section.querySelector(".zoom-out")
+        
         const resetBtn =
-            area.querySelector(".zoom-reset")
+            section.querySelector(".zoom-reset")
     
         // ==========================================
         // ZOOM IN
