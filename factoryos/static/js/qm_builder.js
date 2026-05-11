@@ -446,19 +446,55 @@ document.addEventListener("DOMContentLoaded", function(){
                     // OPTIONAL: LETZTEN MARKER ZENTRIEREN
                     // ======================================
                 
-                    if(parsed.lastMarkerX){
-                
-                        area.scrollLeft =
-                            (parsed.lastMarkerX * zoom)
-                            - area.clientWidth / 2
-                
-                    }
-                
-                    if(parsed.lastMarkerY){
-                
-                        area.scrollTop =
-                            (parsed.lastMarkerY * zoom)
-                            - area.clientHeight / 2
+                    // ======================================
+                    // LETZTEN MARKER SICHTBAR HALTEN
+                    // ======================================
+                    
+                    if(
+                        parsed.lastMarkerX !== undefined &&
+                        parsed.lastMarkerY !== undefined
+                    ){
+                    
+                        const markerScreenX =
+                            parsed.lastMarkerX * zoom
+                    
+                        const markerScreenY =
+                            parsed.lastMarkerY * zoom
+                    
+                        // gewünschte Position
+                        let targetLeft =
+                            markerScreenX - area.clientWidth / 2
+                    
+                        let targetTop =
+                            markerScreenY - area.clientHeight / 2
+                    
+                        // ==================================
+                        // CLAMPING
+                        // verhindert wegspringen
+                        // ==================================
+                    
+                        const maxLeft =
+                            stage.offsetWidth * zoom
+                            - area.clientWidth
+                    
+                        const maxTop =
+                            stage.offsetHeight * zoom
+                            - area.clientHeight
+                    
+                        targetLeft =
+                            Math.max(
+                                0,
+                                Math.min(targetLeft, maxLeft)
+                            )
+                    
+                        targetTop =
+                            Math.max(
+                                0,
+                                Math.min(targetTop, maxTop)
+                            )
+                    
+                        area.scrollLeft = targetLeft
+                        area.scrollTop = targetTop
                     }
                 
                 }, 50)
