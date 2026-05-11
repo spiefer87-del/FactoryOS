@@ -359,26 +359,103 @@ document.addEventListener("DOMContentLoaded", function(){
 
     /* ================= ZOOM ================= */
 
-    document.querySelectorAll(".qm-drawing-area").forEach(area => {
+    document.querySelectorAll(".qm-drawing-area").forEach((area, index) => {
     
         const stage = area.querySelector(".drawing-stage")
     
         if(!stage) return
     
+        // ==========================================
+        // STORAGE KEY
+        // ==========================================
+    
+        const storageKey =
+            `qm_zoom_state_${index}`
+    
+        // ==========================================
+        // DEFAULT
+        // ==========================================
+    
         let zoom = 1
     
-        const zoomInBtn = area.querySelector(".zoom-in")
-        const zoomOutBtn = area.querySelector(".zoom-out")
-        const resetBtn = area.querySelector(".zoom-reset")
+        // ==========================================
+        // LOAD SAVED STATE
+        // ==========================================
+    
+        const savedState =
+            localStorage.getItem(storageKey)
+    
+        if(savedState){
+    
+            try{
+    
+                const parsed = JSON.parse(savedState)
+    
+                zoom = parsed.zoom || 1
+    
+                setTimeout(() => {
+    
+                    area.scrollLeft =
+                        parsed.scrollLeft || 0
+    
+                    area.scrollTop =
+                        parsed.scrollTop || 0
+    
+                }, 50)
+    
+            }catch(err){
+                console.log(err)
+            }
+        }
+    
+        // ==========================================
+        // APPLY ZOOM
+        // ==========================================
     
         function applyZoom(){
     
             stage.style.transform =
                 `scale(${zoom})`
     
+            saveState()
         }
     
-        // ================= ZOOM IN =================
+        // ==========================================
+        // SAVE STATE
+        // ==========================================
+    
+        function saveState(){
+    
+            localStorage.setItem(
+                storageKey,
+                JSON.stringify({
+                    zoom: zoom,
+                    scrollLeft: area.scrollLeft,
+                    scrollTop: area.scrollTop
+                })
+            )
+    
+        }
+    
+        // initial anwenden
+        applyZoom()
+    
+        // ==========================================
+        // BUTTONS
+        // ==========================================
+    
+        const zoomInBtn =
+            area.querySelector(".zoom-in")
+    
+        const zoomOutBtn =
+            area.querySelector(".zoom-out")
+    
+        const resetBtn =
+            area.querySelector(".zoom-reset")
+    
+        // ==========================================
+        // ZOOM IN
+        // ==========================================
     
         zoomInBtn?.addEventListener("click", () => {
     
@@ -392,7 +469,9 @@ document.addEventListener("DOMContentLoaded", function(){
     
         })
     
-        // ================= ZOOM OUT =================
+        // ==========================================
+        // ZOOM OUT
+        // ==========================================
     
         zoomOutBtn?.addEventListener("click", () => {
     
@@ -406,19 +485,30 @@ document.addEventListener("DOMContentLoaded", function(){
     
         })
     
-        // ================= RESET =================
+        // ==========================================
+        // RESET
+        // ==========================================
     
         resetBtn?.addEventListener("click", () => {
     
             zoom = 1
     
-            applyZoom()
-    
             area.scrollLeft = 0
             area.scrollTop = 0
+    
+            applyZoom()
+    
+        })
+    
+        // ==========================================
+        // SCROLL SPEICHERN
+        // ==========================================
+    
+        area.addEventListener("scroll", () => {
+    
+            saveState()
     
         })
     
     })
-
 })
