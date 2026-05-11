@@ -34,27 +34,78 @@ document.addEventListener("DOMContentLoaded", function(){
     /* ================= CLICK ================= */
 
     document.querySelectorAll(".drawing-wrapper").forEach(wrapper => {
-
+    
         wrapper.addEventListener("click", function(e){
-
+    
             if(isDragging) return
-
+    
             if(hasMoved){
-                hasMoved = false   // 🔥 direkt resetten
+                hasMoved = false
                 return
             }
-
+    
             const img = wrapper.querySelector(".drawing-img")
-            if(!img || img.dataset.status !== "draft") return
-
-            const coords = getPixelCoordinates(wrapper, e.clientX, e.clientY)
-
-            document.getElementById("posX").value = coords.x
-            document.getElementById("posY").value = coords.y
-            document.getElementById("sectionID").value = img.dataset.section
-
-            document.getElementById("characteristicModal").style.display = "block"
+    
+            if(!img || img.dataset.status !== "draft"){
+                return
+            }
+    
+            const coords = getPixelCoordinates(
+                wrapper,
+                e.clientX,
+                e.clientY
+            )
+    
+            // ==========================================
+            // CHECKBOX STATUS
+            // ==========================================
+    
+            const autoOpen = document.getElementById(
+                "autoOpenModal"
+            )
+    
+            // ==========================================
+            // POPUP MODUS
+            // ==========================================
+    
+            if(autoOpen && autoOpen.checked){
+    
+                document.getElementById("posX").value = coords.x
+                document.getElementById("posY").value = coords.y
+                document.getElementById("sectionID").value =
+                    img.dataset.section
+    
+                document.getElementById(
+                    "characteristicModal"
+                ).style.display = "block"
+    
+            }
+    
+            // ==========================================
+            // QUICK MARKER MODE
+            // ==========================================
+    
+            else{
+    
+                fetch("/quality/inspection-plans/add_point",{
+                    method:"POST",
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+                    body:JSON.stringify({
+                        section_id: img.dataset.section,
+                        pos_x: coords.x,
+                        pos_y: coords.y
+                    })
+                })
+                .then(() => {
+                    location.reload()
+                })
+    
+            }
+    
         })
+    
     })
 
     /* ================= DRAG START ================= */
