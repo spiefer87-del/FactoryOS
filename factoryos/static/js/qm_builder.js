@@ -213,13 +213,15 @@ document.addEventListener("DOMContentLoaded", function(){
             // dataset speichern
             marker.dataset.rotation = rotation
             
-            // Rotator drehen
-            const rotator = marker.querySelector(".marker-rotator")
+            // CSS Variable aktualisieren
+            marker.style.setProperty(
+                "--rotation",
+                rotation + "deg"
+            )
             
-            if(rotator){
-                rotator.style.transform =
-                    `rotate(${rotation}deg)`
-            }
+            // Marker drehen
+            marker.style.transform =
+                `translate(-50%, -50%) rotate(${rotation}deg)`
     
             // DB speichern
             fetch("/quality/inspection-plans/rotate_characteristic_marker",{
