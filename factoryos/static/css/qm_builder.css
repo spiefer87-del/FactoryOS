@@ -146,18 +146,27 @@ box-shadow:0 10px 30px rgba(0,0,0,0.2);
     
 
 .drawing-stage {
+
     position: relative;
     display: inline-block;
-    width: max-content; /* 🔥 wichtig */
-    cursor: grab;
+
+    width: max-content;
     min-width: 100%;
+
+    cursor: grab;
+
     transform-origin: top left;
+    transition: transform 0.15s ease;
+
+    will-change: transform;
 }
 
 .drawing-stage:active {
     cursor: grabbing;
 }
-
+.drawing-stage{
+    transition: transform 0.15s ease;
+}
 /* ===================================== */
 /* QS MARKER SMALL PRO                   */
 /* ===================================== */
