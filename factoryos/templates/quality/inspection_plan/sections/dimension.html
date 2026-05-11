@@ -9,11 +9,12 @@
 {% if version.status == "draft" %}
 
 <form method="post"
-action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }}">
+      action="{{ url_for('inspection.quality_delete_section', section_id=section.id) }}"
+      onsubmit="return confirm('Das komplette Maßprüfungs-Modul inklusive aller Marker und Merkmale löschen?')">
 
-<button class="qm-delete-btn">
-✕
-</button>
+    <button class="qm-delete-btn">
+        ✕
+    </button>
 
 </form>
 
