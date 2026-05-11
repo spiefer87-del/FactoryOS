@@ -28,11 +28,34 @@ def create_marker(section_id, pos_x, pos_y):
 
     section = QualityInspectionSection.query.get_or_404(section_id)
 
+    # ==========================================
+    # NÄCHSTE SORTIERUNG
+    # ==========================================
+
+    last = (
+        QualityInspectionCharacteristic.query
+        .filter_by(section_id=section.id)
+        .order_by(
+            QualityInspectionCharacteristic.sort_order.desc()
+        )
+        .first()
+    )
+
+    next_order = 1
+
+    if last and last.sort_order:
+        next_order = last.sort_order + 1
+
+    # ==========================================
+    # MARKER
+    # ==========================================
+
     characteristic = QualityInspectionCharacteristic(
         section_id=section.id,
         name="Neues Merkmal",
         pos_x=pos_x,
-        pos_y=pos_y
+        pos_y=pos_y,
+        sort_order=next_order
     )
 
     db.session.add(characteristic)
