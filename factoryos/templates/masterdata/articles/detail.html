@@ -45,6 +45,22 @@
 </div>
 
 <div class="detail-item">
+<label>Zeichnungsnummer</label>
+
+<div class="detail-value">
+{{ article.drawing_no or "-" }}
+</div>
+</div>
+
+<div class="detail-item">
+<label>Zeichnungsrevision</label>
+
+<div class="detail-value">
+{{ article.drawing_revision or "-" }}
+</div>
+</div>
+
+<div class="detail-item">
 <label>Status</label>
 <div class="detail-value">
 <span class="status-badge status-{{ article.status }}">
