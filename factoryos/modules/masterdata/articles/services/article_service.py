@@ -47,8 +47,13 @@ def create_article(form):
     article = Article(
         article_no=form.get("article_no"),
         article_name=form.get("article_name"),
+    
+        drawing_no=form.get("drawing_no"),
+        drawing_revision=form.get("drawing_revision"),
+    
         description=form.get("description"),
         status=form.get("status"),
+    
         shot_weight_g=to_float(form.get("shot_weight_g")),
         cycle_time_s=to_float(form.get("cycle_time_s")),
         pack_unit=to_int(form.get("pack_unit")),
@@ -101,10 +106,16 @@ def update_article(article, form):
 
     # neue Werte vorbereiten
     new_data = {
+
         "article_no": form.get("article_no"),
         "article_name": form.get("article_name"),
+    
+        "drawing_no": form.get("drawing_no"),
+        "drawing_revision": form.get("drawing_revision"),
+    
         "description": form.get("description"),
         "status": form.get("status"),
+    
         "shot_weight_g": to_float(form.get("shot_weight_g")),
         "cycle_time_s": to_float(form.get("cycle_time_s")),
         "pack_unit": to_int(form.get("pack_unit")),
