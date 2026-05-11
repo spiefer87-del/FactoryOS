@@ -136,8 +136,49 @@ document.addEventListener("DOMContentLoaded", function(){
                     })
                 })
                 .then(() => {
-                    location.reload()
-                })
+
+                // ==========================================
+                // AKTUELLE POSITION MERKEN
+                // ==========================================
+            
+                const area = wrapper.closest(".qm-drawing-area")
+            
+                if(area){
+            
+                    const allAreas = document.querySelectorAll(
+                        ".qm-drawing-area"
+                    )
+            
+                    const areaIndex = Array.from(allAreas)
+                        .indexOf(area)
+            
+                    const storageKey =
+                        `qm_zoom_state_${areaIndex}`
+            
+                    // aktuellen zoom holen
+                    const existing =
+                        JSON.parse(
+                            localStorage.getItem(storageKey) || "{}"
+                        )
+            
+                    localStorage.setItem(
+                        storageKey,
+                        JSON.stringify({
+            
+                            zoom: existing.zoom || 1,
+            
+                            scrollLeft: area.scrollLeft,
+            
+                            scrollTop: area.scrollTop,
+            
+                            lastMarkerX: coords.x,
+                            lastMarkerY: coords.y
+                        })
+                    )
+                }
+            
+                location.reload()
+            })
     
             }
     
