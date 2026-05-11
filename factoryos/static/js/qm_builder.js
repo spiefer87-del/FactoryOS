@@ -239,4 +239,68 @@ document.addEventListener("DOMContentLoaded", function(){
     
     })
 
+    /* ================= ZOOM ================= */
+
+    document.querySelectorAll(".qm-drawing-area").forEach(area => {
+    
+        const stage = area.querySelector(".drawing-stage")
+    
+        if(!stage) return
+    
+        let zoom = 1
+    
+        const zoomInBtn = area.querySelector(".zoom-in")
+        const zoomOutBtn = area.querySelector(".zoom-out")
+        const resetBtn = area.querySelector(".zoom-reset")
+    
+        function applyZoom(){
+    
+            stage.style.transform =
+                `scale(${zoom})`
+    
+        }
+    
+        // ================= ZOOM IN =================
+    
+        zoomInBtn?.addEventListener("click", () => {
+    
+            zoom += 0.2
+    
+            if(zoom > 4){
+                zoom = 4
+            }
+    
+            applyZoom()
+    
+        })
+    
+        // ================= ZOOM OUT =================
+    
+        zoomOutBtn?.addEventListener("click", () => {
+    
+            zoom -= 0.2
+    
+            if(zoom < 0.4){
+                zoom = 0.4
+            }
+    
+            applyZoom()
+    
+        })
+    
+        // ================= RESET =================
+    
+        resetBtn?.addEventListener("click", () => {
+    
+            zoom = 1
+    
+            applyZoom()
+    
+            area.scrollLeft = 0
+            area.scrollTop = 0
+    
+        })
+    
+    })
+
 })
