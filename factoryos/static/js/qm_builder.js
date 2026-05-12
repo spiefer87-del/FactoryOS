@@ -121,48 +121,97 @@ document.addEventListener("DOMContentLoaded", function(){
 
         marker.addEventListener("mousedown", function(e){
 
-            // NUR LINKE MAUSTASTE
-            if(e.button !== 0) return
+            // ======================================
+            // LINKSKLICK = DRAG
+            // ======================================
         
-            if(marker.dataset.status !== "draft") return
+            if(e.button === 0){
         
-            activeMarker = marker
+                if(marker.dataset.status !== "draft"){
+                    return
+                }
         
-            isDragging = true
-            hasMoved = false
+                activeMarker = marker
         
-            const wrapper =
-                marker.closest(".drawing-wrapper")
+                isDragging = true
+                hasMoved = false
         
-            const img =
-                wrapper.querySelector(".drawing-img")
+                const wrapper =
+                    marker.closest(".drawing-wrapper")
         
-            const rect =
-                img.getBoundingClientRect()
+                const img =
+                    wrapper.querySelector(".drawing-img")
         
-            const scaleX =
-                img.naturalWidth / rect.width
+                const rect =
+                    img.getBoundingClientRect()
         
-            const scaleY =
-                img.naturalHeight / rect.height
+                const scaleX =
+                    img.naturalWidth / rect.width
         
-            const markerX =
-                parseFloat(marker.style.left)
+                const scaleY =
+                    img.naturalHeight / rect.height
         
-            const markerY =
-                parseFloat(marker.style.top)
+                const markerX =
+                    parseFloat(marker.style.left)
         
-            offsetX =
-                (e.clientX - rect.left) * scaleX
-                - markerX
+                const markerY =
+                    parseFloat(marker.style.top)
         
-            offsetY =
-                (e.clientY - rect.top) * scaleY
-                - markerY
+                offsetX =
+                    (e.clientX - rect.left) * scaleX
+                    - markerX
         
-            document.body.style.userSelect = "none"
+                offsetY =
+                    (e.clientY - rect.top) * scaleY
+                    - markerY
         
-            e.stopPropagation()
+                document.body.style.userSelect = "none"
+        
+                e.stopPropagation()
+            }
+        
+            // ======================================
+            // RECHTSKLICK = DELETE TIMER
+            // ======================================
+        
+            if(e.button === 2){
+        
+                if(marker.dataset.status !== "draft"){
+                    return
+                }
+        
+                e.preventDefault()
+        
+                longPressTriggered = false
+        
+                pressTimer = setTimeout(() => {
+        
+                    longPressTriggered = true
+        
+                    if(!confirm(
+                        "Marker und Merkmal löschen?"
+                    )) return
+        
+                    fetch(
+                        "/quality/inspection-plans/delete_characteristic_marker",
+                        {
+                            method:"POST",
+                            headers:{
+                                "Content-Type":"application/json"
+                            },
+                            body:JSON.stringify({
+                                id: marker.dataset.id
+                            })
+                        }
+                    )
+                    .then(() => {
+        
+                        marker.remove()
+        
+                    })
+        
+                }, 700)
+            }
         })
 
         // ======================================
@@ -206,49 +255,8 @@ document.addEventListener("DOMContentLoaded", function(){
             }
         })
 
-        // ======================================
-        // RIGHT CLICK DELETE
-        // ======================================
-
-        marker.addEventListener("mousedown", function(e){
-
-            if(e.button !== 2) return
-
-            if(marker.dataset.status !== "draft") return
-
-            e.preventDefault()
-
-            longPressTriggered = false
-
-            pressTimer = setTimeout(() => {
-
-                longPressTriggered = true
-
-                if(!confirm(
-                    "Marker und Merkmal löschen?"
-                )) return
-
-                fetch(
-                    "/quality/inspection-plans/delete_characteristic_marker",
-                    {
-                        method:"POST",
-                        headers:{
-                            "Content-Type":"application/json"
-                        },
-                        body:JSON.stringify({
-                            id: marker.dataset.id
-                        })
-                    }
-                )
-                .then(() => {
-
-                    marker.remove()
-
-                })
-
-            }, 700)
-        })
-
+       
+        
         // ======================================
         // ROTATE
         // ======================================
