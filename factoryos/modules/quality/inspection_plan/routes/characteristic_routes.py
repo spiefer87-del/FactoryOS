@@ -108,7 +108,8 @@ def quality_add_point():
 
     return jsonify({
         "status": "ok",
-        "id": characteristic.id
+        "id": characteristic.id,
+        "number": characteristic.sort_order
     })
 
 @bp.route("/rotate_characteristic_marker", methods=["POST"])
