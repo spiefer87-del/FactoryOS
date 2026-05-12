@@ -311,6 +311,10 @@ document.addEventListener("DOMContentLoaded", function(){
 
         wrapper.addEventListener("click", function(e){
 
+            if(e.target.closest(".marker")){
+                return
+            }
+        
             if(isDragging) return
 
             if(hasMoved){
