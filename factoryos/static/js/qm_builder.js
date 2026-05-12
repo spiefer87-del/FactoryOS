@@ -49,7 +49,8 @@ document.addEventListener("DOMContentLoaded", function(){
     function saveZoomState(
         storageKey,
         area,
-        zoom
+        zoom,
+        extra = {}
     ){
 
         localStorage.setItem(
@@ -60,7 +61,9 @@ document.addEventListener("DOMContentLoaded", function(){
 
                 scrollLeft: area.scrollLeft,
 
-                scrollTop: area.scrollTop
+                scrollTop: area.scrollTop,
+
+                ...extra
             })
         )
     }
@@ -166,10 +169,27 @@ document.addEventListener("DOMContentLoaded", function(){
                             || "{}"
                         )
 
+                    // ======================================
+                    // VIEWPORT POSITION SPEICHERN
+                    // ======================================
+
                     saveZoomState(
                         storageKey,
                         area,
-                        existing.zoom || 1
+                        existing.zoom || 1,
+                        {
+
+                            markerX: coords.x,
+                            markerY: coords.y,
+
+                            viewportOffsetX:
+                                e.clientX
+                                - area.getBoundingClientRect().left,
+
+                            viewportOffsetY:
+                                e.clientY
+                                - area.getBoundingClientRect().top
+                        }
                     )
                 }
 
@@ -463,59 +483,95 @@ document.addEventListener("DOMContentLoaded", function(){
         if(savedState){
 
             try{
-        
+
                 const parsed =
                     JSON.parse(savedState)
-        
+
                 zoom = parsed.zoom || 1
-        
-                // Zoom zuerst anwenden
+
                 stage.style.transform =
                     `scale(${zoom})`
-        
+
                 const img =
                     stage.querySelector(".drawing-img")
-        
-                // Warten bis Bild komplett gerendert
+
                 function restoreScroll(){
-        
+
                     requestAnimationFrame(() => {
-        
+
                         requestAnimationFrame(() => {
-        
+
                             const maxLeft =
-                                area.scrollWidth - area.clientWidth
-        
+                                area.scrollWidth
+                                - area.clientWidth
+
                             const maxTop =
-                                area.scrollHeight - area.clientHeight
-        
-                            area.scrollLeft = Math.min(
-                                parsed.scrollLeft || 0,
-                                maxLeft
+                                area.scrollHeight
+                                - area.clientHeight
+
+                            // ======================================
+                            // MARKER POSITION
+                            // ======================================
+
+                            const markerScreenX =
+                                (parsed.markerX || 0)
+                                * zoom
+
+                            const markerScreenY =
+                                (parsed.markerY || 0)
+                                * zoom
+
+                            // ======================================
+                            // VIEWPORT OFFSET
+                            // ======================================
+
+                            const viewportOffsetX =
+                                parsed.viewportOffsetX || 0
+
+                            const viewportOffsetY =
+                                parsed.viewportOffsetY || 0
+
+                            // ======================================
+                            // TARGET SCROLL
+                            // ======================================
+
+                            let targetLeft =
+                                markerScreenX
+                                - viewportOffsetX
+
+                            let targetTop =
+                                markerScreenY
+                                - viewportOffsetY
+
+                            targetLeft = Math.max(
+                                0,
+                                Math.min(targetLeft, maxLeft)
                             )
-        
-                            area.scrollTop = Math.min(
-                                parsed.scrollTop || 0,
-                                maxTop
+
+                            targetTop = Math.max(
+                                0,
+                                Math.min(targetTop, maxTop)
                             )
-        
+
+                            area.scrollLeft = targetLeft
+                            area.scrollTop = targetTop
+
                         })
-        
+
                     })
                 }
-        
-                // Bild schon geladen?
+
                 if(img.complete){
-        
+
                     restoreScroll()
-        
+
                 }else{
-        
+
                     img.onload = restoreScroll
                 }
-        
+
             }catch(err){
-        
+
                 console.log(err)
             }
         }
