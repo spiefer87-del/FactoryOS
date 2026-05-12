@@ -74,7 +74,10 @@ def quality_create_characteristic_with_marker():
 
     characteristic = create_characteristic_with_marker(data)
 
-    # wenn Formular
+    # ==========================================
+    # NORMALER FORM SUBMIT
+    # ==========================================
+
     if not request.is_json:
 
         section = characteristic.section
@@ -88,10 +91,23 @@ def quality_create_characteristic_with_marker():
             )
         )
 
-    # wenn AJAX
+    # ==========================================
+    # AJAX RETURN
+    # ==========================================
+
     return jsonify({
+
         "success": True,
-        "id": characteristic.id
+
+        "id": characteristic.id,
+
+        "number": characteristic.sort_order,
+
+        "pos_x": characteristic.pos_x,
+
+        "pos_y": characteristic.pos_y,
+
+        "section_id": characteristic.section_id
     })
 
 @bp.route("/add_point", methods=["POST"])
