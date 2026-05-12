@@ -463,27 +463,59 @@ document.addEventListener("DOMContentLoaded", function(){
         if(savedState){
 
             try{
-
+        
                 const parsed =
                     JSON.parse(savedState)
-
+        
                 zoom = parsed.zoom || 1
-
+        
+                // Zoom zuerst anwenden
                 stage.style.transform =
                     `scale(${zoom})`
-
-                setTimeout(() => {
-
-                    area.scrollLeft =
-                        parsed.scrollLeft || 0
-
-                    area.scrollTop =
-                        parsed.scrollTop || 0
-
-                }, 50)
-
+        
+                const img =
+                    stage.querySelector(".drawing-img")
+        
+                // Warten bis Bild komplett gerendert
+                function restoreScroll(){
+        
+                    requestAnimationFrame(() => {
+        
+                        requestAnimationFrame(() => {
+        
+                            const maxLeft =
+                                area.scrollWidth - area.clientWidth
+        
+                            const maxTop =
+                                area.scrollHeight - area.clientHeight
+        
+                            area.scrollLeft = Math.min(
+                                parsed.scrollLeft || 0,
+                                maxLeft
+                            )
+        
+                            area.scrollTop = Math.min(
+                                parsed.scrollTop || 0,
+                                maxTop
+                            )
+        
+                        })
+        
+                    })
+                }
+        
+                // Bild schon geladen?
+                if(img.complete){
+        
+                    restoreScroll()
+        
+                }else{
+        
+                    img.onload = restoreScroll
+                }
+        
             }catch(err){
-
+        
                 console.log(err)
             }
         }
