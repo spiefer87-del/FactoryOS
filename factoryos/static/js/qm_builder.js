@@ -766,4 +766,86 @@ document.addEventListener("DOMContentLoaded", function(){
             )
         })
     })
+/* ================= MODAL AJAX SUBMIT ================= */
+
+const characteristicForm =
+    document.getElementById("characteristicForm")
+
+if(characteristicForm){
+
+    characteristicForm.addEventListener(
+        "submit",
+        function(e){
+
+            e.preventDefault()
+
+            const formData =
+                new FormData(characteristicForm)
+
+            fetch(characteristicForm.action, {
+                method:"POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+
+                // ======================================
+                // DRAWING STAGE
+                // ======================================
+
+                const wrapper =
+                    document.querySelector(
+                        `.drawing-img[data-section="${data.section_id}"]`
+                    ).closest(".drawing-wrapper")
+
+                const stage =
+                    wrapper.querySelector(".drawing-stage")
+
+                // ======================================
+                // MARKER
+                // ======================================
+
+                const marker =
+                    document.createElement("div")
+
+                marker.className = "marker"
+
+                marker.dataset.id = data.id
+                marker.dataset.status = "draft"
+                marker.dataset.rotation = "0"
+
+                marker.style.left = data.pos_x + "px"
+                marker.style.top = data.pos_y + "px"
+
+                marker.style.transform =
+                    "translate(-50%, -50%) rotate(0deg)"
+
+                marker.innerHTML = `
+                    <div class="marker-circle">
+                        <span class="marker-number">
+                            ${data.number}
+                        </span>
+                    </div>
+
+                    <div class="marker-arrow"></div>
+                `
+
+                stage.appendChild(marker)
+
+                initializeMarker(marker)
+
+                // ======================================
+                // MODAL SCHLIESSEN
+                // ======================================
+
+                document.getElementById(
+                    "characteristicModal"
+                ).style.display = "none"
+
+                characteristicForm.reset()
+            })
+        }
+    )
+}
+    
 })
