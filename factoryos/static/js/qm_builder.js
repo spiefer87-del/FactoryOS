@@ -216,10 +216,43 @@ document.addEventListener("DOMContentLoaded", function(){
                         pos_y: coords.y
                     })
                 })
-                .then(() => {
-
-                    location.reload()
-
+                .then(response => response.json())
+                .then(data => {
+                
+                    // ======================================
+                    // MARKER SOFORT IM DOM ANLEGEN
+                    // ======================================
+                
+                    const stage =
+                        wrapper.querySelector(".drawing-stage")
+                
+                    const marker =
+                        document.createElement("div")
+                
+                    marker.className = "marker"
+                
+                    marker.dataset.id = data.id
+                    marker.dataset.status = "draft"
+                    marker.dataset.rotation = "0"
+                
+                    marker.style.left = coords.x + "px"
+                    marker.style.top = coords.y + "px"
+                
+                    marker.style.transform =
+                        "translate(-50%, -50%) rotate(0deg)"
+                
+                    marker.innerHTML = `
+                        <div class="marker-circle">
+                            <span class="marker-number">
+                                ${data.number}
+                            </span>
+                        </div>
+                
+                        <div class="marker-arrow"></div>
+                    `
+                
+                    stage.appendChild(marker)
+                
                 })
             }
         })
