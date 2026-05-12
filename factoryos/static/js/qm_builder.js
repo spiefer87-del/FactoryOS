@@ -49,22 +49,12 @@ document.addEventListener("DOMContentLoaded", function(){
     function saveZoomState(
         storageKey,
         area,
-        zoom,
-        extra = {}
+        zoom
     ){
-
-        const existing =
-            JSON.parse(
-                localStorage.getItem(storageKey) || "{}"
-            )
 
         localStorage.setItem(
             storageKey,
             JSON.stringify({
-
-                ...existing,
-
-                ...extra,
 
                 zoom: zoom,
 
@@ -153,6 +143,36 @@ document.addEventListener("DOMContentLoaded", function(){
 
             else{
 
+                const area =
+                    wrapper.closest(".qm-drawing-area")
+
+                if(area){
+
+                    const allAreas =
+                        document.querySelectorAll(
+                            ".qm-drawing-area"
+                        )
+
+                    const areaIndex =
+                        Array.from(allAreas)
+                        .indexOf(area)
+
+                    const storageKey =
+                        `qm_zoom_state_${areaIndex}`
+
+                    const existing =
+                        JSON.parse(
+                            localStorage.getItem(storageKey)
+                            || "{}"
+                        )
+
+                    saveZoomState(
+                        storageKey,
+                        area,
+                        existing.zoom || 1
+                    )
+                }
+
                 fetch("/quality/inspection-plans/add_point",{
                     method:"POST",
                     headers:{
@@ -166,41 +186,8 @@ document.addEventListener("DOMContentLoaded", function(){
                 })
                 .then(() => {
 
-                    const area =
-                        wrapper.closest(".qm-drawing-area")
-
-                    if(area){
-
-                        const allAreas =
-                            document.querySelectorAll(
-                                ".qm-drawing-area"
-                            )
-
-                        const areaIndex =
-                            Array.from(allAreas)
-                            .indexOf(area)
-
-                        const storageKey =
-                            `qm_zoom_state_${areaIndex}`
-
-                        const existing =
-                            JSON.parse(
-                                localStorage.getItem(storageKey)
-                                || "{}"
-                            )
-
-                        saveZoomState(
-                            storageKey,
-                            area,
-                            existing.zoom || 1,
-                            {
-                                lastMarkerX: coords.x,
-                                lastMarkerY: coords.y
-                            }
-                        )
-                    }
-
                     location.reload()
+
                 })
             }
         })
@@ -348,8 +335,6 @@ document.addEventListener("DOMContentLoaded", function(){
 
         })
 
-        /* ================= DOUBLE CLICK EDIT ================= */
-
         marker.addEventListener("dblclick", function(e){
 
             e.stopPropagation()
@@ -376,8 +361,6 @@ document.addEventListener("DOMContentLoaded", function(){
                 }, 2000)
             }
         })
-
-        // ================= RIGHT CLICK START =================
 
         marker.addEventListener("mousedown", function(e){
 
@@ -413,8 +396,6 @@ document.addEventListener("DOMContentLoaded", function(){
 
             }, 700)
         })
-
-        // ================= RIGHT CLICK END =================
 
         marker.addEventListener("mouseup", function(e){
 
@@ -507,10 +488,6 @@ document.addEventListener("DOMContentLoaded", function(){
             }
         }
 
-        // ==========================================
-        // APPLY ZOOM
-        // ==========================================
-
         function applyZoom(){
 
             stage.style.transform =
@@ -522,13 +499,6 @@ document.addEventListener("DOMContentLoaded", function(){
                 zoom
             )
         }
-
-        // initial anwenden
-        applyZoom()
-
-        // ==========================================
-        // BUTTONS
-        // ==========================================
 
         const section =
             area.closest(".qm-section")
@@ -542,10 +512,6 @@ document.addEventListener("DOMContentLoaded", function(){
         const resetBtn =
             section.querySelector(".zoom-reset")
 
-        // ==========================================
-        // ZOOM IN
-        // ==========================================
-
         zoomInBtn?.addEventListener("click", () => {
 
             zoom += 0.2
@@ -556,10 +522,6 @@ document.addEventListener("DOMContentLoaded", function(){
 
             applyZoom()
         })
-
-        // ==========================================
-        // ZOOM OUT
-        // ==========================================
 
         zoomOutBtn?.addEventListener("click", () => {
 
@@ -572,23 +534,22 @@ document.addEventListener("DOMContentLoaded", function(){
             applyZoom()
         })
 
-        // ==========================================
-        // RESET
-        // ==========================================
-
         resetBtn?.addEventListener("click", () => {
 
             zoom = 1
 
+            stage.style.transform =
+                `scale(${zoom})`
+
             area.scrollLeft = 0
             area.scrollTop = 0
 
-            applyZoom()
+            saveZoomState(
+                storageKey,
+                area,
+                zoom
+            )
         })
-
-        // ==========================================
-        // SCROLL SPEICHERN
-        // ==========================================
 
         area.addEventListener("scroll", () => {
 
