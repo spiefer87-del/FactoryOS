@@ -263,7 +263,9 @@ class="row g-2">
 
 <h5 class="mb-3">Merkmal anlegen</h5>
 
-<form method="post"
+<form
+id="characteristicForm"
+method="post"
 action="{{ url_for('inspection.quality_create_characteristic_with_marker') }}">
 
 <input type="hidden" name="pos_x" id="posX">
