@@ -52,17 +52,33 @@ document.addEventListener("DOMContentLoaded", function(){
         zoom,
         extra = {}
     ){
-
+    
+        // ======================================
+        // BESTEHENDEN STATE LADEN
+        // ======================================
+    
+        const existing =
+            JSON.parse(
+                localStorage.getItem(storageKey)
+                || "{}"
+            )
+    
+        // ======================================
+        // MERGE STATT ÜBERSCHREIBEN
+        // ======================================
+    
         localStorage.setItem(
             storageKey,
             JSON.stringify({
-
+    
+                ...existing,
+    
                 zoom: zoom,
-
+    
                 scrollLeft: area.scrollLeft,
-
+    
                 scrollTop: area.scrollTop,
-
+    
                 ...extra
             })
         )
