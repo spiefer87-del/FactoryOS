@@ -779,12 +779,58 @@ document.addEventListener("DOMContentLoaded", function(){
     
                 e.preventDefault()
     
-                const formData =
-                    new FormData(characteristicForm)
-    
+                const payload = {
+
+                    name:
+                        characteristicForm.querySelector(
+                            '[name="name"]'
+                        ).value,
+                
+                    target_value:
+                        characteristicForm.querySelector(
+                            '[name="target_value"]'
+                        ).value,
+                
+                    tolerance_minus:
+                        characteristicForm.querySelector(
+                            '[name="tolerance_minus"]'
+                        ).value,
+                
+                    tolerance_plus:
+                        characteristicForm.querySelector(
+                            '[name="tolerance_plus"]'
+                        ).value,
+                
+                    unit:
+                        characteristicForm.querySelector(
+                            '[name="unit"]'
+                        ).value,
+                
+                    pos_x:
+                        characteristicForm.querySelector(
+                            '[name="pos_x"]'
+                        ).value,
+                
+                    pos_y:
+                        characteristicForm.querySelector(
+                            '[name="pos_y"]'
+                        ).value,
+                
+                    section_id:
+                        characteristicForm.querySelector(
+                            '[name="section_id"]'
+                        ).value
+                }
+                
                 fetch(characteristicForm.action, {
+                
                     method:"POST",
-                    body: formData
+                
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+                
+                    body: JSON.stringify(payload)
                 })
                 .then(response => response.json())
                 .then(data => {
