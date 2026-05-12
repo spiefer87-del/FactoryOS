@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
     if ("scrollRestoration" in history) {
         history.scrollRestoration = "manual"
+        window.scrollTo(0, 0)
     }
 
     // ======================================
@@ -120,46 +121,47 @@ document.addEventListener("DOMContentLoaded", function(){
 
         marker.addEventListener("mousedown", function(e){
 
-            if(e.button === 2) return
-
+            // NUR LINKE MAUSTASTE
+            if(e.button !== 0) return
+        
             if(marker.dataset.status !== "draft") return
-
+        
             activeMarker = marker
-
+        
             isDragging = true
             hasMoved = false
-
+        
             const wrapper =
                 marker.closest(".drawing-wrapper")
-
+        
             const img =
                 wrapper.querySelector(".drawing-img")
-
+        
             const rect =
                 img.getBoundingClientRect()
-
+        
             const scaleX =
                 img.naturalWidth / rect.width
-
+        
             const scaleY =
                 img.naturalHeight / rect.height
-
+        
             const markerX =
                 parseFloat(marker.style.left)
-
+        
             const markerY =
                 parseFloat(marker.style.top)
-
+        
             offsetX =
                 (e.clientX - rect.left) * scaleX
                 - markerX
-
+        
             offsetY =
                 (e.clientY - rect.top) * scaleY
                 - markerY
-
+        
             document.body.style.userSelect = "none"
-
+        
             e.stopPropagation()
         })
 
@@ -327,7 +329,49 @@ document.addEventListener("DOMContentLoaded", function(){
             // ==========================================
             // POPUP MODUS
             // ==========================================
-
+            const area =
+                wrapper.closest(".qm-drawing-area")
+            
+            if(area){
+            
+                const allAreas =
+                    document.querySelectorAll(
+                        ".qm-drawing-area"
+                    )
+            
+                const areaIndex =
+                    Array.from(allAreas)
+                    .indexOf(area)
+            
+                const storageKey =
+                    `qm_zoom_state_${areaIndex}`
+            
+                const existing =
+                    JSON.parse(
+                        localStorage.getItem(storageKey)
+                        || "{}"
+                    )
+            
+                saveZoomState(
+                    storageKey,
+                    area,
+                    existing.zoom || 1,
+                    {
+            
+                        markerX: coords.x,
+                        markerY: coords.y,
+            
+                        viewportOffsetX:
+                            e.clientX
+                            - area.getBoundingClientRect().left,
+            
+                        viewportOffsetY:
+                            e.clientY
+                            - area.getBoundingClientRect().top
+                    }
+                )
+            }
+            
             if(autoOpen && autoOpen.checked){
 
                 document.getElementById("posX").value =
