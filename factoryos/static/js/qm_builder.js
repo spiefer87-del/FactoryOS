@@ -976,8 +976,23 @@ document.addEventListener("DOMContentLoaded", function(){
                     `
     
                     stage.appendChild(marker)
-    
-                    initializeMarker(marker)
+
+                    // ======================================
+                    // WICHTIG
+                    // ======================================
+                    
+                    marker.style.zIndex = "50"
+                    marker.style.pointerEvents = "auto"
+                    
+                    // ======================================
+                    // EVENTS NACH RENDER
+                    // ======================================
+                    
+                    requestAnimationFrame(() => {
+                    
+                        initializeMarker(marker)
+                    
+                    })
     
                     // ======================================
                     // MODAL SCHLIESSEN
