@@ -492,6 +492,47 @@ document.addEventListener("DOMContentLoaded", function(){
 
                     stage.appendChild(marker)
 
+                    const tbody = document.querySelector(
+                        ".table tbody"
+                    )
+                    
+                    if(tbody){
+                    
+                        const row = document.createElement("tr")
+                    
+                        row.className = "characteristic-row"
+                    
+                        row.dataset.id = data.id
+                    
+                        row.innerHTML = `
+                            <td class="char-number">
+                                ${data.number}
+                            </td>
+                    
+                            <td>
+                                ${payload.name || ""}
+                            </td>
+                    
+                            <td>
+                                ${payload.target_value || ""}
+                            </td>
+                    
+                            <td>
+                                ${payload.tolerance_minus || ""}
+                            </td>
+                    
+                            <td>
+                                ${payload.tolerance_plus || ""}
+                            </td>
+                    
+                            <td>
+                                ${payload.unit || ""}
+                            </td>
+                        `
+                    
+                        tbody.appendChild(row)
+                    }
+
                     // ======================================
                     // EVENTS AKTIVIEREN
                     // ======================================
