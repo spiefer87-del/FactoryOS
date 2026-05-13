@@ -152,6 +152,28 @@ document.addEventListener("DOMContentLoaded", function(){
     function initializeMarker(marker){
 
         // ======================================
+        // EVENT BUBBLING STOPPEN
+        // ======================================
+    
+        marker.addEventListener("click", function(e){
+    
+            e.stopPropagation()
+    
+        })
+    
+        marker.addEventListener("mousedown", function(e){
+    
+            e.stopPropagation()
+    
+        })
+    
+        marker.addEventListener("mouseup", function(e){
+    
+            e.stopPropagation()
+    
+        })
+
+        // ======================================
         // DRAG START
         // ======================================
 
