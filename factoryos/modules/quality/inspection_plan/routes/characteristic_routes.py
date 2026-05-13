@@ -98,15 +98,25 @@ def quality_create_characteristic_with_marker():
     return jsonify({
 
         "success": True,
-
+    
         "id": characteristic.id,
-
+    
         "number": characteristic.sort_order,
-
+    
+        "name": characteristic.name,
+    
+        "target_value": characteristic.target_value,
+    
+        "tolerance_minus": characteristic.tolerance_minus,
+    
+        "tolerance_plus": characteristic.tolerance_plus,
+    
+        "unit": characteristic.unit,
+    
         "pos_x": characteristic.pos_x,
-
+    
         "pos_y": characteristic.pos_y,
-
+    
         "section_id": characteristic.section_id
     })
 
