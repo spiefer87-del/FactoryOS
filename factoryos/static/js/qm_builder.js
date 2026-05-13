@@ -93,6 +93,43 @@ document.addEventListener("DOMContentLoaded", function(){
     })
 
     /* ================= HELPER ================= */
+    function refreshMarkerNumbers(){
+
+        // ======================================
+        // MARKER
+        // ======================================
+    
+        document.querySelectorAll(".marker")
+        .forEach((marker, index) => {
+    
+            const number =
+                index + 1
+    
+            const span =
+                marker.querySelector(".marker-number")
+    
+            if(span){
+                span.textContent = number
+            }
+        })
+    
+        // ======================================
+        // TABELLE
+        // ======================================
+    
+        document.querySelectorAll(
+            ".characteristic-row"
+        )
+        .forEach((row, index) => {
+    
+            const td =
+                row.querySelector(".char-number")
+    
+            if(td){
+                td.textContent = index + 1
+            }
+        })
+    }
 
     function getPixelCoordinates(wrapper, clientX, clientY){
 
@@ -204,9 +241,30 @@ document.addEventListener("DOMContentLoaded", function(){
                         }
                     )
                     .then(() => {
-        
+
+                        // ======================================
+                        // TABELLENZEILE ENTFERNEN
+                        // ======================================
+                    
+                        const row = document.querySelector(
+                            `.characteristic-row[data-id="${marker.dataset.id}"]`
+                        )
+                    
+                        if(row){
+                            row.remove()
+                        }
+                    
+                        // ======================================
+                        // MARKER ENTFERNEN
+                        // ======================================
+                    
                         marker.remove()
-        
+                    
+                        // ======================================
+                        // NUMMERN AKTUALISIEREN
+                        // ======================================
+                    
+                        refreshMarkerNumbers()
                     })
         
                 }, 700)
