@@ -167,11 +167,7 @@ document.addEventListener("DOMContentLoaded", function(){
     
         })
     
-        marker.addEventListener("mouseup", function(e){
-    
-            e.stopPropagation()
-    
-        })
+        
 
         // ======================================
         // DRAG START
