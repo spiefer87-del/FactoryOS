@@ -26,6 +26,7 @@ def download_error_import_template():
     ws.title = "Tool Errors"
 
     ws.append([
+        "error_no",
         "tool_no",
         "error_type",
         "description",
@@ -33,6 +34,7 @@ def download_error_import_template():
     ])
 
     ws.append([
+        "FM26-001",
         "WZ-10001",
         "Gratbildung",
         "Grat an der Trennebene",
