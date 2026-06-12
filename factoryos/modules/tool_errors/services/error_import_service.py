@@ -22,8 +22,9 @@ def import_errors_from_excel(file):
 
         if not row or not row[0]:
             continue
-
-        tool_no = str(row[0]).strip()
+        error_no = str(row[0]).strip()
+        
+        tool_no = str(row[1]).strip()
 
         tool = Tool.query.filter_by(
             tool_no=tool_no
@@ -32,40 +33,16 @@ def import_errors_from_excel(file):
         if not tool:
             continue
 
-        error_type = row[1]
-        description = row[2]
-        tool_status = row[3]
+        error_type = row[2]
+        description = row[3]
+        tool_status = row[4]
 
-        # ==========================================
-        # FM NUMMER ERZEUGEN
-        # ==========================================
-
-        year = datetime.utcnow().year
-
-        last = ToolError.query\
-            .order_by(ToolError.id.desc())\
-            .first()
-
-        if last and last.error_no:
-
-            try:
-
-                last_number = int(
-                    last.error_no.split("-")[1]
-                )
-
-            except Exception:
-
-                last_number = 0
-
-        else:
-
-            last_number = 0
-
-        error_no = (
-            f"FM{year % 100:02d}-"
-            f"{last_number + 1:03d}"
-        )
+        existing = ToolError.query.filter_by(
+            error_no=error_no
+        ).first()
+        
+        if existing:
+            continue
 
         # ==========================================
         # FEHLER ANLEGEN
