@@ -93,24 +93,6 @@ def upload_drawing(section, file):
 
     db.session.commit()
 
-def upload_drawing(section, file):
-
-    result = save_standard_image(
-        file=file,
-        subfolder="qm_drawings",
-        max_size=(1600, 1200),
-        create_thumb=False,
-        fixed_canvas=True
-    )
-
-    section.drawing_path = result["path"]
-    section.image_width = 1600
-    section.image_height = 1200
-
-    section.version.is_dirty = True
-
-    db.session.commit()
-
 
 def upload_snippet(section, file, description):
 
