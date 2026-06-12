@@ -46,7 +46,8 @@ def upload_drawing(section, file):
             pdf_path,
             dpi=300,
             first_page=1,
-            last_page=1
+            last_page=1,
+            poppler_path="/usr/bin"
         )
 
         image = pages[0]
