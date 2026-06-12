@@ -1,1 +1,68 @@
+<!-- factoryos/templates/tool_errors/import.html -->
 
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<h2>Tool Errors importieren</h2>
+
+<div class="form-container">
+
+    <p>
+        Importiert Tool Errors über eine Excel-Datei (.xlsx).
+    </p>
+
+    <p>
+        Erforderliche Spalten:
+    </p>
+
+    <ul>
+        <li><strong>tool_no</strong></li>
+        <li><strong>error_type</strong></li>
+        <li><strong>description</strong></li>
+        <li><strong>tool_status</strong> (optional)</li>
+    </ul>
+
+    <div style="margin-bottom:20px;">
+
+        <a class="btn-secondary"
+           href="{{ url_for('tool_error.download_error_import_template') }}">
+
+            Vorlage herunterladen
+
+        </a>
+
+    </div>
+
+    <form
+        method="POST"
+        enctype="multipart/form-data"
+    >
+
+        <div class="form-group">
+
+            <label>Excel-Datei auswählen</label>
+
+            <input
+                type="file"
+                name="file"
+                accept=".xlsx"
+                required
+            >
+
+        </div>
+
+        <button
+            type="submit"
+            class="btn-success"
+        >
+
+            Import starten
+
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}
