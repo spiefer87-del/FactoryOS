@@ -52,6 +52,13 @@ def upload_drawing(section, file):
 
         image = pages[0]
 
+        image = image.convert("RGB")
+
+        image.thumbnail(
+            (1600, 1200),
+            PILImage.Resampling.LANCZOS
+        )
+
         png_filename = f"{uuid.uuid4()}.png"
 
         png_path = os.path.join(
@@ -68,8 +75,8 @@ def upload_drawing(section, file):
             f"qm_drawings/{png_filename}"
         )
 
-        section.image_width = image.width
-        section.image_height = image.height
+        section.image_width = 1600
+        section.image_height = 1200
 
     # ==========================================
     # NORMALER BILDUPLOAD
