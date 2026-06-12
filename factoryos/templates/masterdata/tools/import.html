@@ -1,1 +1,40 @@
+{% extends "layout/base.html" %}
 
+{% block content %}
+
+<h2>Werkzeuge importieren</h2>
+
+<div class="card">
+
+<form method="POST"
+      enctype="multipart/form-data">
+
+    <div class="mb-3">
+
+        <label class="form-label">
+
+            Excel Datei
+
+        </label>
+
+        <input
+            type="file"
+            name="file"
+            accept=".xlsx"
+            required
+        >
+
+    </div>
+
+    <button
+        type="submit"
+        class="btn btn-success"
+    >
+        Import starten
+    </button>
+
+</form>
+
+</div>
+
+{% endblock %}
