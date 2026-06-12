@@ -23,7 +23,19 @@ from factoryos.modules.masterdata.tools.queries.tool_queries import get_all_tool
 from factoryos.modules.tool_errors.models import ToolErrorTitlePreset
 from factoryos.modules.masterdata.shared.constants import TOOL_STATUSES
 
+from flask import render_template
+from flask_login import login_required
 
+from . import bp
+
+
+@bp.route("/")
+@login_required
+def dashboard():
+
+    return render_template(
+        "tool_errors/dashboard.html"
+    )
 
 # =========================
 # LIST
