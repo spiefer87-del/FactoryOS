@@ -18,11 +18,7 @@ from ..services.tool_import_service import (
 import_tools_from_excel
 )
 
-=====================================================
 
-IMPORT
-
-=====================================================
 
 @bp.route("/import", methods=["GET", "POST"])
 @login_required
@@ -70,11 +66,7 @@ return render_template(
     "masterdata/tools/import.html"
 )
 
-=====================================================
 
-EXCEL VORLAGE DOWNLOAD
-
-=====================================================
 
 @bp.route("/import/template")
 @login_required
