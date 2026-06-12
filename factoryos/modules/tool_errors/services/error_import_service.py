@@ -22,7 +22,11 @@ def import_errors_from_excel(file):
 
         if not row or not row[0]:
             continue
-        error_no = str(row[0]).strip()
+            
+        error_no = str(row[0]).strip() if row[0] else None
+
+        if not error_no:
+            continue
         
         tool_no = str(row[1]).strip()
 
@@ -33,8 +37,8 @@ def import_errors_from_excel(file):
         if not tool:
             continue
 
-        error_type = row[2]
-        description = row[3]
+        error_type = str(row[2]).strip() if row[2] else ""
+        description = str(row[3]).strip() if row[3] else ""
         tool_status = row[4]
 
         existing = ToolError.query.filter_by(
@@ -57,6 +61,7 @@ def import_errors_from_excel(file):
             error_type=error_type,
 
             description=description,
+            reported_by_id=1,
 
             created_at=datetime.utcnow()
         )
