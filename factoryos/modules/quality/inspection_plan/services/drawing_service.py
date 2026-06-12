@@ -13,7 +13,85 @@ from factoryos.modules.quality.inspection_plan.models import (
 
 from factoryos.core.image_engine import save_standard_image
 
+def upload_drawing(section, file):
 
+    filename = secure_filename(file.filename)
+
+    ext = filename.rsplit(".", 1)[-1].lower()
+
+    # ==========================================
+    # PDF UPLOAD
+    # ==========================================
+
+    if ext == "pdf":
+
+        upload_folder = os.path.join(
+            current_app.static_folder,
+            "qm_drawings"
+        )
+
+        os.makedirs(upload_folder, exist_ok=True)
+
+        pdf_filename = f"{uuid.uuid4()}.pdf"
+
+        pdf_path = os.path.join(
+            upload_folder,
+            pdf_filename
+        )
+
+        file.save(pdf_path)
+
+        # erste Seite rendern
+        pages = convert_from_path(
+            pdf_path,
+            dpi=300,
+            first_page=1,
+            last_page=1
+        )
+
+        image = pages[0]
+
+        png_filename = f"{uuid.uuid4()}.png"
+
+        png_path = os.path.join(
+            upload_folder,
+            png_filename
+        )
+
+        image.save(
+            png_path,
+            "PNG"
+        )
+
+        section.drawing_path = (
+            f"qm_drawings/{png_filename}"
+        )
+
+        section.image_width = image.width
+        section.image_height = image.height
+
+    # ==========================================
+    # NORMALER BILDUPLOAD
+    # ==========================================
+
+    else:
+
+        result = save_standard_image(
+            file=file,
+            subfolder="qm_drawings",
+            max_size=(1600, 1200),
+            create_thumb=False,
+            fixed_canvas=True
+        )
+
+        section.drawing_path = result["path"]
+
+        section.image_width = 1600
+        section.image_height = 1200
+
+    section.version.is_dirty = True
+
+    db.session.commit()
 
 def upload_drawing(section, file):
 
