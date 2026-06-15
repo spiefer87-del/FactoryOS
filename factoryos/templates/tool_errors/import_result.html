@@ -1,1 +1,59 @@
+{% extends "layout/base.html" %}
 
+{% block content %}
+
+<h2>Import Ergebnis</h2>
+
+<div class="alert alert-success">
+    {{ created }} Datensätze erfolgreich importiert.
+</div>
+
+{% if errors %}
+
+<div class="alert alert-warning">
+
+    {{ errors|length }}
+    Datensätze konnten nicht importiert werden.
+
+</div>
+
+<table class="fos-table">
+
+    <thead>
+        <tr>
+            <th>Zeile</th>
+            <th>FM-Nr.</th>
+            <th>Werkzeug</th>
+            <th>Grund</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+    {% for error in errors %}
+
+        <tr>
+            <td>{{ error.row }}</td>
+            <td>{{ error.error_no or "-" }}</td>
+            <td>{{ error.tool_no or "-" }}</td>
+            <td>{{ error.reason }}</td>
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endif %}
+
+<br>
+
+<a href="{{ url_for('tool_error.dashboard') }}"
+   class="btn-primary">
+
+    Zurück zum Dashboard
+
+</a>
+
+{% endblock %}
