@@ -14,9 +14,6 @@ from flask import (
     flash
 )
 
-from flask_login import login_required
-
-from . import bp
 
 from ..services.error_import_service import (
     import_errors_from_excel
@@ -61,13 +58,6 @@ def import_errors():
         return redirect(
             url_for("tool_error.list")
         )
-
-    return render_template(
-        "tool_errors/import.html"
-    )
-@bp.route("/import", methods=["GET", "POST"])
-@login_required
-def import_errors():
 
     return render_template(
         "tool_errors/import.html"
