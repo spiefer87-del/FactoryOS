@@ -59,9 +59,6 @@ def import_errors():
             return redirect(
                 url_for("tool_error.import_errors")
             )
-        return redirect(
-            url_for("tool_error.list")
-        )
 
     return render_template(
         "tool_errors/import.html"
