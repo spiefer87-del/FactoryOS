@@ -41,20 +41,24 @@ def import_errors():
 
         try:
 
-            created = import_errors_from_excel(file)
-
-            flash(
-                f"{created} Fehler importiert.",
-                "success"
+            result = import_errors_from_excel(file)
+        
+            return render_template(
+                "tool_errors/import_result.html",
+                created=result["created"],
+                errors=result["errors"]
             )
-
+        
         except Exception as e:
-
+        
             flash(
                 f"Importfehler: {str(e)}",
                 "danger"
             )
-
+        
+            return redirect(
+                url_for("tool_error.import_errors")
+            )
         return redirect(
             url_for("tool_error.list")
         )
