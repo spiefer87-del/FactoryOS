@@ -35,6 +35,7 @@ def import_errors_from_excel(file):
         ).first()
 
         if not tool:
+            print(f"Werkzeug nicht gefunden: {tool_no}")
             continue
 
         error_type = str(row[2]).strip() if row[2] else ""
