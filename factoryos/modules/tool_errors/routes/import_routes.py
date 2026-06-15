@@ -6,7 +6,65 @@ from openpyxl import Workbook
 
 from . import bp
 
+from flask import (
+    render_template,
+    request,
+    redirect,
+    url_for,
+    flash
+)
 
+from flask_login import login_required
+
+from . import bp
+
+from ..services.error_import_service import (
+    import_errors_from_excel
+)
+
+
+@bp.route("/import", methods=["GET", "POST"])
+@login_required
+def import_errors():
+
+    if request.method == "POST":
+
+        file = request.files.get("file")
+
+        if not file:
+
+            flash(
+                "Keine Datei ausgewählt.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("tool_error.import_errors")
+            )
+
+        try:
+
+            created = import_errors_from_excel(file)
+
+            flash(
+                f"{created} Fehler importiert.",
+                "success"
+            )
+
+        except Exception as e:
+
+            flash(
+                f"Importfehler: {str(e)}",
+                "danger"
+            )
+
+        return redirect(
+            url_for("tool_error.list")
+        )
+
+    return render_template(
+        "tool_errors/import.html"
+    )
 @bp.route("/import", methods=["GET", "POST"])
 @login_required
 def import_errors():
