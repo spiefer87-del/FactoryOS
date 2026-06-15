@@ -1,4 +1,3 @@
-from flask import render_template
 from flask_login import login_required
 from io import BytesIO
 from flask import send_file
