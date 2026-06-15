@@ -7,7 +7,7 @@ from openpyxl import Workbook
 from . import bp
 
 
-@bp.route("/import")
+@bp.route("/import", methods=["GET", "POST"])
 @login_required
 def import_errors():
 
