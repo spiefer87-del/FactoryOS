@@ -39,6 +39,11 @@ def import_errors_from_excel(file):
             continue
 
         error_type = str(row[2]).strip() if row[2] else ""
+        print(
+            error_no,
+            tool_no,
+            error_type
+        )
         description = str(row[3]).strip() if row[3] else ""
         tool_status = row[4]
 
@@ -82,6 +87,8 @@ def import_errors_from_excel(file):
 
         created += 1
 
-    db.session.commit()
+    print(f"Importiert: {created}")
 
+    db.session.commit()
+    
     return created
