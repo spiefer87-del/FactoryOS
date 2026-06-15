@@ -81,16 +81,7 @@ def import_errors_from_excel(file):
 
         error_type = str(row[2]).strip() if row[2] else ""
 
-        if not error_type:
-
-            errors.append({
-                "row": row_index,
-                "error_no": error_no,
-                "tool_no": tool_no,
-                "reason": "Fehlerart fehlt"
-            })
-
-            continue
+        
 
         # ==========================================
         # BESCHREIBUNG
