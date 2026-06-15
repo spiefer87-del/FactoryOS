@@ -47,6 +47,7 @@ def import_errors_from_excel(file):
         ).first()
         
         if existing:
+            print(f"Existiert bereits: {error_no}")
             continue
 
         # ==========================================
