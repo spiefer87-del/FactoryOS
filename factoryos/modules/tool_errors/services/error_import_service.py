@@ -18,7 +18,10 @@ def import_errors_from_excel(file):
 
     created = 0
 
-    for row in ws.iter_rows(min_row=2, values_only=True):
+    for row_index, row in enumerate(
+        ws.iter_rows(min_row=2, values_only=True),
+        start=2
+    ):
 
         if not row or not row[0]:
             continue
@@ -26,6 +29,12 @@ def import_errors_from_excel(file):
         error_no = str(row[0]).strip() if row[0] else None
 
         if not error_no:
+
+            errors.append({
+                "row": row_index,
+                "reason": "Fehlernummer fehlt"
+            })
+        
             continue
         
         tool_no = str(row[1]).strip()
@@ -35,7 +44,14 @@ def import_errors_from_excel(file):
         ).first()
 
         if not tool:
-            print(f"Werkzeug nicht gefunden: {tool_no}")
+
+            errors.append({
+                "row": row_index,
+                "error_no": error_no,
+                "tool_no": tool_no,
+                "reason": "Werkzeug nicht gefunden"
+            })
+        
             continue
 
         error_type = str(row[2]).strip() if row[2] else ""
@@ -52,7 +68,14 @@ def import_errors_from_excel(file):
         ).first()
         
         if existing:
-            print(f"Existiert bereits: {error_no}")
+
+            errors.append({
+                "row": row_index,
+                "error_no": error_no,
+                "tool_no": tool_no,
+                "reason": "FM-Nummer existiert bereits"
+            })
+        
             continue
 
         # ==========================================
@@ -91,4 +114,7 @@ def import_errors_from_excel(file):
 
     db.session.commit()
     
-    return created
+    return {
+        "created": created,
+        "errors": errors
+    }
