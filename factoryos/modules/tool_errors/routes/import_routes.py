@@ -62,55 +62,6 @@ def import_errors():
         "tool_errors/import.html"
     )
     
-@bp.route("/import", methods=["GET", "POST"])
-@login_required
-def import_errors():
-
-    wb = load_workbook(file)
-    ws = wb.active
-
-    created = 0
-    errors = []
-
-    if request.method == "POST":
-
-        file = request.files.get("file")
-
-        if not file:
-
-            flash(
-                "Keine Datei ausgewählt.",
-                "danger"
-            )
-
-            return redirect(
-                url_for("tool_error.import_errors")
-            )
-
-        try:
-
-            result = import_errors_from_excel(file)
-        
-            return render_template(
-                "tool_errors/import_result.html",
-                created=result["created"],
-                errors=result["errors"]
-            )
-        
-        except Exception as e:
-        
-            flash(
-                f"Importfehler: {str(e)}",
-                "danger"
-            )
-        
-            return redirect(
-                url_for("tool_error.import_errors")
-            )
-
-    return render_template(
-        "tool_errors/import.html"
-    )
 
 
 @bp.route("/import/template")
