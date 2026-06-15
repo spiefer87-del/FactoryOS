@@ -23,6 +23,12 @@ from ..services.error_import_service import (
 @login_required
 def import_errors():
 
+    wb = load_workbook(file)
+    ws = wb.active
+
+    created = 0
+    errors = []
+
     if request.method == "POST":
 
         file = request.files.get("file")
