@@ -142,7 +142,7 @@ def import_errors_from_excel(file):
         )
 
         db.session.add(error)
-
+        print(repr(tool_status))
         # ==========================================
         # TOOL STATUS AKTUALISIEREN
         # ==========================================
