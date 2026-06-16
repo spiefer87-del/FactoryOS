@@ -148,17 +148,13 @@ def import_errors_from_excel(file):
         # ==========================================
         STATUS_MAPPING = {
             "aktiv": "aktiv",
-            "Aktiv": "aktiv",
             "wartung": "wartung",
-            "Wartung": "wartung",
             "defekt": "defekt",
-            "Defekt": "defekt",
         
             "beim kunden": "external",
             "external": "external",
         
             "verschrottet": "scrapped",
-            "Verschrottet": "scrapped",
             "scrapped": "scrapped"
         }
         
