@@ -146,10 +146,26 @@ def import_errors_from_excel(file):
         # ==========================================
         # TOOL STATUS AKTUALISIEREN
         # ==========================================
-
+        STATUS_MAPPING = {
+            "aktiv": "aktiv",
+            "wartung": "wartung",
+            "defekt": "defekt",
+        
+            "beim kunden": "external",
+            "external": "external",
+        
+            "verschrottet": "scrapped",
+            "scrapped": "scrapped"
+        }
+        
         if tool_status:
 
-            tool.tool_status = tool_status
+            status = str(tool_status).strip().lower()
+        
+            tool.tool_status = STATUS_MAPPING.get(
+                status,
+                "aktiv"
+            )
 
         created += 1
 
