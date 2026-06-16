@@ -142,7 +142,7 @@ def import_errors_from_excel(file):
         )
 
         db.session.add(error)
-        print(repr(tool_status))
+        
         # ==========================================
         # TOOL STATUS AKTUALISIEREN
         # ==========================================
@@ -160,20 +160,23 @@ def import_errors_from_excel(file):
         
         if tool_status:
         
-            status = (
-                str(tool_status)
-                .replace("\n", "")
-                .replace("\r", "")
-                .strip()
-                .lower()
-            )
+            status = " ".join(
+                str(tool_status).split()
+            ).lower()
         
             print(
                 f"Excel='{tool_status}' -> Status='{status}'"
             )
         
             mapped_status = STATUS_MAPPING.get(status)
-        
+
+            errors.append({
+                "row": row_index,
+                "error_no": error_no,
+                "tool_no": tool_no,
+                "reason": f"DEBUG: Excel='{tool_status}' -> Status='{status}' -> Mapping='{mapped_status}'"
+            })
+            
             if mapped_status:
                 tool.tool_status = mapped_status
             else:
