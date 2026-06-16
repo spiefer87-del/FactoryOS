@@ -159,13 +159,30 @@ def import_errors_from_excel(file):
         }
         
         if tool_status:
-
-            status = str(tool_status).strip().lower()
         
-            tool.tool_status = STATUS_MAPPING.get(
-                status,
-                "aktiv"
+            status = (
+                str(tool_status)
+                .replace("\n", "")
+                .replace("\r", "")
+                .strip()
+                .lower()
             )
+        
+            print(
+                f"Excel='{tool_status}' -> Status='{status}'"
+            )
+        
+            mapped_status = STATUS_MAPPING.get(status)
+        
+            if mapped_status:
+                tool.tool_status = mapped_status
+            else:
+                errors.append({
+                    "row": row_index,
+                    "error_no": error_no,
+                    "tool_no": tool_no,
+                    "reason": f"Ungültiger Status: {tool_status}"
+                })
 
         created += 1
 
