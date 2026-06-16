@@ -160,9 +160,14 @@ def import_errors_from_excel(file):
         
         if tool_status:
         
-            status = " ".join(
-                str(tool_status).split()
-            ).lower()
+            status = (
+                str(tool_status)
+                .replace("\xa0", "")
+                .replace("\n", "")
+                .replace("\r", "")
+                .strip()
+                .lower()
+            )
         
             print(
                 f"Excel='{tool_status}' -> Status='{status}'"
