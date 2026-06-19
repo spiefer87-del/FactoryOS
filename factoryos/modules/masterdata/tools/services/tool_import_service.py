@@ -12,6 +12,7 @@ def import_tools_from_excel(file):
 
     created = 0
     updated = 0
+    errors = []
 
     for row in ws.iter_rows(
         min_row=2,
@@ -70,6 +71,16 @@ def import_tools_from_excel(file):
 
         tool.automation_type = row[19]
 
-    db.session.commit()
+    errors.append({
+        "row": row_index,
+        "tool_no": tool_no,
+        "reason": "Werkzeugnummer existiert bereits"
+    })
 
-    return created, updated
+    db.session.commit()
+    
+    return {
+        "created": created,
+        "updated": updated,
+        "errors": errors
+    }
