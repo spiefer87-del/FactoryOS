@@ -6,6 +6,109 @@
 
 <div class="card">
 
+    <h3>Zusammenfassung</h3>
+
+    <ul>
+        <li>
+            <strong>Neu angelegt:</strong>
+            {{ created }}
+        </li>
+
+        <li>
+            <strong>Aktualisiert:</strong>
+            {{ updated }}
+        </li>
+
+        <li>
+            <strong>Fehler:</strong>
+            {{ errors|length }}
+        </li>
+    </ul>
+
+</div>
+
+{% if errors %}
+
+<div class="card mt-3">
+
+    <h3>Nicht importierte Datensätze</h3>
+
+    <table class="fos-table">
+
+        <thead>
+            <tr>
+                <th>Zeile</th>
+                <th>Werkzeug</th>
+                <th>Grund</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for error in errors %}
+
+            <tr>
+
+                <td>
+                    {{ error.row }}
+                </td>
+
+                <td>
+                    {{ error.tool_no or "-" }}
+                </td>
+
+                <td>
+                    {{ error.reason }}
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% else %}
+
+<div class="alert alert-success mt-3">
+
+    Alle Datensätze wurden erfolgreich importiert.
+
+</div>
+
+{% endif %}
+
+<div style="margin-top:20px;">
+
+    <a
+        href="{{ url_for('tools.import_tools') }}"
+        class="btn-secondary"
+    >
+        Neuer Import
+    </a>
+
+    <a
+        href="{{ url_for('tools.dashboard') }}"
+        class="btn-primary"
+    >
+        Zum Dashboard
+    </a>
+
+</div>
+
+{% endblock %}
+
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<h2>Werkzeug Import Ergebnis</h2>
+
+<div class="card">
+
     <p>
         <strong>{{ created }}</strong>
         Werkzeuge importiert
