@@ -74,7 +74,7 @@ def import_tools_from_excel(file):
     errors.append({
         "row": row_index,
         "tool_no": tool_no,
-        "reason": "Werkzeugnummer existiert bereits"
+        "reason": f"Status '{tool_status}' wurde zu '{mapped_status}' gemappt"
     })
 
     db.session.commit()
