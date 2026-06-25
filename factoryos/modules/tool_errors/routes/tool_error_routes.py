@@ -1,10 +1,17 @@
 #factoryos/modules/tool_errors/routes/tool_error_routes.py
 
-from flask import render_template, request, redirect, url_for, jsonify, make_response
+from flask import (
+    render_template,
+    request,
+    redirect,
+    url_for,
+    jsonify,
+    make_response,
+    flash
+)
 from flask_login import login_required, current_user
 
 from . import bp
-
 
 from ..queries.tool_error_queries import (
     get_tool_errors,
@@ -25,13 +32,12 @@ from ..services.workflow_service import (
 )
 
 from factoryos.modules.masterdata.tools.queries.tool_queries import get_all_tools
-from factoryos.modules.tool_errors.models import ToolErrorTitlePreset
+from factoryos.modules.tool_errors.models import (
+    ToolError,
+    ToolErrorTitlePreset
+)
+
 from factoryos.modules.masterdata.shared.constants import TOOL_STATUSES
-
-from flask import render_template
-from flask_login import login_required
-
-from . import bp
 
 
 @bp.route("/")
@@ -157,10 +163,12 @@ def detail(error_id):
 @login_required
 def new_revision(error_id):
 
-    error = ToolError.query.get_or_404(error_id)
+    error = get_tool_error(error_id)
 
-    revision = create_revision(error)
+    current = get_current_revision(error)
 
+    revision = create_revision(current)
+    
     flash(
         f"Revision {revision.revision} wurde erstellt.",
         "success"
