@@ -38,6 +38,92 @@
 
 </div>
 
+<!-- ===================================== -->
+<!-- WORKFLOW -->
+<!-- ===================================== -->
+
+<div class="detail-card workflow-card">
+
+    <div class="workflow-header">
+
+        <div>
+
+            <h3>Workflow</h3>
+
+            <div class="workflow-meta">
+
+                <strong>Revision {{ error.revision }}</strong>
+
+                {% if error.is_current %}
+                    <span class="status-badge status-aktiv">
+                        Aktuelle Revision
+                    </span>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        <div>
+
+            {% if error.workflow_status == "draft" %}
+
+                <span class="status-badge status-wartung">
+                    Entwurf
+                </span>
+
+            {% elif error.workflow_status == "review" %}
+
+                <span class="status-badge status-external">
+                    In Prüfung
+                </span>
+
+            {% elif error.workflow_status == "released" %}
+
+                <span class="status-badge status-aktiv">
+                    Freigegeben
+                </span>
+
+            {% elif error.workflow_status == "closed" %}
+
+                <span class="status-badge status-defekt">
+                    Geschlossen
+                </span>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <div class="workflow-actions">
+
+        {% if error.workflow_status == "draft" %}
+
+            <a class="btn-primary"
+               href="#">
+                In Prüfung
+            </a>
+
+        {% elif error.workflow_status == "review" %}
+
+            <a class="btn-success"
+               href="#">
+                Freigeben
+            </a>
+
+        {% elif error.workflow_status in ["released", "closed"] %}
+
+            <a class="btn-primary"
+               href="{{ url_for('tool_error.new_revision', error_id=error.id) }}">
+                Neue Revision
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</div>
 
 <div class="detail-container">
 
@@ -55,6 +141,16 @@
         <div class="detail-item">
             <label>Fehlermeldung</label>
             <div>{{ error.error_no }}</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Status</label>
+            <div>{{ error.workflow_status }}</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Revision</label>
+            <div>{{ error.revision }}</div>
         </div>
 
         <div class="detail-item">
@@ -102,6 +198,29 @@
 
 </div>
 
+<div class="detail-card">
+
+    <h3 class="section-title">
+
+        Revisionen
+
+    </h3>
+
+    <div class="revision-list">
+
+        <div>
+
+            Rev. {{ error.revision }}
+
+            {% if error.is_current %}
+                <strong>(Aktuell)</strong>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>    
 
 <!-- ===================================== -->
 <!-- ZUGEORDNETE ARTIKEL -->
