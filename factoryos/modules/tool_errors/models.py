@@ -15,7 +15,10 @@ class ToolError(db.Model):
     error_type = db.Column(db.String(100))
     description = db.Column(db.Text)
     reported_by_id = db.Column(db.Integer, db.ForeignKey("users.id"))
-    reported_by = db.relationship("User")
+    reported_by = db.relationship(
+        "User",
+        foreign_keys=[reported_by_id]
+    )
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     workflow_status = db.Column(
