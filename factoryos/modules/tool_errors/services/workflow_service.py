@@ -59,6 +59,10 @@ def reopen(error):
 
     error.workflow_status = "draft"
 
+    error.released_at = None
+
+    error.released_by_id = None
+
     db.session.commit()
 
     return error
@@ -75,10 +79,30 @@ def get_current_revision(error):
 
     parent_id = error.parent_error_id or error.id
 
-    return ToolError.query.filter_by(
+    current = ToolError.query.filter_by(
         parent_error_id=parent_id,
         is_current=True
     ).first()
+
+    return current or error
+
+
+# =====================================================
+# ALLE REVISIONEN
+# =====================================================
+
+def get_revisions(error):
+
+    parent_id = error.parent_error_id or error.id
+
+    revisions = ToolError.query.filter(
+        (ToolError.id == parent_id) |
+        (ToolError.parent_error_id == parent_id)
+    ).order_by(
+        ToolError.revision.desc()
+    ).all()
+
+    return revisions
 
 
 # =====================================================
@@ -87,39 +111,44 @@ def get_current_revision(error):
 
 def create_revision(error):
 
-    # Stammrevision bestimmen
-    parent_id = error.parent_error_id or error.id
-
     current = get_current_revision(error)
 
-    if current:
-        current.is_current = False
+    parent_id = current.parent_error_id or current.id
+
+    current.is_current = False
+
+    next_revision = current.revision + 1
 
     revision = ToolError(
 
-        error_no=error.error_no,
+        error_no=current.error_no,
 
-        tool_id=error.tool_id,
+        tool_id=current.tool_id,
 
-        error_type=error.error_type,
+        error_type=current.error_type,
 
-        description=error.description,
+        description=current.description,
 
-        reported_by_id=error.reported_by_id,
+        reported_by_id=current.reported_by_id,
 
-        order_id=error.order_id,
+        order_id=current.order_id,
 
-        machine_id=error.machine_id,
+        machine_id=current.machine_id,
 
         workflow_status="draft",
 
-        revision=(current.revision + 1) if current else 2,
+        released_at=None,
+
+        released_by_id=None,
+
+        revision=next_revision,
 
         parent_error_id=parent_id,
 
         is_current=True,
 
         created_at=datetime.utcnow()
+
     )
 
     db.session.add(revision)
@@ -130,7 +159,7 @@ def create_revision(error):
     # BILDER ÜBERNEHMEN
     # ==========================================
 
-    for image in error.images:
+    for image in current.images:
 
         db.session.add(
 
