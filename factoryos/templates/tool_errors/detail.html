@@ -88,8 +88,10 @@
         </div>
 
         <div class="detail-item">
-            <label>Status</label>
-            <div>{{ error.workflow_status }}</div>
+            <label>Workflow</label>
+            <span class="status-badge {{ WORKFLOW_STATUS_COLORS[error.workflow_status] }}">
+            {{ WORKFLOW_STATUSES[error.workflow_status] }}
+            </span>
         </div>
 
         <div class="detail-item">
