@@ -18,6 +18,23 @@ class ToolError(db.Model):
     reported_by = db.relationship("User")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    workflow_status = db.Column(
+        db.String(20),
+        default="draft"
+    )
+    
+    released_at = db.Column(db.DateTime)
+    
+    released_by_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id")
+    )
+    
+    released_by = db.relationship(
+        "User",
+        foreign_keys=[released_by_id]
+    )
+
     order_id = db.Column(db.Integer)
     machine_id = db.Column(db.Integer)
 
