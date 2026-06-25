@@ -35,6 +35,22 @@ class ToolError(db.Model):
         foreign_keys=[released_by_id]
     )
 
+    revision = db.Column(
+        db.Integer,
+        default=1,
+        nullable=False
+    )
+    
+    parent_error_id = db.Column(
+        db.Integer,
+        db.ForeignKey("tool_errors.id")
+    )
+    
+    is_current = db.Column(
+        db.Boolean,
+        default=True
+    )
+    
     order_id = db.Column(db.Integer)
     machine_id = db.Column(db.Integer)
 
