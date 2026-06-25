@@ -39,91 +39,35 @@
 </div>
 
 <!-- ===================================== -->
-<!-- WORKFLOW -->
-<!-- ===================================== -->
 
-<div class="detail-card workflow-card">
+{% set title = "Fehlermeldung " ~ error.error_no %}
+{% set subtitle = error.error_type %}
 
-    <div class="workflow-header">
+{% set revision = error.revision %}
+{% set workflow_status = error.workflow_status %}
+{% set is_current = error.is_current %}
 
-        <div>
+{% set review_url = url_for(
+    "tool_error.start_review_route",
+    error_id=error.id
+) %}
 
-            <h3>Workflow</h3>
+{% set release_url = url_for(
+    "tool_error.release_route",
+    error_id=error.id
+) %}
 
-            <div class="workflow-meta">
+{% set close_url = url_for(
+    "tool_error.close_route",
+    error_id=error.id
+) %}
 
-                <strong>Revision {{ error.revision }}</strong>
+{% set revision_url = url_for(
+    "tool_error.new_revision",
+    error_id=error.id
+) %}
 
-                {% if error.is_current %}
-                    <span class="status-badge status-aktiv">
-                        Aktuelle Revision
-                    </span>
-                {% endif %}
-
-            </div>
-
-        </div>
-
-        <div>
-
-            {% if error.workflow_status == "draft" %}
-
-                <span class="status-badge status-wartung">
-                    Entwurf
-                </span>
-
-            {% elif error.workflow_status == "review" %}
-
-                <span class="status-badge status-external">
-                    In Prüfung
-                </span>
-
-            {% elif error.workflow_status == "released" %}
-
-                <span class="status-badge status-aktiv">
-                    Freigegeben
-                </span>
-
-            {% elif error.workflow_status == "closed" %}
-
-                <span class="status-badge status-defekt">
-                    Geschlossen
-                </span>
-
-            {% endif %}
-
-        </div>
-
-    </div>
-
-    <div class="workflow-actions">
-
-        {% if error.workflow_status == "draft" %}
-
-            <a class="btn-primary"
-               href="#">
-                In Prüfung
-            </a>
-
-        {% elif error.workflow_status == "review" %}
-
-            <a class="btn-success"
-               href="#">
-                Freigeben
-            </a>
-
-        {% elif error.workflow_status in ["released", "closed"] %}
-
-            <a class="btn-primary"
-               href="{{ url_for('tool_error.new_revision', error_id=error.id) }}">
-                Neue Revision
-            </a>
-
-        {% endif %}
-
-    </div>
-
-</div>
+{% include "components/workflow_header.html" %}
 
 <div class="detail-container">
 
