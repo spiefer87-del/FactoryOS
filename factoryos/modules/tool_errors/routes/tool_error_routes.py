@@ -28,12 +28,12 @@ from ..services.tool_error_service import (
 )
 
 from ..services.workflow_service import (
-    create_revision
+    create_revision,
+    get_current_revision
 )
 
 from factoryos.modules.masterdata.tools.queries.tool_queries import get_all_tools
 from factoryos.modules.tool_errors.models import (
-    ToolError,
     ToolErrorTitlePreset
 )
 
@@ -167,7 +167,10 @@ def new_revision(error_id):
 
     current = get_current_revision(error)
 
-    revision = create_revision(current)
+    revision = create_revision(
+        current,
+        current_user.id
+    )
     
     flash(
         f"Revision {revision.revision} wurde erstellt.",
