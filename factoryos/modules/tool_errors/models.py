@@ -8,8 +8,11 @@ class ToolError(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    error_no = db.Column(db.String(20), unique=True)
-
+    error_no = db.Column(
+        db.String(20),
+        nullable=False,
+        index=True
+    )
     tool_id = db.Column(db.Integer, db.ForeignKey("tools.id"), nullable=False)
 
     error_type = db.Column(db.String(100))
