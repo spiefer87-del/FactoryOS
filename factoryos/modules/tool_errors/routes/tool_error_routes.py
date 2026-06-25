@@ -18,6 +18,9 @@ from ..services.tool_error_service import (
     generate_tool_error_pdf
 )
 
+from ..services.workflow_service import (
+    create_revision
+)
 
 from factoryos.modules.masterdata.tools.queries.tool_queries import get_all_tools
 from factoryos.modules.tool_errors.models import ToolErrorTitlePreset
@@ -148,7 +151,25 @@ def detail(error_id):
         TOOL_STATUSES=TOOL_STATUSES
     )
 
+@bp.route("/<int:error_id>/new-revision")
+@login_required
+def new_revision(error_id):
 
+    error = ToolError.query.get_or_404(error_id)
+
+    revision = create_revision(error)
+
+    flash(
+        f"Revision {revision.revision} wurde erstellt.",
+        "success"
+    )
+
+    return redirect(
+        url_for(
+            "tool_error.detail",
+            error_id=revision.id
+        )
+    )
 
 @bp.route("/set_tool_status/<int:error_id>", methods=["POST"])
 @login_required
