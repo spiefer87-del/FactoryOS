@@ -35,6 +35,11 @@ from ..services.workflow_service import (
     get_current_revision
 )
 
+from ..constants import (
+    WORKFLOW_STATUSES,
+    WORKFLOW_STATUS_COLORS
+)
+
 from factoryos.modules.masterdata.tools.queries.tool_queries import get_all_tools
 from factoryos.modules.tool_errors.models import (
     ToolErrorTitlePreset
@@ -95,7 +100,9 @@ def create():
         "tool_errors/create.html",
         tools=tools,
         presets=presets,
-        TOOL_STATUSES=TOOL_STATUSES
+        TOOL_STATUSES=TOOL_STATUSES,
+        WORKFLOW_STATUSES=WORKFLOW_STATUSES,
+        WORKFLOW_STATUS_COLORS=WORKFLOW_STATUS_COLORS
     )
 
 
@@ -159,7 +166,9 @@ def detail(error_id):
     return render_template(
         "tool_errors/detail.html",
         error=error,
-        TOOL_STATUSES=TOOL_STATUSES
+        TOOL_STATUSES=TOOL_STATUSES,
+        WORKFLOW_STATUSES=WORKFLOW_STATUSES,
+        WORKFLOW_STATUS_COLORS=WORKFLOW_STATUS_COLORS
     )
 
 @bp.route("/<int:error_id>/new-revision")
