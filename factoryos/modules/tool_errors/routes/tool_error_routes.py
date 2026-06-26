@@ -28,6 +28,9 @@ from ..services.tool_error_service import (
 )
 
 from ..services.workflow_service import (
+    start_review,
+    release,
+    close,
     create_revision,
     get_current_revision
 )
@@ -184,6 +187,83 @@ def new_revision(error_id):
         )
     )
 
+# ==========================================
+# START REVIEW
+# ==========================================
+
+@bp.route("/<int:error_id>/start-review")
+@login_required
+def start_review_route(error_id):
+
+    error = get_tool_error(error_id)
+
+    start_review(error)
+
+    flash(
+        "Fehlermeldung wurde in Prüfung geschickt.",
+        "success"
+    )
+
+    return redirect(
+        url_for(
+            "tool_error.detail",
+            error_id=error.id
+        )
+    )
+
+
+# ==========================================
+# RELEASE
+# ==========================================
+
+@bp.route("/<int:error_id>/release")
+@login_required
+def release_route(error_id):
+
+    error = get_tool_error(error_id)
+
+    release(
+        error,
+        current_user
+    )
+
+    flash(
+        "Fehlermeldung wurde freigegeben.",
+        "success"
+    )
+
+    return redirect(
+        url_for(
+            "tool_error.detail",
+            error_id=error.id
+        )
+    )
+
+
+# ==========================================
+# CLOSE
+# ==========================================
+
+@bp.route("/<int:error_id>/close")
+@login_required
+def close_route(error_id):
+
+    error = get_tool_error(error_id)
+
+    close(error)
+
+    flash(
+        "Fehlermeldung wurde geschlossen.",
+        "success"
+    )
+
+    return redirect(
+        url_for(
+            "tool_error.detail",
+            error_id=error.id
+        )
+    )
+    
 @bp.route("/set_tool_status/<int:error_id>", methods=["POST"])
 @login_required
 def set_tool_status_route(error_id):
