@@ -109,7 +109,7 @@ def get_revisions(error):
 # NEUE REVISION
 # =====================================================
 
-def create_revision(error):
+def create_revision(error, user_id):
 
     current = get_current_revision(error)
 
