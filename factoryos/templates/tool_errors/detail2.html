@@ -2,3 +2,23 @@ from ..constants import (
     WORKFLOW_STATUSES,
     WORKFLOW_STATUS_COLORS
 )
+
+<div class="revision-item">
+
+    <strong>
+
+        Revision {{ error.revision }}
+
+    </strong>
+
+    {% if error.is_current %}
+
+        <span class="status-badge status-aktiv">
+
+            Aktuelle Revision
+
+        </span>
+
+    {% endif %}
+
+</div>
