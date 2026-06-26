@@ -96,7 +96,26 @@
 
         <div class="detail-item">
             <label>Revision</label>
-            <div>{{ error.revision }}</div>
+            
+            <div class="revision-item">
+
+    <strong>
+
+        Revision {{ error.revision }}
+
+    </strong>
+
+    {% if error.is_current %}
+
+        <span class="status-badge status-aktiv">
+
+            Aktuelle Revision
+
+        </span>
+
+    {% endif %}
+
+            </div>
         </div>
 
         <div class="detail-item">
