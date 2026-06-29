@@ -220,7 +220,16 @@ def update_tool_error(error, form):
 # =========================
 # TEMP IMAGE UPLOAD
 # =========================
-def upload_temp_image(file, marker_x, marker_y, marker_px, marker_py, description, temp_id):
+def upload_temp_image(
+        file,
+        marker_x,
+        marker_y,
+        marker_px,
+        marker_py,
+        description,
+        temp_id=None,
+        tool_error_id=None
+    ):
 
     if not file:
         print("❌ Kein File")
@@ -240,7 +249,7 @@ def upload_temp_image(file, marker_x, marker_y, marker_px, marker_py, descriptio
     file.save(filepath)
 
     image = ToolErrorImage(
-        tool_error_id=None,
+        tool_error_id=tool_error_id,
         temp_id=temp_id,
         image_path=f"uploads/tool_errors/{filename}",
 
