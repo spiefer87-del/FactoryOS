@@ -12,18 +12,18 @@ document.addEventListener("DOMContentLoaded", function () {
     // =========================
     // 🔥 TEMP ID FIX (WICHTIG!)
     // =========================
-    function generateTempId() {
-        return 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxx'.replace(/[xy]/g, function(c) {
-            const r = Math.random() * 16 | 0;
-            const v = c === 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-    }
-
-    const TEMP_ID = generateTempId();
-
     const tempInput = document.getElementById("temp_id");
-    if (tempInput) tempInput.value = TEMP_ID;
+    const toolErrorId = document.getElementById("tool_error_id")?.value;
+    
+    let tempId = null;
+    
+    if (!toolErrorId) {
+        tempId = crypto.randomUUID();
+    
+        if (tempInput) {
+            tempInput.value = tempId;
+        }
+    }
 
 
     // =========================
