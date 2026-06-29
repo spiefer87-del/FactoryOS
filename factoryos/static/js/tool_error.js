@@ -596,56 +596,53 @@ document.addEventListener("DOMContentLoaded", () => {
         // ==================================================
         
         document.addEventListener("click", async (e) => {
-        
-            // -----------------------------
-            // Bild löschen
-            // -----------------------------
-            const deleteBtn = e.target.closest(".delete-image");
-        
-            if (deleteBtn) {
-        
-                if (!confirm("Bild wirklich löschen?"))
-                    return;
-        
-                const imageId = deleteBtn.dataset.image;
-        
-                const res = await fetch(
-                    `/tool-errors/delete_temp_image/${imageId}`,
-                    {
-                        method: "POST"
-                    }
-                );
-        
-                const data = await res.json();
-        
-                if (data.success) {
-        
-                    deleteBtn
-                        .closest(".image-card")
-                        .remove();
-        
+
+        // -----------------------------
+        // Bild löschen
+        // -----------------------------
+        const deleteBtn = e.target.closest(".delete-image");
+    
+        if (deleteBtn) {
+    
+            if (!confirm("Bild wirklich löschen?"))
+                return;
+    
+            const imageId = deleteBtn.dataset.image;
+    
+            const res = await fetch(
+                `/tool-errors/delete_temp_image/${imageId}`,
+                {
+                    method: "POST"
                 }
-        
-                return;
+            );
+    
+            const data = await res.json();
+    
+            if (data.success) {
+                deleteBtn.closest(".image-card").remove();
             }
-        
-            // -----------------------------
-            // Marker bearbeiten
-            // -----------------------------
-            const markerBtn = e.target.closest(".edit-marker");
-        
-            if (markerBtn) {
-        
-                const imageId = markerBtn.dataset.image;
-        
-                console.log("Marker bearbeiten:", imageId);
-        
-                // kommt im nächsten Schritt
-        
-                return;
-            }
-        
-        });
+    
+            return;
         }
+    
+        // -----------------------------
+        // Marker bearbeiten
+        // -----------------------------
+        const markerBtn = e.target.closest(".edit-marker");
+    
+        if (markerBtn) {
+    
+            const imageId = markerBtn.dataset.image;
+    
+            console.log("Marker bearbeiten:", imageId);
+    
+            // folgt im nächsten Schritt
+    
+            return;
+        }
+    
+    });
+    
+    });
 
                           
