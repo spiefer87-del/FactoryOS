@@ -166,7 +166,7 @@ def edit(error_id):
 @login_required
 def upload_temp():
 
-    image = upload_temp_image(
+    image = upload_image(
         file=request.files.get("image"),
         marker_x=request.form.get("marker_x"),
         marker_y=request.form.get("marker_y"),
