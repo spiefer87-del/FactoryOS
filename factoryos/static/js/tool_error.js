@@ -566,18 +566,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 }
 
-                addToGallery(
-
-                    previewImage.src,
-
-                    markerX.value,
-
-                    markerY.value,
-
-                    imageDescription.value,
-
-                    data.image_id
-
+                gallery.insertAdjacentHTML(
+                    "beforeend",
+                    data.html
                 );
 
                 imageInput.value = "";
