@@ -1,1 +1,12 @@
+<div id="imageGallery" class="image-gallery">
 
+    {% for image in error.images %}
+
+        {% set editable = True %}
+        {% set marker_number = loop.index %}
+
+        {% include "components/image_card.html" %}
+
+    {% endfor %}
+
+</div>
