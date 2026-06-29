@@ -10,97 +10,9 @@
 
 <form method="POST" class="form-container">
 
-    <!-- 🔧 Werkzeug -->
-    <div class="form-group">
-        <label>Werkzeug *</label>
-
-        <input type="text" id="toolSearch" class="form-control" required>
-        <input type="hidden" name="tool_id" id="tool_id">
-
-        <div id="toolDropdown"></div>
-    </div>
-
-    <!-- ⚠️ Fehler -->
-    <div class="form-group">
-        <label>Fehler *</label>
-
-        <select id="errorPreset" class="form-control">
-            <option value="">-- auswählen --</option>
-            {% for p in presets %}
-                <option value="{{ p.title }}">{{ p.title }}</option>
-            {% endfor %}
-        </select>
-
-        <input type="text" name="error_type" id="error_type" class="form-control" required>
-    </div>
-
-    <div class="form-group">
-        <label>Werkzeugstatus</label>
-
-        <select name="tool_status">
-            {% for key, label in TOOL_STATUSES.items() %}
-                <option value="{{ key }}">{{ label }}</option>
-            {% endfor %}
-        </select>
-    </div>
-
-    <!-- 📝 Beschreibung -->
-    <div class="form-group">
-        <label>Beschreibung</label>
-        <textarea name="description" class="form-control"></textarea>
-    </div>
-
-    <!-- 🔥 TEMP ID -->
-    <input type="hidden" name="temp_id" id="temp_id">
-
-    <hr>
-
-    <!-- 📸 IMAGE MODULE -->
-    <div id="imageModule">
-
-        <h3>Bilder hinzufügen</h3>
-    
-        <div id="imageGallery" class="image-gallery"></div>
-    
-    </div>
-    
-    <hr>
-    
-    
-    <!-- 🔥 STICKY UPLOAD BOX -->
-    <div class="upload-box" id="uploadBox">
-        <input type="file" id="imageInput" accept="image/*">
-    
-        <div id="previewWrapper" class="preview-wrapper">
-            <img id="previewImage" style="display:none;">
-        </div>
-    
-        <textarea id="imageDescription"
-                  class="form-control"
-                  placeholder="Beschreibung zum Bild"></textarea>
-    
-        <input type="hidden" id="marker_x">
-        <input type="hidden" id="marker_y">
-        <input type="hidden" id="marker_px" name="marker_px">
-        <input type="hidden" id="marker_py" name="marker_py">
-    
-        <button type="button" id="uploadBtn" class="btn-primary">
-            Bild speichern
-        </button>
-    </div>
-
-    <hr>
-    
-    <button type="submit" class="btn-success">
-        Tool Error speichern
-    </button>
-    
-
-
+    {% include "tool_errors/_form.html" %}
 
 </form>
-
-
 
 <script src="{{ url_for('static', filename='js/tool_error.js') }}"></script>
 
