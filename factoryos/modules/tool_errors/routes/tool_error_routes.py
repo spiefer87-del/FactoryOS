@@ -178,10 +178,18 @@ def upload_temp():
 
     if not image:
         return jsonify({"error": "Upload fehlgeschlagen"}), 400
-
+    
+    html = render_template(
+        "components/image_card.html",
+        image=image,
+        editable=True,
+        marker_number=1
+    )
+    
     return jsonify({
         "success": True,
-        "image_id": image.id
+        "image_id": image.id,
+        "html": html
     })
 
 @bp.route("/delete_temp_image/<int:image_id>", methods=["POST"])
