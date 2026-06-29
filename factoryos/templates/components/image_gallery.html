@@ -1,1 +1,25 @@
+<div
+    id="imageGallery"
+    class="image-gallery"
+>
 
+    {% if error and error.images %}
+
+        {% for image in error.images %}
+
+            {% set editable = True %}
+            {% set marker_number = loop.index %}
+
+            {% include "components/image_card.html" %}
+
+        {% endfor %}
+
+    {% else %}
+
+        <div id="noImages" class="empty-state">
+            Noch keine Bilder vorhanden.
+        </div>
+
+    {% endif %}
+
+</div>
