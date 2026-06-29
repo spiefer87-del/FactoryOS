@@ -220,7 +220,7 @@ def update_tool_error(error, form):
 # =========================
 # TEMP IMAGE UPLOAD
 # =========================
-def upload_temp_image(
+def upload_image(
         file,
         marker_x,
         marker_y,
