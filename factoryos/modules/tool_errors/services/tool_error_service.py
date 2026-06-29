@@ -125,7 +125,98 @@ def create_tool_error(form, user_id):
 
     return error
 
+# =========================
+# UPDATE TOOL ERROR
+# =========================
+def update_tool_error(error, form):
 
+    tool = Tool.query.get(error.tool_id)
+
+    old_data = {
+        "tool_id": error.tool_id,
+        "order_id": error.order_id,
+        "machine_id": error.machine_id,
+        "error_type": error.error_type,
+        "description": error.description,
+    }
+
+    new_data = {
+        "tool_id": int(form.get("tool_id")),
+        "order_id": form.get("order_id"),
+        "machine_id": form.get("machine_id"),
+        "error_type": form.get("error_type"),
+        "description": form.get("description"),
+    }
+
+    changes = build_changes(
+        error,
+        new_data,
+        new_data.keys()
+    )
+
+    # ---------------------------------------
+    # Werkzeug geändert?
+    # ---------------------------------------
+
+    if new_data["tool_id"] != error.tool_id:
+
+        new_tool = Tool.query.get(new_data["tool_id"])
+
+        changes["Werkzeug"] = {
+            "old": tool.tool_no if tool else error.tool_id,
+            "new": new_tool.tool_no if new_tool else new_data["tool_id"]
+        }
+
+        tool = new_tool
+
+    changes.pop("tool_id", None)
+
+    # ---------------------------------------
+    # Daten übernehmen
+    # ---------------------------------------
+
+    error.tool_id = new_data["tool_id"]
+    error.order_id = new_data["order_id"]
+    error.machine_id = new_data["machine_id"]
+    error.error_type = new_data["error_type"]
+    error.description = new_data["description"]
+
+    # ---------------------------------------
+    # Werkzeugstatus
+    # ---------------------------------------
+
+    new_status = form.get("tool_status")
+
+    if tool and new_status:
+
+        if tool.tool_status != new_status:
+
+            changes["Werkzeug Status"] = {
+                "old": tool.tool_status,
+                "new": new_status
+            }
+
+            tool.tool_status = new_status
+
+    # ---------------------------------------
+    # Changelog
+    # ---------------------------------------
+
+    if changes:
+
+        log_change(
+            entity_type="tool_error",
+            entity_id=error.id,
+            entity_name=f"{error.error_no} ({tool.tool_no if tool else error.tool_id})",
+            action="update",
+            changes=changes,
+            category="production"
+        )
+
+    db.session.commit()
+
+    return error
+    
 # =========================
 # TEMP IMAGE UPLOAD
 # =========================
