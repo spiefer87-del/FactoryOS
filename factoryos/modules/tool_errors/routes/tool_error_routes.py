@@ -20,6 +20,7 @@ from ..queries.tool_error_queries import (
 
 from ..services.tool_error_service import (
     create_tool_error,
+    update_tool_error,
     delete_tool_error,
     upload_temp_image,
     assign_images_to_error,
@@ -105,7 +106,59 @@ def create():
         WORKFLOW_STATUS_COLORS=WORKFLOW_STATUS_COLORS
     )
 
+# =========================
+# EDIT
+# =========================
 
+@bp.route("/<int:error_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit(error_id):
+
+    error = get_tool_error(error_id)
+
+    tools = get_all_tools()
+
+    presets = (
+        ToolErrorTitlePreset.query
+        .filter_by(active=True)
+        .order_by(ToolErrorTitlePreset.sort_order)
+        .all()
+    )
+
+    if request.method == "POST":
+
+        update_tool_error(
+            error,
+            request.form
+        )
+
+        assign_images_to_error(
+            temp_id=request.form.get("temp_id"),
+            error_id=error.id
+        )
+
+        flash(
+            "Fehlermeldung wurde aktualisiert.",
+            "success"
+        )
+
+        return redirect(
+            url_for(
+                "tool_error.detail",
+                error_id=error.id
+            )
+        )
+
+    return render_template(
+        "tool_errors/edit.html",
+        error=error,
+        tools=tools,
+        presets=presets,
+        TOOL_STATUSES=TOOL_STATUSES,
+        WORKFLOW_STATUSES=WORKFLOW_STATUSES,
+        WORKFLOW_STATUS_COLORS=WORKFLOW_STATUS_COLORS
+    )
+    
 # =========================
 # TEMP IMAGE UPLOAD (AJAX)
 # =========================
@@ -191,7 +244,7 @@ def new_revision(error_id):
 
     return redirect(
         url_for(
-            "tool_error.detail",
+            "tool_error.edit",
             error_id=revision.id
         )
     )
