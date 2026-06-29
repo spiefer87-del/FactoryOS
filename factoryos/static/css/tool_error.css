@@ -1,239 +1,225 @@
-/* 🔥 BASE BUTTON */
+/* =====================================================
+   TOOL ERROR
+   ===================================================== */
+
+
+/* =====================================================
+   BUTTONS
+   ===================================================== */
+
 button,
 .btn-primary,
 .btn-success,
-.btn-secondary {
-    border: none;
-    border-radius: 10px;
-    padding: 10px 16px;
-    font-size: 14px;
-    font-weight: 500;
-
-    cursor: pointer;
-    transition: all 0.2s ease;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+.btn-secondary{
+    border:none;
+    border-radius:10px;
+    padding:10px 16px;
+    font-size:14px;
+    font-weight:500;
+    cursor:pointer;
+    transition:.2s;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 2px 6px rgba(0,0,0,.08);
 }
 
-.btn-primary {
-    background: linear-gradient(135deg, #4f8cff, #3a6ff7);
-    color: white;
+.btn-primary{
+    background:linear-gradient(135deg,#4f8cff,#3a6ff7);
+    color:#fff;
 }
 
-.btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+.btn-primary:hover{
+    transform:translateY(-1px);
 }
 
-.btn-success {
-    background: linear-gradient(135deg, #28c76f, #20a75a);
-    color: white;
-    width: 100%;
-    margin-top: 10px;
+.btn-success{
+    width:100%;
+    margin-top:10px;
+    background:linear-gradient(135deg,#28c76f,#20a75a);
+    color:#fff;
 }
 
-.btn-success:hover {
-    transform: translateY(-1px);
+.btn-success:hover{
+    transform:translateY(-1px);
 }
 
-.btn-secondary {
-    background: #f1f3f5;
-    color: #333;
+.btn-secondary{
+    background:#f3f4f6;
+    color:#333;
 }
 
-.btn-secondary:hover {
-    background: #e2e6ea;
+.btn-secondary:hover{
+    background:#e7e9ec;
 }
 
 
-/* ❌ Delete Button */
-.delete-btn {
-    position: absolute;
-    top: 6px;
-    right: 6px;
+/* =====================================================
+   FORMULAR
+   ===================================================== */
 
-    background: rgba(0,0,0,0.6);
-    color: white;
-    border: none;
-    border-radius: 50%;
-
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
-
-    font-size: 14px;
-    line-height: 24px;
-    text-align: center;
-
-    transition: 0.2s;
+.form-container{
+    padding-bottom:80px;
 }
 
-.delete-btn:hover {
-    background: #ff4d4d;
+.form-group{
+    margin-bottom:20px;
 }
 
-input[type="file"] {
-    background: #f8f9fa;
-    border: 1px dashed #ccc;
-    padding: 10px;
-    border-radius: 8px;
-    width: 100%;
+.form-group label{
+    display:block;
+    font-weight:600;
+    margin-bottom:6px;
 }
 
-.upload-box {
-    background: #ffffff;
-    padding: 15px;
-    border-radius: 12px;
-    border: 1px solid #eee;
-
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-/* =========================
-   TOOL DROPDOWN
-========================= */
-
-.tool-dropdown {
-    position: absolute;
-    display: none;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    max-height: 200px;
-    overflow-y: auto;
-    background: white;
-    margin-top: 5px;
+input[type=text],
+textarea,
+select{
+    width:100%;
 }
 
-.tool-dropdown .dropdown-item {
-    padding: 8px;
-    cursor: pointer;
+input[type=file]{
+    width:100%;
+    padding:10px;
+    border:1px dashed #ccc;
+    border-radius:8px;
+    background:#fafafa;
 }
 
-.tool-dropdown .dropdown-item:hover {
-    background: #f0f0f0;
-}
 
-/* =========================
-   IMAGE PREVIEW
-========================= */
+/* =====================================================
+   TOOL SEARCH
+   ===================================================== */
 
-.sticky-upload {
-    bottom: 0;
-
-    background: #fff;
-    padding: 10px;
-    border-top: 1px solid #ddd;
-}
-
-.image-gallery {
-    padding-bottom: 220px;
-}
-
-.image-preview-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-top: 10px;
-}
-
-.image-wrapper {
-    position: relative;
-    width: 100%;
-    max-width: 400px; 
-    border: 1px solid #ddd;
-    overflow: hidden;
-    background: #f9f9f9;
-}
-
-.image-wrapper img {
-    width: 100%;
-    height: auto;
-    object-fit: contain;
-    cursor: crosshair;
-    display: block;
-    touch-action: none;
-}
-
-.preview-wrapper {
-    position: relative;
-    width: 100%;
-    max-width: 400px;
-}
-
-#previewImage {
-    width: 100%;
-    display: block;
-}
-
-/* Marker */
-.marker-advanced {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    z-index: 10;
-    pointer-events: none;
-}
-
-.image-preview-container img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    cursor: crosshair;
-    border-radius: 6px;
-}
-
-.image-block {
-    margin-bottom: 20px;
-}
-
-.save-bar {
-    bottom: 0;
-    left: 250px; /* 👈 wegen Sidebar anpassen */
-    right: 0;
-
-    background: #fff;
-    padding: 12px;
-    border-top: 2px solid #ddd;
-
-    z-index: 999;
-}
-.save-bar button {
-    width: 300px;
-    margin: auto;
-    display: block;
-}
-
-/* Platz unten schaffen */
-.form-container {
-    padding-bottom: 80px;
-}
-
-/* =========================
-   MARKER
-========================= */
-.marker-advanced{
+.tool-dropdown{
     position:absolute;
-    transform:translate(-50%, -50%);
-    width:42px;
+    display:none;
+    width:100%;
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:8px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+    overflow-y:auto;
+    max-height:220px;
+    z-index:500;
+}
+
+.tool-dropdown .dropdown-item{
+    padding:10px;
+    cursor:pointer;
+}
+
+.tool-dropdown .dropdown-item:hover{
+    background:#f5f5f5;
+}
+
+
+/* =====================================================
+   IMAGE GALLERY
+   ===================================================== */
+
+.image-gallery{
+    display:flex;
+    flex-direction:column;
+    gap:24px;
+    padding-bottom:220px;
+}
+
+
+/* =====================================================
+   IMAGE CARD
+   ===================================================== */
+
+.image-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+    padding:15px;
+}
+
+.image-card-image{
+    position:relative;
+    display:inline-block;
+    width:100%;
+}
+
+.image-card-image img{
+    display:block;
+    width:100%;
+    height:auto;
+    border-radius:8px;
+}
+
+.image-description{
+    margin-top:10px;
+    color:#555;
+}
+
+.image-actions{
+    margin-top:15px;
+    display:flex;
+    gap:10px;
+}
+
+
+/* =====================================================
+   UPLOAD BOX
+   ===================================================== */
+
+.upload-box{
+    background:#fff;
+    border:1px solid #ececec;
+    border-radius:12px;
+    padding:15px;
+    box-shadow:0 2px 8px rgba(0,0,0,.05);
+}
+
+.preview-wrapper{
+    position:relative;
+    margin-top:12px;
+}
+
+#previewImage{
+    width:100%;
+    display:block;
+    border-radius:8px;
+}
+
+
+/* =====================================================
+   DELETE BUTTON
+   ===================================================== */
+
+.delete-btn{
+    position:absolute;
+    top:8px;
+    right:8px;
+    width:26px;
     height:26px;
-    pointer-events:none;
-    z-index:20;
+    border:none;
+    border-radius:50%;
+    background:rgba(0,0,0,.6);
+    color:#fff;
+    cursor:pointer;
 }
 
-/* =========================
-   FINAL DIN MARKER
-========================= */
+.delete-btn:hover{
+    background:#d90429;
+}
+
+
+/* =====================================================
+   MARKER
+   ===================================================== */
 
 .marker-advanced{
     position:absolute;
-    transform:translate(-50%, -50%);
+    transform:translate(-50%,-50%);
     width:44px;
     height:24px;
-    pointer-events: auto;
-    cursor: grab;
-    touch-action: none;
+    cursor:grab;
+    touch-action:none;
+    pointer-events:auto;
     z-index:999;
 }
 
@@ -241,7 +227,6 @@ input[type="file"] {
     cursor:grabbing;
 }
 
-/* Kreis */
 .marker-circle{
     position:absolute;
     left:0;
@@ -249,15 +234,14 @@ input[type="file"] {
 
     width:24px;
     height:24px;
-    border-radius:50%;
 
-    background:#ffffff;
+    border-radius:50%;
+    background:#fff;
     border:2px solid #c80000;
 
     color:#c80000;
-    font-size:15px;
     font-weight:700;
-    font-family:Arial, sans-serif;
+    font-size:15px;
 
     display:flex;
     align-items:center;
@@ -266,10 +250,9 @@ input[type="file"] {
     box-sizing:border-box;
 }
 
-/* Spitze */
 .marker-arrow{
     position:absolute;
-    left:22px;   /* 🔥 weiter rechts */
+    left:22px;
     top:5px;
 
     width:0;
@@ -280,37 +263,24 @@ input[type="file"] {
     border-left:18px solid #c80000;
 }
 
-.marker {
-    position: absolute;
-    width: 14px;
-    height: 14px;
-    background: red;
-    border-radius: 50%;
-    border: 2px solid white;
-    transform: translate(-50%, -50%);
-    z-index: 10;
-    pointer-events: none;
-}
 
-/* =========================
-   PRESET SELECT SPACING
-========================= */
+/* =====================================================
+   MOBILE
+   ===================================================== */
 
-.preset-select {
-    margin-bottom: 5px;
-}
+@media (max-width:768px){
 
-/* 📱 MOBILE */
-@media (max-width: 768px) {
-
-   .image-preview-container {
-       display: flex;
-       gap: 10px;
-       overflow-x: auto;      /* 🔥 horizontal scroll */
-       padding-bottom: 10px;
+    .image-actions{
+        flex-direction:column;
     }
 
-    .image-wrapper {
-        min-width: 250px;
+    .image-card{
+        padding:12px;
     }
+
+    .btn-primary,
+    .btn-secondary{
+        width:100%;
+    }
+
 }
