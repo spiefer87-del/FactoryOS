@@ -26,6 +26,12 @@
 
     <div class="page-actions">
 
+         <a
+        href="{{ url_for('tool_error.edit', error_id=error.id) }}"
+        class="btn-small btn-secondary">
+        ✏️ Bearbeiten
+         </a>
+        
         <a
             href="{{ url_for('tool_error.export_pdf', error_id=error.id) }}"
             class="btn-small btn-primary">
