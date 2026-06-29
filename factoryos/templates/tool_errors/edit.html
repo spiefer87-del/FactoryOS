@@ -6,7 +6,33 @@
 
 {% block content %}
 
-<h2>Tool Error bearbeiten</h2>
+<!-- ===================================== -->
+<!-- HEADER -->
+<!-- ===================================== -->
+
+<div class="page-header">
+
+    <div>
+
+        <h2>
+
+            Fehlermeldung bearbeiten
+
+        </h2>
+
+        <div class="page-subtitle">
+
+            {{ error.error_no }} · Revision {{ error.revision }}
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ===================================== -->
+<!-- FORMULAR -->
+<!-- ===================================== -->
 
 {% set submit_label = "Änderungen speichern" %}
 
