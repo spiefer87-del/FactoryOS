@@ -22,7 +22,7 @@ from ..services.tool_error_service import (
     create_tool_error,
     update_tool_error,
     delete_tool_error,
-    upload_temp_image,
+    upload_image,
     assign_images_to_error,
     set_tool_status,
     generate_tool_error_pdf
