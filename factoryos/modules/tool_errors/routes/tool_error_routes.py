@@ -173,7 +173,8 @@ def upload_temp():
         marker_px=request.form.get("marker_px"),
         marker_py=request.form.get("marker_py"),
         description=request.form.get("description"),
-        temp_id=request.form.get("temp_id")
+        temp_id=request.form.get("temp_id"),
+        tool_error_id=request.form.get("tool_error_id")
     )
 
     if not image:
