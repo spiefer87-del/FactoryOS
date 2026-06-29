@@ -1,1 +1,21 @@
+{% extends "layout/base.html" %}
 
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tool_error.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h2>Tool Error bearbeiten</h2>
+
+{% set submit_label = "Änderungen speichern" %}
+
+<form method="POST" class="form-container">
+
+    {% include "tool_errors/_form.html" %}
+
+</form>
+
+<script src="{{ url_for('static', filename='js/tool_error.js') }}"></script>
+
+{% endblock %}
