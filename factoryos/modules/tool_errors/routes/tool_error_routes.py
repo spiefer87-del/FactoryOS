@@ -381,3 +381,51 @@ def export_pdf(error_id):
     response.headers["Content-Disposition"] = f"attachment; filename=tool_error_{error.error_no}.pdf"
 
     return response
+
+@bp.route("/image/<int:image_id>")
+@login_required
+def get_image(image_id):
+
+    from ..models import ToolErrorImage
+
+    image = ToolErrorImage.query.get_or_404(image_id)
+
+    return jsonify({
+
+        "id": image.id,
+
+        "image_url": url_for(
+            "static",
+            filename=image.image_path
+        ),
+
+        "marker_x": image.marker_x,
+        "marker_y": image.marker_y,
+
+        "marker_px": image.marker_px,
+        "marker_py": image.marker_py,
+
+        "description": image.description
+
+    })
+
+@bp.route("/image/<int:image_id>/marker", methods=["POST"])
+@login_required
+def update_marker(image_id):
+
+    from ..models import ToolErrorImage
+    from factoryos.extensions import db
+
+    image = ToolErrorImage.query.get_or_404(image_id)
+
+    image.marker_x = float(request.json["marker_x"])
+    image.marker_y = float(request.json["marker_y"])
+
+    image.marker_px = int(request.json["marker_px"])
+    image.marker_py = int(request.json["marker_py"])
+
+    db.session.commit()
+
+    return jsonify({
+        "success": True
+    })
