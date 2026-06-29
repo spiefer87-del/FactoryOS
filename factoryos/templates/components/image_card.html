@@ -1,10 +1,18 @@
-<div class="image-card">
+<div
+    class="image-card"
+    data-image-id="{{ image.id }}"
+    data-marker-x="{{ image.marker_x if image.marker_x is not none else '' }}"
+    data-marker-y="{{ image.marker_y if image.marker_y is not none else '' }}"
+    data-marker-px="{{ image.marker_px if image.marker_px is not none else '' }}"
+    data-marker-py="{{ image.marker_py if image.marker_py is not none else '' }}"
+>
 
     <div class="image-card-image">
 
         <img
             src="{{ url_for('static', filename=image.image_path) }}"
             alt="Bild"
+            loading="lazy"
         >
 
         {% if image.marker_x is not none and image.marker_y is not none %}
@@ -12,14 +20,14 @@
         <div
             class="marker-advanced"
             style="
-                left: calc({{ image.marker_x * 100 }}% - 14px);
+                left: calc({{ image.marker_x * 100 }}% - 18px);
                 top: {{ image.marker_y * 100 }}%;
             "
         >
 
             <div class="marker-circle">
 
-                {{ marker_number if marker_number else loop.index }}
+                {{ marker_number|default(1) }}
 
             </div>
 
@@ -31,7 +39,6 @@
 
     </div>
 
-
     {% if image.description %}
 
     <div class="image-description">
@@ -42,7 +49,6 @@
 
     {% endif %}
 
-
     {% if editable %}
 
     <div class="image-actions">
@@ -52,7 +58,7 @@
             class="btn-small btn-secondary edit-marker"
             data-image="{{ image.id }}"
         >
-            Marker
+            Marker bearbeiten
         </button>
 
         <button
