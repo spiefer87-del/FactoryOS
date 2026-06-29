@@ -1,1 +1,70 @@
+<div class="image-card">
 
+    <div class="image-card-image">
+
+        <img
+            src="{{ url_for('static', filename=image.image_path) }}"
+            alt="Bild"
+        >
+
+        {% if image.marker_x is not none and image.marker_y is not none %}
+
+        <div
+            class="marker-advanced"
+            style="
+                left: calc({{ image.marker_x * 100 }}% - 14px);
+                top: {{ image.marker_y * 100 }}%;
+            "
+        >
+
+            <div class="marker-circle">
+
+                {{ marker_number if marker_number else loop.index }}
+
+            </div>
+
+            <div class="marker-arrow"></div>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+
+    {% if image.description %}
+
+    <div class="image-description">
+
+        {{ image.description }}
+
+    </div>
+
+    {% endif %}
+
+
+    {% if editable %}
+
+    <div class="image-actions">
+
+        <button
+            type="button"
+            class="btn-small btn-secondary edit-marker"
+            data-image="{{ image.id }}"
+        >
+            Marker
+        </button>
+
+        <button
+            type="button"
+            class="btn-small btn-delete delete-image"
+            data-image="{{ image.id }}"
+        >
+            Löschen
+        </button>
+
+    </div>
+
+    {% endif %}
+
+</div>
