@@ -125,6 +125,11 @@ input[type=file]{
     padding-bottom:220px;
 }
 
+.image-wrapper{
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+}
 
 /* =====================================================
    IMAGE CARD
