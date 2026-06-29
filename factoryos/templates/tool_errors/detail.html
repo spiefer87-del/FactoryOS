@@ -371,46 +371,19 @@
     {% if error.images %}
 
         <div class="image-gallery">
+        <div class="image-gallery">
 
-            {% for img in error.images %}
+{% for image in error.images %}
 
-            <div class="image-wrapper">
+    {% set editable = False %}
+    {% set marker_number = loop.index %}
 
-                <img
-                    src="{{ url_for('static', filename=img.image_path) }}">
+    {% include "components/image_card.html" %}
 
-                <div
-                    class="marker-advanced"
-                    style="
-                        left: calc({{ img.marker_x * 100 }}% - 14px);
-                        top: {{ img.marker_y * 100 }}%;
-                    ">
-
-                    <div class="marker-circle">
-
-                        {{ loop.index }}
-
-                    </div>
-
-                    <div class="marker-arrow"></div>
-
-                </div>
-
-                {% if img.description %}
-
-                    <div class="image-description">
-
-                        {{ img.description }}
-
-                    </div>
-
-                {% endif %}
-
-            </div>
-
-            {% endfor %}
+{% endfor %}
 
         </div>
+
 
     {% else %}
 
