@@ -274,6 +274,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const imageDescription = document.getElementById("imageDescription");
     const gallery = document.getElementById("imageGallery");
 
+    const markerEditorModal =
+        document.getElementById("markerEditorModal");
+    
+    const markerEditorImage =
+        document.getElementById("markerEditorImage");
+    
+    const markerEditorWrapper =
+        document.getElementById("markerEditorWrapper");
+    
+    const saveMarkerBtn =
+        document.getElementById("saveMarkerBtn");
+    
+    const cancelMarkerBtn =
+        document.getElementById("cancelMarkerBtn");
+
     const markerX = document.getElementById("marker_x");
     const markerY = document.getElementById("marker_y");
     const markerPx = document.getElementById("marker_px");
