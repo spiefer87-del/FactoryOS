@@ -629,17 +629,21 @@ document.addEventListener("DOMContentLoaded", () => {
         // Marker bearbeiten
         // -----------------------------
         const markerBtn = e.target.closest(".edit-marker");
-    
-        if (markerBtn) {
-    
-            const imageId = markerBtn.dataset.image;
-    
-            console.log("Marker bearbeiten:", imageId);
-    
-            // folgt im nächsten Schritt
-    
-            return;
-        }
+
+if (markerBtn) {
+
+    const imageId = markerBtn.dataset.image;
+
+    const res = await fetch(
+        `/tool-errors/image/${imageId}`
+    );
+
+    const image = await res.json();
+
+    openMarkerEditor(image);
+
+    return;
+}
     
     });
     
