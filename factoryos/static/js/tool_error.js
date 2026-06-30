@@ -620,11 +620,127 @@ document.addEventListener("DOMContentLoaded", () => {
         
                 markerEditorModal.classList.remove("hidden");
         
+                currentEditMarker?.remove();
+        
+                const marker = document.createElement("div");
+        
+                marker.className = "marker-advanced";
+        
+                marker.innerHTML = `
+                    <div class="marker-circle">1</div>
+                    <div class="marker-arrow"></div>
+                `;
+        
+                const width = markerEditorImage.offsetWidth;
+                const height = markerEditorImage.offsetHeight;
+        
+                marker.style.left =
+                    (image.marker_x * width - 18) + "px";
+        
+                marker.style.top =
+                    (image.marker_y * height) + "px";
+        
+                markerEditorWrapper.appendChild(marker);
+        
+                currentEditMarker = marker;
+
+                enableEditorDrag(marker);
+        
             };
         
             markerEditorImage.src = image.image_url;
         
         }
+
+        function enableEditorDrag(marker) {
+
+            let dragging = false;
+        
+            marker.addEventListener("mousedown", e => {
+                dragging = true;
+                e.preventDefault();
+            });
+        
+            marker.addEventListener("touchstart", e => {
+                dragging = true;
+                e.preventDefault();
+            });
+        
+            document.addEventListener("mouseup", () => {
+                dragging = false;
+            });
+        
+            document.addEventListener("touchend", () => {
+                dragging = false;
+            });
+        
+            function move(clientX, clientY) {
+        
+                if (!dragging)
+                    return;
+        
+                const rect =
+                    markerEditorImage.getBoundingClientRect();
+        
+                const relX = Math.max(
+                    0,
+                    Math.min(clientX - rect.left, rect.width)
+                );
+        
+                const relY = Math.max(
+                    0,
+                    Math.min(clientY - rect.top, rect.height)
+                );
+        
+                const xp = relX / rect.width;
+                const yp = relY / rect.height;
+        
+                currentEditImage.marker_x = xp;
+                currentEditImage.marker_y = yp;
+        
+                currentEditImage.marker_px =
+                    Math.round(
+                        xp * markerEditorImage.naturalWidth
+                    );
+        
+                currentEditImage.marker_py =
+                    Math.round(
+                        yp * markerEditorImage.naturalHeight
+                    );
+        
+                marker.style.left =
+                    (relX - 18) + "px";
+        
+                marker.style.top =
+                    relY + "px";
+        
+            }
+        
+            document.addEventListener("mousemove", e => {
+        
+                move(
+                    e.clientX,
+                    e.clientY
+                );
+        
+            });
+        
+            document.addEventListener("touchmove", e => {
+        
+                if (!dragging)
+                    return;
+        
+                const t = e.touches[0];
+        
+                move(
+                    t.clientX,
+                    t.clientY
+                );
+        
+            });
+        
+        }
+    
         document.addEventListener("click", async (e) => {
 
         // -----------------------------
