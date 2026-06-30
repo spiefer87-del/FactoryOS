@@ -417,13 +417,14 @@ def update_marker(image_id):
     from factoryos.extensions import db
 
     image = ToolErrorImage.query.get_or_404(image_id)
+    data = request.get_json()
 
-    image.marker_x = float(request.json["marker_x"])
-    image.marker_y = float(request.json["marker_y"])
+    image.marker_x = float(data["marker_x"])
+    image.marker_y = float(data["marker_y"])
 
-    image.marker_px = int(request.json["marker_px"])
-    image.marker_py = int(request.json["marker_py"])
-
+    image.marker_px = int(data["marker_px"])
+    image.marker_py = int(data["marker_py"])
+    
     db.session.commit()
 
     return jsonify({
