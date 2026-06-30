@@ -308,17 +308,11 @@ input[type=file]{
 
 }
 
-.marker-editor h3 {
+.marker-editor {
 
-    margin-top: 0;
-    margin-bottom: 20px;
+    text-align: center;
 
 }
-
-
-/* =======================================================
-   Bildbereich
-======================================================= */
 
 #markerEditorWrapper {
 
@@ -326,9 +320,7 @@ input[type=file]{
 
     display: inline-block;
 
-    width: 100%;
-
-    text-align: center;
+    line-height: 0;
 
 }
 
@@ -336,11 +328,15 @@ input[type=file]{
 
     display: block;
 
-    max-width: 100%;
+    max-width: min(90vw, 800px);
 
     max-height: 70vh;
 
-    margin: auto;
+    width: auto;
+
+    height: auto;
+
+    border-radius: 8px;
 
     user-select: none;
 
