@@ -427,6 +427,14 @@ def update_marker(image_id):
     
     db.session.commit()
 
+    html = render_template(
+        "components/image_card.html",
+        image=image,
+        editable=True
+    )
+
     return jsonify({
-        "success": True
+        "success": True,
+        "html": html
     })
+    
