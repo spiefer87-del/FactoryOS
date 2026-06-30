@@ -613,14 +613,18 @@ document.addEventListener("DOMContentLoaded", () => {
         let currentEditMarker = null;
         
         function openMarkerEditor(image) {
-        
+
             currentEditImage = image;
+        
+            markerEditorImage.onload = () => {
+        
+                markerEditorModal.classList.remove("hidden");
+        
+            };
         
             markerEditorImage.src = image.image_url;
         
-            markerEditorModal.classList.remove("hidden");
-        
-        }       
+        }
         document.addEventListener("click", async (e) => {
 
         // -----------------------------
