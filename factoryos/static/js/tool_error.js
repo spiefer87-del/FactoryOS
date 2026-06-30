@@ -797,6 +797,48 @@ document.addEventListener("DOMContentLoaded", () => {
     markerEditorModal.classList.add("hidden");
 
     });
+    saveMarkerBtn?.addEventListener("click", async () => {
+
+    if (!currentEditImage)
+        return;
+
+    const res = await fetch(
+
+        `/tool-errors/image/${currentEditImage.id}/marker`,
+
+        {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+
+                marker_x: currentEditImage.marker_x,
+                marker_y: currentEditImage.marker_y,
+
+                marker_px: currentEditImage.marker_px,
+                marker_py: currentEditImage.marker_py
+
+            })
+
+        }
+
+    );
+
+    const data = await res.json();
+
+    if (data.success) {
+
+        markerEditorModal.classList.add("hidden");
+
+        location.reload();
+
+    }
+
+});
     });
 
                           
