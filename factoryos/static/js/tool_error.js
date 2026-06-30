@@ -609,7 +609,18 @@ document.addEventListener("DOMContentLoaded", () => {
         // ==================================================
         // Image Card Buttons
         // ==================================================
+        let currentEditImage = null;
+        let currentEditMarker = null;
         
+        function openMarkerEditor(image) {
+        
+            currentEditImage = image;
+        
+            markerEditorImage.src = image.image_url;
+        
+            markerEditorModal.classList.remove("hidden");
+        
+        }       
         document.addEventListener("click", async (e) => {
 
         // -----------------------------
@@ -661,7 +672,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     
     });
-    
+    cancelMarkerBtn?.addEventListener("click", () => {
+
+    markerEditorModal.classList.add("hidden");
+
+    });
     });
 
                           
