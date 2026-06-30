@@ -630,20 +630,20 @@ document.addEventListener("DOMContentLoaded", () => {
         // -----------------------------
         const markerBtn = e.target.closest(".edit-marker");
 
-if (markerBtn) {
+        if (markerBtn) {
 
-    const imageId = markerBtn.dataset.image;
+            const imageId = markerBtn.dataset.image;
 
-    const res = await fetch(
-        `/tool-errors/image/${imageId}`
-    );
+            const res = await fetch(
+                `/tool-errors/image/${imageId}`
+            );
 
-    const image = await res.json();
+            const image = await res.json();
 
-    openMarkerEditor(image);
+            openMarkerEditor(image);
 
-    return;
-}
+            return;
+        }
     
     });
     
