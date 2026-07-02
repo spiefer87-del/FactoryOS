@@ -22,7 +22,54 @@ document.addEventListener("DOMContentLoaded", () => {
     const tempInput = document.getElementById("temp_id");
     const toolErrorId = document.getElementById("tool_error_id")?.value || "";
     const markerEditorDescription = document.getElementById("markerEditorDescription");
+    const selectImageBtn = document.getElementById("selectImageBtn");
+    const takePhotoBtn = document.getElementById("takePhotoBtn");
+    const cameraInput = document.getElementById("cameraInput");
 
+    selectImageBtn?.addEventListener("click", () => {
+
+        imageInput.click();
+    
+    });
+    
+    takePhotoBtn?.addEventListener("click", () => {
+    
+        cameraInput.click();
+    
+    });
+
+    function loadPreview(file){
+
+        if(!file)
+            return;
+    
+        const reader = new FileReader();
+    
+        reader.onload = e => {
+    
+            previewImage.src = e.target.result;
+            previewImage.style.display = "block";
+    
+        };
+    
+        reader.readAsDataURL(file);
+    
+    }
+    
+    imageInput.addEventListener("change", e => {
+
+        loadPreview(e.target.files[0]);
+    
+    });
+
+    cameraInput.addEventListener("change", e => {
+
+        imageInput.files = e.target.files;
+    
+        loadPreview(e.target.files[0]);
+    
+    });
+    
     // ==================================================
     // TEMP ID (nur Create)
     // ==================================================
