@@ -424,6 +424,11 @@ def update_marker(image_id):
 
     image.marker_px = int(data["marker_px"])
     image.marker_py = int(data["marker_py"])
+
+    image.description = request.json.get(
+        "description",
+        image.description
+    )
     
     db.session.commit()
 
