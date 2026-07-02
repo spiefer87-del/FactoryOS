@@ -616,6 +616,7 @@ document.addEventListener("DOMContentLoaded", () => {
         function openMarkerEditor(image) {
 
             currentEditImage = image;
+            markerEditorDescription.value = image.description || "";
         
             markerEditorImage.onload = () => {
         
