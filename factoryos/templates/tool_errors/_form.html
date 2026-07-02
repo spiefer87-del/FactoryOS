@@ -186,11 +186,40 @@
     id="uploadBox"
 >
 
-    <input
-        type="file"
-        id="imageInput"
-        accept="image/*"
-    >
+    <div class="image-upload-buttons">
+
+        <input
+            type="file"
+            id="imageInput"
+            accept="image/*"
+            hidden
+        >
+    
+        <input
+            type="file"
+            id="cameraInput"
+            accept="image/*"
+            capture="environment"
+            hidden
+        >
+    
+        <button
+            type="button"
+            id="selectImageBtn"
+            class="btn-secondary"
+        >
+            📁 Datei auswählen
+        </button>
+    
+        <button
+            type="button"
+            id="takePhotoBtn"
+            class="btn-primary"
+        >
+            📷 Foto aufnehmen
+        </button>
+    
+    </div>
 
     <div
         id="previewWrapper"
