@@ -587,7 +587,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
             }
-
+            console.log(formData.get("image"));
+            console.log(formData.get("marker_x"));
+            console.log(formData.get("temp_id"));
+            console.log(formData.get("tool_error_id"));
             fetch("/tool-errors/upload_temp_image", {
 
                 method: "POST",
@@ -872,6 +875,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 });
-    });
+
 
                           
