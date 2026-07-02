@@ -300,6 +300,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const markerPx = document.getElementById("marker_px");
     const markerPy = document.getElementById("marker_py");
 
+    let currentImageFile = null;
+
     selectImageBtn?.addEventListener("click", () => {
 
         imageInput.click();
@@ -331,14 +333,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     
     imageInput.addEventListener("change", e => {
+        
+        currentImageFile = e.target.files[0];
 
-        loadPreview(e.target.files[0]);
+        loadPreview(currentImageFile);
     
     });
 
     cameraInput.addEventListener("change", e => {
     
-        loadPreview(e.target.files[0]);
+        currentImageFile = e.target.files[0];
+
+        loadPreview(currentImageFile);
     
     });
 
@@ -533,7 +539,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         uploadBtn?.addEventListener("click", () => {
 
-            const file = imageInput.files[0] || cameraInput.files[0];
+            const file = currentImageFile;
 
             if (!file) {
 
@@ -608,6 +614,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 imageInput.value = "";
                 cameraInput.value = "";
+                currentImageFile = null
                 
                 previewImage.removeAttribute("src");
                 previewImage.style.display = "none";
