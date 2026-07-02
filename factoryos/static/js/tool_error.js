@@ -337,8 +337,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     cameraInput.addEventListener("change", e => {
-
-        imageInput.files = e.target.files;
     
         loadPreview(e.target.files[0]);
     
@@ -346,21 +344,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let currentMarker = null;
 
-    if (
-        imageInput &&
-        previewImage &&
-        previewWrapper
-    ) {
-
-        // ==========================================
-        // Vorschau
-        // ==========================================
-
-        imageInput.addEventListener("change", e => {
-
-            loadPreview(e.target.files[0]);
-        
-        });
+    
 
         // ==========================================
         // Marker setzen
@@ -623,7 +607,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
                 imageInput.value = "";
-
+                cameraInput.value = "";
+                
+                previewImage.removeAttribute("src");
                 previewImage.style.display = "none";
 
                 imageDescription.value = "";
