@@ -302,6 +302,71 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let currentImageFile = null;
 
+    async function resizeImage(file) {
+
+        return new Promise(resolve => {
+    
+            const img = new Image();
+    
+            const reader = new FileReader();
+    
+            reader.onload = e => {
+    
+                img.onload = () => {
+    
+                    const maxSize = 1600;
+    
+                    let width = img.width;
+                    let height = img.height;
+    
+                    if (width > height && width > maxSize) {
+    
+                        height *= maxSize / width;
+                        width = maxSize;
+    
+                    }
+                    else if (height > maxSize) {
+    
+                        width *= maxSize / height;
+                        height = maxSize;
+    
+                    }
+    
+                    const canvas = document.createElement("canvas");
+    
+                    canvas.width = width;
+                    canvas.height = height;
+    
+                    canvas
+                        .getContext("2d")
+                        .drawImage(img, 0, 0, width, height);
+    
+                    canvas.toBlob(blob => {
+    
+                        resolve(
+                            new File(
+                                [blob],
+                                file.name,
+                                {
+                                    type: "image/jpeg"
+                                }
+                            )
+                        );
+    
+                    }, "image/jpeg", 0.8);
+    
+                };
+    
+                img.src = e.target.result;
+    
+            };
+    
+            reader.readAsDataURL(file);
+    
+        });
+    
+    }
+
     selectImageBtn?.addEventListener("click", () => {
 
         imageInput.click();
@@ -537,9 +602,9 @@ document.addEventListener("DOMContentLoaded", () => {
         // Upload
         // ==========================================
 
-        uploadBtn?.addEventListener("click", () => {
+        uploadBtn?.addEventListener("click", async () => {
 
-            const file = currentImageFile;
+            const file = await resizeImage(currentImageFile);
 
             if (!file) {
 
