@@ -626,7 +626,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
         });
-        }
+        
     
         // ==================================================
         // Image Card Buttons
