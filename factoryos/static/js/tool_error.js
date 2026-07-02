@@ -26,49 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const takePhotoBtn = document.getElementById("takePhotoBtn");
     const cameraInput = document.getElementById("cameraInput");
 
-    selectImageBtn?.addEventListener("click", () => {
-
-        imageInput.click();
-    
-    });
-    
-    takePhotoBtn?.addEventListener("click", () => {
-    
-        cameraInput.click();
-    
-    });
-
-    function loadPreview(file){
-
-        if(!file)
-            return;
-    
-        const reader = new FileReader();
-    
-        reader.onload = e => {
-    
-            previewImage.src = e.target.result;
-            previewImage.style.display = "block";
-    
-        };
-    
-        reader.readAsDataURL(file);
-    
-    }
-    
-    imageInput.addEventListener("change", e => {
-
-        loadPreview(e.target.files[0]);
-    
-    });
-
-    cameraInput.addEventListener("change", e => {
-
-        imageInput.files = e.target.files;
-    
-        loadPreview(e.target.files[0]);
-    
-    });
+   
     
     // ==================================================
     // TEMP ID (nur Create)
@@ -342,6 +300,50 @@ document.addEventListener("DOMContentLoaded", () => {
     const markerPx = document.getElementById("marker_px");
     const markerPy = document.getElementById("marker_py");
 
+    selectImageBtn?.addEventListener("click", () => {
+
+        imageInput.click();
+    
+    });
+    
+    takePhotoBtn?.addEventListener("click", () => {
+    
+        cameraInput.click();
+    
+    });
+
+    function loadPreview(file){
+
+        if(!file)
+            return;
+    
+        const reader = new FileReader();
+    
+        reader.onload = e => {
+    
+            previewImage.src = e.target.result;
+            previewImage.style.display = "block";
+    
+        };
+    
+        reader.readAsDataURL(file);
+    
+    }
+    
+    imageInput.addEventListener("change", e => {
+
+        loadPreview(e.target.files[0]);
+    
+    });
+
+    cameraInput.addEventListener("change", e => {
+
+        imageInput.files = e.target.files;
+    
+        loadPreview(e.target.files[0]);
+    
+    });
+
     let currentMarker = null;
 
     if (
@@ -356,22 +358,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         imageInput.addEventListener("change", e => {
 
-            const file = e.target.files[0];
-
-            if (!file)
-                return;
-
-            const reader = new FileReader();
-
-            reader.onload = ev => {
-
-                previewImage.src = ev.target.result;
-                previewImage.style.display = "block";
-
-            };
-
-            reader.readAsDataURL(file);
-
+            loadPreview(e.target.files[0]);
+        
         });
 
         // ==========================================
@@ -561,7 +549,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         uploadBtn?.addEventListener("click", () => {
 
-            const file = imageInput.files[0];
+            const file = imageInput.files[0] || cameraInput.files[0];
 
             if (!file) {
 
