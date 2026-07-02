@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const tempInput = document.getElementById("temp_id");
     const toolErrorId = document.getElementById("tool_error_id")?.value || "";
+    const markerEditorDescription = document.getElementById("markerEditorDescription");
 
     // ==================================================
     // TEMP ID (nur Create)
@@ -818,10 +819,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 marker_x: currentEditImage.marker_x,
                 marker_y: currentEditImage.marker_y,
-
+            
                 marker_px: currentEditImage.marker_px,
-                marker_py: currentEditImage.marker_py
-
+                marker_py: currentEditImage.marker_py,
+            
+                description:
+                    markerEditorDescription.value
+            
             })
 
         }
