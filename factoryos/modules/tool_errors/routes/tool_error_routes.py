@@ -197,17 +197,23 @@ def detail(error_id):
         "tool_errors/detail.html",
         error=error,
         revisions=revisions,
-
+    
         TOOL_STATUSES=TOOL_STATUSES,
         WORKFLOW_STATUSES=WORKFLOW_STATUSES,
         WORKFLOW_STATUS_COLORS=WORKFLOW_STATUS_COLORS,
-
+    
         can_edit_error=can_edit(error),
         can_submit_review=can_start_review(error),
         can_return_to_draft=can_return_to_draft(error),
         can_release_error=can_release(error),
         can_close_error=can_close(error),
-        can_create_revision=can_create_revision(error)
+        can_create_revision=can_create_revision(error),
+    
+        can_delete_error=(
+            current_user.role
+            and current_user.role.name == "admin"
+            and can_edit(error)
+        )
     )
 
 
