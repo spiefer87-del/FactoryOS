@@ -3,12 +3,23 @@ import uuid
 from datetime import datetime
 from flask import current_app
 from sqlalchemy import func
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Image,
+    PageBreak,
+    Table,
+    TableStyle
+)
+
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import mm
-from io import BytesIO
-from PIL import Image as PILImage, ImageDraw, ImageFont, ImageOps
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib import colors
 
+from PIL import Image as PILImage, ImageDraw, ImageFont, ImageOps
+from io import BytesIO
 
 
 from factoryos.extensions import db
