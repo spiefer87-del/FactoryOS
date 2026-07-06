@@ -390,7 +390,9 @@ def generate_tool_error_pdf(error):
         if not os.path.exists(image_path):
             continue
 
-        pil_img = PILImage.open(image_path).convert("RGB")
+        pil_img = ImageOps.exif_transpose(
+            PILImage.open(image_path)
+        ).convert("RGB")
         draw = ImageDraw.Draw(pil_img)
 
         width, height = pil_img.size
@@ -398,15 +400,26 @@ def generate_tool_error_pdf(error):
 
         # =========================
         # 📍 POSITION
+        # Relative Marker bevorzugen!
+        # Wichtig bei Handyfotos / verkleinerten Bildern
         # =========================
-        if image.marker_px is not None and image.marker_py is not None:
-            x = image.marker_px
-            y = image.marker_py
-        elif image.marker_x is not None and image.marker_y is not None:
-            x = int(image.marker_x * width)
-            y = int(image.marker_y * height)
+        if image.marker_x is not None and image.marker_y is not None:
+            x = int(float(image.marker_x) * width)
+            y = int(float(image.marker_y) * height)
+        
+        elif image.marker_px is not None and image.marker_py is not None:
+            x = int(image.marker_px)
+            y = int(image.marker_py)
+        
         else:
             x = y = None
+        
+        
+        # Sicherheitsbegrenzung:
+        # verhindert Marker außerhalb des Bildes
+        if x is not None and y is not None:
+            x = max(0, min(x, width - 1))
+            y = max(0, min(y, height - 1))
 
         if x is not None and y is not None:
 
