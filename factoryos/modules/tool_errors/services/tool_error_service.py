@@ -7,7 +7,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Page
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import mm
 from io import BytesIO
-from PIL import Image as PILImage, ImageDraw, ImageFont
+from PIL import Image as PILImage, ImageDraw, ImageFont, ImageOps
 
 
 
@@ -246,7 +246,9 @@ def upload_image(
     filename = f"{uuid.uuid4()}_{file.filename}"
     filepath = os.path.join(upload_folder, filename)
 
-    file.save(filepath)
+    img = PILImage.open(file)
+    img = ImageOps.exif_transpose(img)
+    img.save(filepath)
 
     image = ToolErrorImage(
         tool_error_id=tool_error_id,
