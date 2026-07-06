@@ -15,20 +15,40 @@
     <div>
 
         <h2>
-
             Fehlermeldung bearbeiten
-
         </h2>
 
         <div class="page-subtitle">
-
-            {{ error.error_no }} · Revision {{ error.revision }}
-
+            {{ error.error_no }} · Revision {{ error.revision }} · Entwurf
         </div>
 
     </div>
 
+    <div class="page-actions">
+
+        <a
+            href="{{ url_for('tool_error.detail', error_id=error.id) }}"
+            class="btn-secondary"
+        >
+            Zurück zur Fehlermeldung
+        </a>
+
+    </div>
+
 </div>
+
+
+<!-- ===================================== -->
+<!-- HINWEIS -->
+<!-- ===================================== -->
+
+<div class="info-box">
+
+    Diese Fehlermeldung befindet sich im Entwurf und kann bearbeitet werden.
+    Nach dem Speichern kann sie erneut zur Prüfung eingereicht werden.
+
+</div>
+
 
 <!-- ===================================== -->
 <!-- FORMULAR -->
@@ -41,6 +61,7 @@
     {% include "tool_errors/_form.html" %}
 
 </form>
+
 
 <script src="{{ url_for('static', filename='js/tool_error.js') }}"></script>
 
