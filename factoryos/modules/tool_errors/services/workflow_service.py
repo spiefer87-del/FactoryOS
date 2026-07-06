@@ -333,6 +333,10 @@ def return_to_draft(error, user_id=None):
     return error
 
 
+# =========================
+# ALTE FREIGEGEBENE REVISIONEN SCHLIESSEN
+# =========================
+
 def close_previous_released_revisions(error):
 
     root_id = _revision_root_id(error)
@@ -355,6 +359,27 @@ def close_previous_released_revisions(error):
 
     return previous_revisions
 
+
+# =========================
+# FREIGEBEN
+# =========================
+
+def release(error, user_id):
+
+    if not can_release(error):
+        raise PermissionError(
+            "Nur Fehlermeldungen in Prüfung können freigegeben werden."
+        )
+
+    error.workflow_status = STATUS_RELEASED
+    error.released_at = datetime.utcnow()
+    error.released_by_id = user_id
+
+    close_previous_released_revisions(error)
+
+    db.session.commit()
+
+    return error
 
 def close(error, user_id=None):
 
