@@ -1,1 +1,232 @@
+<div class="workflow-header-card">
 
+    <!-- ===================================== -->
+    <!-- OBERE ZEILE -->
+    <!-- ===================================== -->
+
+    <div class="workflow-top">
+
+        <div class="workflow-title-block">
+
+            <h2>
+                {{ title }}
+            </h2>
+
+            {% if subtitle %}
+
+                <div class="workflow-subtitle">
+                    {{ subtitle }}
+                </div>
+
+            {% endif %}
+
+        </div>
+
+        <div class="workflow-meta">
+
+            <span class="workflow-revision">
+                Revision {{ revision }}
+            </span>
+
+            {% if is_current %}
+
+                <span class="status-badge status-aktiv">
+                    Aktuell
+                </span>
+
+            {% else %}
+
+                <span class="status-badge status-inaktiv">
+                    Historisch
+                </span>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================== -->
+    <!-- STATUS -->
+    <!-- ===================================== -->
+
+    <div class="workflow-status-row">
+
+        {% if workflow_status == "draft" %}
+
+            <span class="workflow-current-status status-draft">
+                Entwurf
+            </span>
+
+        {% elif workflow_status == "review" %}
+
+            <span class="workflow-current-status status-review">
+                In Prüfung
+            </span>
+
+        {% elif workflow_status == "released" %}
+
+            <span class="workflow-current-status status-released">
+                Freigegeben
+            </span>
+
+        {% elif workflow_status == "closed" %}
+
+            <span class="workflow-current-status status-closed">
+                Geschlossen
+            </span>
+
+        {% else %}
+
+            <span class="workflow-current-status">
+                {{ workflow_status }}
+            </span>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- ===================================== -->
+    <!-- WORKFLOW STEPPER -->
+    <!-- ===================================== -->
+
+    <div class="workflow-steps">
+
+        <div class="workflow-step {% if workflow_status == 'draft' %}active{% elif workflow_status in ['review','released','closed'] %}done{% endif %}">
+
+            <div class="workflow-circle">1</div>
+
+            <div class="workflow-label">
+                Entwurf
+            </div>
+
+        </div>
+
+        <div class="workflow-step {% if workflow_status == 'review' %}active{% elif workflow_status in ['released','closed'] %}done{% endif %}">
+
+            <div class="workflow-circle">2</div>
+
+            <div class="workflow-label">
+                In Prüfung
+            </div>
+
+        </div>
+
+        <div class="workflow-step {% if workflow_status == 'released' %}active{% elif workflow_status == 'closed' %}done{% endif %}">
+
+            <div class="workflow-circle">3</div>
+
+            <div class="workflow-label">
+                Freigegeben
+            </div>
+
+        </div>
+
+        <div class="workflow-step {% if workflow_status == 'closed' %}active{% endif %}">
+
+            <div class="workflow-circle">4</div>
+
+            <div class="workflow-label">
+                Geschlossen
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================== -->
+    <!-- AKTIONEN -->
+    <!-- ===================================== -->
+
+    <div class="workflow-actions">
+
+        {% if show_history_button|default(false) %}
+
+            <button
+                type="button"
+                class="btn-secondary"
+                onclick="document.getElementById('revisionHistoryDialog').showModal();"
+            >
+                🕓 Historie
+            </button>
+
+        {% endif %}
+
+
+        {% if can_edit_error|default(false) %}
+
+            <a
+                class="btn-secondary"
+                href="{{ edit_url }}"
+            >
+                ✏️ Bearbeiten
+            </a>
+
+        {% endif %}
+
+
+        {% if can_submit_review|default(false) %}
+
+            <a
+                class="btn-primary"
+                href="{{ review_url }}"
+            >
+                📤 In Prüfung senden
+            </a>
+
+        {% endif %}
+
+
+        {% if can_return_to_draft|default(false) %}
+
+            <a
+                class="btn-secondary"
+                href="{{ return_to_draft_url }}"
+            >
+                🔁 Zur Bearbeitung zurückgeben
+            </a>
+
+        {% endif %}
+
+
+        {% if can_release_error|default(false) %}
+
+            <a
+                class="btn-success"
+                href="{{ release_url }}"
+            >
+                ✅ Freigeben
+            </a>
+
+        {% endif %}
+
+
+        {% if can_close_error|default(false) %}
+
+            <a
+                class="btn-secondary"
+                href="{{ close_url }}"
+            >
+                🔒 Schließen
+            </a>
+
+        {% endif %}
+
+
+        {% if can_create_revision|default(false) %}
+
+            <a
+                class="btn-primary"
+                href="{{ revision_url }}"
+            >
+                🆕 Neue Revision
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</div>
