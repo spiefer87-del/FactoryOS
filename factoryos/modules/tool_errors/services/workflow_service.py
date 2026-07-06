@@ -152,6 +152,28 @@ def get_current_revision(error):
         .first()
     )
 
+def close_previous_released_revisions(error):
+
+    root_id = _revision_root_id(error)
+
+    previous_revisions = (
+        ToolError.query
+        .filter(
+            or_(
+                ToolError.id == root_id,
+                ToolError.parent_error_id == root_id
+            ),
+            ToolError.id != error.id,
+            ToolError.workflow_status == STATUS_RELEASED
+        )
+        .all()
+    )
+
+    for previous in previous_revisions:
+        previous.workflow_status = STATUS_CLOSED
+
+    return previous_revisions
+
 
 def _next_revision_number(error):
 
@@ -311,20 +333,27 @@ def return_to_draft(error, user_id=None):
     return error
 
 
-def release(error, user_id):
+def close_previous_released_revisions(error):
 
-    if not can_release(error):
-        raise PermissionError(
-            "Nur Fehlermeldungen in Prüfung können freigegeben werden."
+    root_id = _revision_root_id(error)
+
+    previous_revisions = (
+        ToolError.query
+        .filter(
+            or_(
+                ToolError.id == root_id,
+                ToolError.parent_error_id == root_id
+            ),
+            ToolError.id != error.id,
+            ToolError.workflow_status == STATUS_RELEASED
         )
+        .all()
+    )
 
-    error.workflow_status = STATUS_RELEASED
-    error.released_at = datetime.utcnow()
-    error.released_by_id = user_id
+    for previous in previous_revisions:
+        previous.workflow_status = STATUS_CLOSED
 
-    db.session.commit()
-
-    return error
+    return previous_revisions
 
 
 def close(error, user_id=None):
