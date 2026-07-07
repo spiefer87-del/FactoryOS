@@ -8,6 +8,7 @@ from sqlalchemy import or_
 
 from factoryos.extensions import db
 from factoryos.modules.tool_errors.models import ToolError, ToolErrorImage
+from factoryos.core.services.change_log_service import log_change
 
 
 # =========================
@@ -19,6 +20,29 @@ STATUS_REVIEW = "review"
 STATUS_RELEASED = "released"
 STATUS_CLOSED = "closed"
 
+STATUS_LABELS = {
+    STATUS_DRAFT: "Entwurf",
+    STATUS_REVIEW: "In Prüfung",
+    STATUS_RELEASED: "Freigegeben",
+    STATUS_CLOSED: "Geschlossen",
+}
+
+
+def status_label(status):
+
+    return STATUS_LABELS.get(status, status or "-")
+
+# =========================
+# Changelog
+# =========================
+def tool_error_log_name(error):
+
+    tool_no = "-"
+
+    if error.tool:
+        tool_no = error.tool.tool_no
+
+    return f"{error.error_no} Rev. {error.revision} ({tool_no})"
 
 # =========================
 # WORKFLOW REGELN
