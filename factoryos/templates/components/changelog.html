@@ -43,6 +43,33 @@
 
 
     "error_type": "Fehler",
+    "workflow_status": "Workflow",
+    "revision": "Revision",
+    "released_at": "Freigegeben am",
+    "released_by_id": "Freigegeben von",
+    "reason": "Grund",
+    "image": "Bild",
+    "images": "Bilder",
+    "marker": "Marker",
+    
+} %}
+
+{% set action_labels = {
+    "create": "erstellt",
+    "update": "aktualisiert",
+    "delete": "gelöscht",
+
+    "start_review": "zur Prüfung eingereicht",
+    "return_to_draft": "zur Bearbeitung zurückgegeben",
+    "release": "freigegeben",
+    "close": "geschlossen",
+    "auto_close": "automatisch geschlossen",
+    "revision_create": "als neue Revision erstellt",
+
+    "image_add": "Bild hinzugefügt",
+    "image_delete": "Bild gelöscht",
+    "marker_update": "Marker aktualisiert",
+    "tool_status_update": "Werkzeugstatus aktualisiert"
 } %}
 
 <div class="changelog-card">
@@ -103,7 +130,7 @@
     {% endif %}
 
     <div class="changelog-action">
-        wurde {{ log.action }}
+        wurde {{ action_labels.get(log.action, log.action) }}
     </div>
 
 </div>
