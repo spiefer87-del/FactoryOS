@@ -15,6 +15,7 @@ from flask_login import login_required, current_user
 
 from factoryos.extensions import db
 from factoryos.core.auth import role_required
+from factoryos.core.models.change_log import ChangeLog
 
 from . import bp
 
@@ -193,22 +194,60 @@ def detail(error_id):
 
     revisions = get_revisions(error)
 
+    revision_ids = [
+        revision.id
+        for revision in revisions
+    ]
+
+    if not revision_ids:
+        revision_ids = [error.id]
+
+    limit = request.args.get(
+        "limit",
+        "5"
+    )
+
+    log_query = (
+        ChangeLog.query
+        .filter(
+            ChangeLog.entity_type == "tool_error",
+            ChangeLog.entity_id.in_(revision_ids)
+        )
+        .order_by(
+            ChangeLog.created_at.desc()
+        )
+    )
+
+    if limit == "all":
+
+        logs = log_query.all()
+
+    else:
+
+        try:
+            limit_int = int(limit)
+        except ValueError:
+            limit_int = 5
+
+        logs = log_query.limit(limit_int).all()
+
     return render_template(
         "tool_errors/detail.html",
         error=error,
         revisions=revisions,
-    
+        logs=logs,
+
         TOOL_STATUSES=TOOL_STATUSES,
         WORKFLOW_STATUSES=WORKFLOW_STATUSES,
         WORKFLOW_STATUS_COLORS=WORKFLOW_STATUS_COLORS,
-    
+
         can_edit_error=can_edit(error),
         can_submit_review=can_start_review(error),
         can_return_to_draft=can_return_to_draft(error),
         can_release_error=can_release(error),
         can_close_error=can_close(error),
         can_create_revision=can_create_revision(error),
-    
+
         can_delete_error=(
             current_user.role
             and current_user.role.name == "admin"
