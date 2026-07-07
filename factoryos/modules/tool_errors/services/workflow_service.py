@@ -318,6 +318,24 @@ def create_revision(error, user_id):
 
         db.session.add(new_image)
 
+    log_change(
+        entity_type="tool_error",
+        entity_id=new_revision.id,
+        entity_name=tool_error_log_name(new_revision),
+        action="revision_create",
+        changes={
+            "revision": {
+                "old": current.revision,
+                "new": new_revision.revision
+            },
+            "workflow_status": {
+                "old": status_label(current.workflow_status),
+                "new": status_label(new_revision.workflow_status)
+            }
+        },
+        category="production"
+    )
+
     db.session.commit()
 
     return new_revision
@@ -334,7 +352,23 @@ def start_review(error, user_id=None):
             "Nur aktuelle Entwürfe können zur Prüfung eingereicht werden."
         )
 
+    old_status = error.workflow_status
+
     error.workflow_status = STATUS_REVIEW
+
+    log_change(
+        entity_type="tool_error",
+        entity_id=error.id,
+        entity_name=tool_error_log_name(error),
+        action="start_review",
+        changes={
+            "workflow_status": {
+                "old": status_label(old_status),
+                "new": status_label(error.workflow_status)
+            }
+        },
+        category="production"
+    )
 
     db.session.commit()
 
@@ -348,9 +382,25 @@ def return_to_draft(error, user_id=None):
             "Nur Fehlermeldungen in Prüfung können zur Bearbeitung zurückgegeben werden."
         )
 
+    old_status = error.workflow_status
+
     error.workflow_status = STATUS_DRAFT
     error.released_at = None
     error.released_by_id = None
+
+    log_change(
+        entity_type="tool_error",
+        entity_id=error.id,
+        entity_name=tool_error_log_name(error),
+        action="return_to_draft",
+        changes={
+            "workflow_status": {
+                "old": status_label(old_status),
+                "new": status_label(error.workflow_status)
+            }
+        },
+        category="production"
+    )
 
     db.session.commit()
 
@@ -379,7 +429,28 @@ def close_previous_released_revisions(error):
     )
 
     for previous in previous_revisions:
+
+        old_status = previous.workflow_status
+
         previous.workflow_status = STATUS_CLOSED
+
+        log_change(
+            entity_type="tool_error",
+            entity_id=previous.id,
+            entity_name=tool_error_log_name(previous),
+            action="auto_close",
+            changes={
+                "workflow_status": {
+                    "old": status_label(old_status),
+                    "new": status_label(previous.workflow_status)
+                },
+                "reason": {
+                    "old": "-",
+                    "new": f"Neue Revision {error.revision} wurde freigegeben"
+                }
+            },
+            category="production"
+        )
 
     return previous_revisions
 
@@ -395,9 +466,25 @@ def release(error, user_id):
             "Nur Fehlermeldungen in Prüfung können freigegeben werden."
         )
 
+    old_status = error.workflow_status
+
     error.workflow_status = STATUS_RELEASED
     error.released_at = datetime.utcnow()
     error.released_by_id = user_id
+
+    log_change(
+        entity_type="tool_error",
+        entity_id=error.id,
+        entity_name=tool_error_log_name(error),
+        action="release",
+        changes={
+            "workflow_status": {
+                "old": status_label(old_status),
+                "new": status_label(error.workflow_status)
+            }
+        },
+        category="production"
+    )
 
     close_previous_released_revisions(error)
 
@@ -412,7 +499,23 @@ def close(error, user_id=None):
             "Nur freigegebene Fehlermeldungen können geschlossen werden."
         )
 
+    old_status = error.workflow_status
+
     error.workflow_status = STATUS_CLOSED
+
+    log_change(
+        entity_type="tool_error",
+        entity_id=error.id,
+        entity_name=tool_error_log_name(error),
+        action="close",
+        changes={
+            "workflow_status": {
+                "old": status_label(old_status),
+                "new": status_label(error.workflow_status)
+            }
+        },
+        category="production"
+    )
 
     db.session.commit()
 
