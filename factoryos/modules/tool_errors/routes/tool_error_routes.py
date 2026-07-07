@@ -14,7 +14,7 @@ from flask import (
 from flask_login import login_required, current_user
 
 from factoryos.extensions import db
-from factoryos.core.auth import role_required
+from factoryos.core.auth import permission_required, has_permission
 from factoryos.core.models.change_log import ChangeLog
 
 from . import bp
@@ -63,25 +63,6 @@ from factoryos.modules.tool_errors.models import ToolErrorTitlePreset
 from factoryos.modules.masterdata.shared.constants import TOOL_STATUSES
 
 
-# =========================
-# ROLLEN
-# =========================
-# Hier eure echten Rollennamen eintragen.
-
-TOOL_ERROR_EDIT_ROLES = (
-    "produktion",
-    "qm",
-    "admin"
-)
-
-TOOL_ERROR_REVIEW_ROLES = (
-    "qm",
-    "admin"
-)
-
-TOOL_ERROR_ADMIN_ROLES = (
-    "admin",
-)
 
 
 # =========================
