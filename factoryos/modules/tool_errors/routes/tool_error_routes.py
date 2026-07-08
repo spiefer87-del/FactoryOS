@@ -778,7 +778,6 @@ def new_revision(error_id):
 
 @bp.route("/<int:error_id>/set-tool-status", methods=["POST"])
 @login_required
-@role_required(*TOOL_ERROR_EDIT_ROLES)
 def set_tool_status_route(error_id):
 
     error = get_tool_error(error_id)
