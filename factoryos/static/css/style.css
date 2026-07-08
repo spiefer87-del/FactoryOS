@@ -656,6 +656,223 @@ max-width:700px;
     margin-left: 6px;
     font-size: 12px;
 }
+
+/* =====================================
+   PERMISSION MATRIX
+===================================== */
+
+.permissions-matrix {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+}
+
+.permissions-table {
+    min-width: 900px;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.permissions-table th,
+.permissions-table td {
+    white-space: nowrap;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.permission-group {
+    background: #f3f4f6;
+    color: #111827;
+    font-weight: 700;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.permission-name {
+    font-size: 12px;
+    max-width: 120px;
+    min-width: 92px;
+    white-space: normal !important;
+    line-height: 1.2;
+    color: #4b5563;
+}
+
+.permission-cell input {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.role-head,
+.role-name {
+    text-align: left !important;
+}
+
+.permissions-table .sticky-col {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: #ffffff;
+    box-shadow: 2px 0 0 rgba(229, 231, 235, 0.8);
+}
+
+.permissions-table thead .sticky-col {
+    z-index: 4;
+    background: #f9fafb;
+}
+
+.role-name {
+    min-width: 160px;
+    color: #111827;
+}
+
+.permission-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+}
+
+
+/* =====================================
+   MOBILE PERMISSION CARDS
+===================================== */
+
+.permissions-mobile {
+    display: none;
+}
+
+.permission-role-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    margin-bottom: 14px;
+    overflow: hidden;
+}
+
+.permission-role-card summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 15px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: #f9fafb;
+}
+
+.permission-role-card summary::-webkit-details-marker {
+    display: none;
+}
+
+.permission-role-card summary strong {
+    display: block;
+    color: #111827;
+    font-size: 16px;
+}
+
+.permission-role-card summary span {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.permission-summary-icon {
+    font-size: 18px;
+    color: #6b7280;
+}
+
+.permission-role-body {
+    padding: 12px;
+}
+
+.permission-module-card {
+    border: 1px solid #eef0f4;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.permission-module-card h4 {
+    margin: 0;
+    padding: 10px 12px;
+    background: #f3f4f6;
+    font-size: 14px;
+    color: #111827;
+}
+
+.permission-toggle-list {
+    display: grid;
+    gap: 0;
+}
+
+.permission-toggle {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px;
+    border-top: 1px solid #eef0f4;
+    cursor: pointer;
+}
+
+.permission-toggle:first-child {
+    border-top: none;
+}
+
+.permission-toggle input {
+    width: 22px;
+    height: 22px;
+    margin-top: 2px;
+    cursor: pointer;
+    flex: 0 0 auto;
+}
+
+.permission-toggle-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.permission-toggle-content strong {
+    font-size: 14px;
+    color: #111827;
+}
+
+.permission-toggle-content small {
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.35;
+}
+
+
+/* =====================================
+   RESPONSIVE
+===================================== */
+
+@media (max-width: 800px) {
+
+    .permissions-desktop {
+        display: none;
+    }
+
+    .permissions-mobile {
+        display: block;
+    }
+
+    .permission-actions {
+        position: sticky;
+        bottom: 0;
+        background: #ffffff;
+        padding: 12px 0;
+        border-top: 1px solid #e5e7eb;
+        z-index: 20;
+    }
+
+    .permission-actions button,
+    .permission-actions a {
+        flex: 1;
+        text-align: center;
+    }
+}
 /* ------------------------------------------------ */
 /* Log */
 /* ------------------------------------------------ */
