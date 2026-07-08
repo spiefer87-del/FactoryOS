@@ -660,104 +660,31 @@ max-width:700px;
 /* =====================================
    PERMISSION MATRIX
 ===================================== */
-
-.permissions-matrix {
-    overflow-x: auto;
-    border-radius: 12px;
-    border: 1px solid #e5e7eb;
-    background: #ffffff;
-}
-
-.permissions-table {
-    min-width: 900px;
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-.permissions-table th,
-.permissions-table td {
-    white-space: nowrap;
-    text-align: center;
-    vertical-align: middle;
-}
-
-.permission-group {
-    background: #f3f4f6;
-    color: #111827;
-    font-weight: 700;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.permission-name {
-    font-size: 12px;
-    max-width: 120px;
-    min-width: 92px;
-    white-space: normal !important;
-    line-height: 1.2;
-    color: #4b5563;
-}
-
-.permission-cell input {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-}
-
-.role-head,
-.role-name {
-    text-align: left !important;
-}
-
-.permissions-table .sticky-col {
-    position: sticky;
-    left: 0;
-    z-index: 2;
-    background: #ffffff;
-    box-shadow: 2px 0 0 rgba(229, 231, 235, 0.8);
-}
-
-.permissions-table thead .sticky-col {
-    z-index: 4;
-    background: #f9fafb;
-}
-
-.role-name {
-    min-width: 160px;
-    color: #111827;
-}
-
-.permission-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 18px;
-    flex-wrap: wrap;
-}
-
-
 /* =====================================
-   MOBILE PERMISSION CARDS
+   PERMISSION MATRIX - CARD LAYOUT
 ===================================== */
 
-.permissions-mobile {
-    display: none;
+.permission-card-layout {
+    display: grid;
+    gap: 18px;
 }
 
 .permission-role-card {
     background: #ffffff;
     border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    margin-bottom: 14px;
+    border-radius: 16px;
     overflow: hidden;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
 }
 
 .permission-role-card summary {
     list-style: none;
     cursor: pointer;
-    padding: 15px 16px;
+    padding: 18px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 14px;
     background: #f9fafb;
 }
 
@@ -768,7 +695,7 @@ max-width:700px;
 .permission-role-card summary strong {
     display: block;
     color: #111827;
-    font-size: 16px;
+    font-size: 18px;
 }
 
 .permission-role-card summary span {
@@ -779,43 +706,75 @@ max-width:700px;
 .permission-summary-icon {
     font-size: 18px;
     color: #6b7280;
+    transition: transform 0.2s ease;
+}
+
+.permission-role-card[open] .permission-summary-icon {
+    transform: rotate(180deg);
 }
 
 .permission-role-body {
-    padding: 12px;
+    padding: 16px;
+    display: grid;
+    gap: 16px;
 }
 
 .permission-module-card {
     border: 1px solid #eef0f4;
-    border-radius: 12px;
-    margin-bottom: 12px;
+    border-radius: 14px;
     overflow: hidden;
+    background: #ffffff;
 }
 
-.permission-module-card h4 {
-    margin: 0;
-    padding: 10px 12px;
+.permission-module-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px 14px;
     background: #f3f4f6;
-    font-size: 14px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.permission-module-header h4 {
+    margin: 0;
+    font-size: 15px;
     color: #111827;
+}
+
+.permission-module-check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #374151;
+    user-select: none;
+}
+
+.permission-module-check input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
 }
 
 .permission-toggle-list {
     display: grid;
-    gap: 0;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
 
 .permission-toggle {
     display: flex;
     gap: 12px;
     align-items: flex-start;
-    padding: 12px;
+    padding: 14px;
     border-top: 1px solid #eef0f4;
+    border-right: 1px solid #eef0f4;
     cursor: pointer;
 }
 
-.permission-toggle:first-child {
-    border-top: none;
+.permission-toggle:hover {
+    background: #f9fafb;
 }
 
 .permission-toggle input {
@@ -843,19 +802,34 @@ max-width:700px;
     line-height: 1.35;
 }
 
+.permission-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+}
+
 
 /* =====================================
-   RESPONSIVE
+   MOBILE
 ===================================== */
 
 @media (max-width: 800px) {
 
-    .permissions-desktop {
-        display: none;
+    .permission-role-card summary {
+        padding: 15px 16px;
     }
 
-    .permissions-mobile {
-        display: block;
+    .permission-role-body {
+        padding: 12px;
+    }
+
+    .permission-toggle-list {
+        grid-template-columns: 1fr;
+    }
+
+    .permission-toggle {
+        border-right: none;
     }
 
     .permission-actions {
@@ -873,6 +847,7 @@ max-width:700px;
         text-align: center;
     }
 }
+
 /* ------------------------------------------------ */
 /* Log */
 /* ------------------------------------------------ */
