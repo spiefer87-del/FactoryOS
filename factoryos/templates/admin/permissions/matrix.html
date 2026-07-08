@@ -1,1 +1,321 @@
+{% extends "layout/base.html" %}
 
+{% block content %}
+
+<div class="page-header">
+
+    <div>
+
+        <h2>
+            Rechteverwaltung
+        </h2>
+
+        <div class="page-subtitle">
+            Rollen und Berechtigungen zentral verwalten
+        </div>
+
+    </div>
+
+</div>
+
+
+<form method="post" id="permissionMatrixForm">
+
+    <!-- ===================================== -->
+    <!-- DESKTOP MATRIX -->
+    <!-- ===================================== -->
+
+    <div class="permissions-desktop">
+
+        <div class="table-container permissions-matrix">
+
+            <table class="factory-table permissions-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th class="sticky-col role-head">
+                            Rolle
+                        </th>
+
+                        {% for module, permissions in permission_groups.items() %}
+
+                            <th
+                                colspan="{{ permissions|length }}"
+                                class="permission-group"
+                            >
+                                {{ module|replace("_", " ")|capitalize }}
+                            </th>
+
+                        {% endfor %}
+
+                    </tr>
+
+                    <tr>
+
+                        <th class="sticky-col"></th>
+
+                        {% for module, permissions in permission_groups.items() %}
+
+                            {% for permission in permissions %}
+
+                                {% set parts = permission.name.split(".") %}
+                                {% set permission_key = parts[1:]|join(".") if parts|length > 1 else permission.name %}
+
+                                <th class="permission-name">
+
+                                    <span title="{{ permission.description or permission.name }}">
+                                        {{ permission_key|replace("_", " ")|capitalize }}
+                                    </span>
+
+                                </th>
+
+                            {% endfor %}
+
+                        {% endfor %}
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for role in roles %}
+
+                        <tr>
+
+                            <td class="sticky-col role-name">
+
+                                <strong>
+                                    {{ role.name }}
+                                </strong>
+
+                            </td>
+
+
+                            {% for module, permissions in permission_groups.items() %}
+
+                                {% for permission in permissions %}
+
+                                    <td class="permission-cell">
+
+                                        <input
+                                            type="checkbox"
+                                            name="role_{{ role.id }}"
+                                            value="{{ permission.id }}"
+                                            data-view="desktop"
+                                            data-role-id="{{ role.id }}"
+                                            data-permission-id="{{ permission.id }}"
+
+                                            {% if permission in role.permissions %}
+                                                checked
+                                            {% endif %}
+                                        >
+
+                                    </td>
+
+                                {% endfor %}
+
+                            {% endfor %}
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================== -->
+    <!-- MOBILE CARDS -->
+    <!-- ===================================== -->
+
+    <div class="permissions-mobile">
+
+        {% for role in roles %}
+
+            <details
+                class="permission-role-card"
+                {% if loop.first %}open{% endif %}
+            >
+
+                <summary>
+
+                    <div>
+
+                        <strong>
+                            {{ role.name }}
+                        </strong>
+
+                        <span>
+                            {{ role.permissions|length }} Rechte aktiv
+                        </span>
+
+                    </div>
+
+                    <span class="permission-summary-icon">
+                        ▾
+                    </span>
+
+                </summary>
+
+
+                <div class="permission-role-body">
+
+                    {% for module, permissions in permission_groups.items() %}
+
+                        <div class="permission-module-card">
+
+                            <h4>
+                                {{ module|replace("_", " ")|capitalize }}
+                            </h4>
+
+                            <div class="permission-toggle-list">
+
+                                {% for permission in permissions %}
+
+                                    {% set parts = permission.name.split(".") %}
+                                    {% set permission_key = parts[1:]|join(".") if parts|length > 1 else permission.name %}
+
+                                    <label class="permission-toggle">
+
+                                        <input
+                                            type="checkbox"
+                                            name="role_{{ role.id }}"
+                                            value="{{ permission.id }}"
+                                            data-view="mobile"
+                                            data-role-id="{{ role.id }}"
+                                            data-permission-id="{{ permission.id }}"
+
+                                            {% if permission in role.permissions %}
+                                                checked
+                                            {% endif %}
+                                        >
+
+                                        <span class="permission-toggle-content">
+
+                                            <strong>
+                                                {{ permission_key|replace("_", " ")|capitalize }}
+                                            </strong>
+
+                                            <small>
+                                                {{ permission.description or permission.name }}
+                                            </small>
+
+                                        </span>
+
+                                    </label>
+
+                                {% endfor %}
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </details>
+
+        {% endfor %}
+
+    </div>
+
+
+    <!-- ===================================== -->
+    <!-- ACTIONS -->
+    <!-- ===================================== -->
+
+    <div class="form-actions permission-actions">
+
+        <button
+            type="submit"
+            class="btn-primary"
+        >
+            Rechte speichern
+        </button>
+
+        <a
+            href="{{ url_for('core.home') }}"
+            class="btn-secondary"
+        >
+            Abbrechen
+        </a>
+
+    </div>
+
+</form>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const desktopInputs = document.querySelectorAll(
+        'input[data-view="desktop"]'
+    );
+
+    const mobileInputs = document.querySelectorAll(
+        'input[data-view="mobile"]'
+    );
+
+    function updateEnabledInputs() {
+
+        const mobile = window.matchMedia("(max-width: 800px)").matches;
+
+        desktopInputs.forEach(input => {
+            input.disabled = mobile;
+        });
+
+        mobileInputs.forEach(input => {
+            input.disabled = !mobile;
+        });
+
+    }
+
+
+    function syncPermissionState(changedInput) {
+
+        const roleId = changedInput.dataset.roleId;
+        const permissionId = changedInput.dataset.permissionId;
+
+        document
+            .querySelectorAll(
+                `input[data-role-id="${roleId}"][data-permission-id="${permissionId}"]`
+            )
+            .forEach(input => {
+                input.checked = changedInput.checked;
+            });
+
+    }
+
+
+    document
+        .querySelectorAll("input[data-role-id][data-permission-id]")
+        .forEach(input => {
+
+            input.addEventListener("change", () => {
+                syncPermissionState(input);
+            });
+
+        });
+
+
+    updateEnabledInputs();
+
+    window.addEventListener(
+        "resize",
+        updateEnabledInputs
+    );
+
+});
+</script>
+
+{% endblock %}
