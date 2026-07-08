@@ -220,22 +220,49 @@ def detail(error_id):
         error=error,
         revisions=revisions,
         logs=logs,
-
+    
         TOOL_STATUSES=TOOL_STATUSES,
         WORKFLOW_STATUSES=WORKFLOW_STATUSES,
         WORKFLOW_STATUS_COLORS=WORKFLOW_STATUS_COLORS,
-
-        can_edit_error=can_edit(error),
-        can_submit_review=can_start_review(error),
-        can_return_to_draft=can_return_to_draft(error),
-        can_release_error=can_release(error),
-        can_close_error=can_close(error),
-        can_create_revision=can_create_revision(error),
-
+    
+        can_edit_error=(
+            can_edit(error)
+            and has_permission(current_user, "tool_error.edit")
+        ),
+    
+        can_submit_review=(
+            can_start_review(error)
+            and has_permission(current_user, "tool_error.submit_review")
+        ),
+    
+        can_return_to_draft=(
+            can_return_to_draft(error)
+            and has_permission(current_user, "tool_error.return_to_draft")
+        ),
+    
+        can_release_error=(
+            can_release(error)
+            and has_permission(current_user, "tool_error.release")
+        ),
+    
+        can_close_error=(
+            can_close(error)
+            and has_permission(current_user, "tool_error.close")
+        ),
+    
+        can_create_revision=(
+            can_create_revision(error)
+            and has_permission(current_user, "tool_error.revision")
+        ),
+    
         can_delete_error=(
-            current_user.role
-            and current_user.role.name == "admin"
-            and can_edit(error)
+            can_edit(error)
+            and has_permission(current_user, "tool_error.delete")
+        ),
+    
+        can_export_pdf=has_permission(
+            current_user,
+            "tool_error.pdf_export"
         )
     )
 
