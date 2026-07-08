@@ -57,8 +57,8 @@ def has_permission(user, permission_name):
         return False
 
     # Admin darf alles
-    if user.role.name.lower() == "admin":
-        return True
+    #if user.role.name.lower() == "admin":
+        #return True
 
     return any(
         permission.name == permission_name
