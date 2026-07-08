@@ -1,1 +1,278 @@
+{% extends "layout/base.html" %}
 
+{% block content %}
+
+<div class="page-header">
+
+    <div>
+
+        <h2>
+            Rechteverwaltung
+        </h2>
+
+        <div class="page-subtitle">
+            Rollen und Berechtigungen zentral verwalten
+        </div>
+
+    </div>
+
+</div>
+
+
+<form method="post" id="permissionMatrixForm">
+
+    <div class="permission-card-layout">
+
+        {% for role in roles %}
+
+            <details
+                class="permission-role-card"
+                {% if loop.first %}open{% endif %}
+                data-role-card="{{ role.id }}"
+            >
+
+                <summary>
+
+                    <div>
+
+                        <strong>
+                            {{ role.name }}
+                        </strong>
+
+                        <span class="permission-role-count" data-role-count="{{ role.id }}">
+                            {{ role.permissions|length }} Rechte aktiv
+                        </span>
+
+                    </div>
+
+                    <span class="permission-summary-icon">
+                        ▾
+                    </span>
+
+                </summary>
+
+
+                <div class="permission-role-body">
+
+                    {% for module, permissions in permission_groups.items() %}
+
+                        <div class="permission-module-card">
+
+                            <div class="permission-module-header">
+
+                                <h4>
+                                    {{ module|replace("_", " ")|capitalize }}
+                                </h4>
+
+                                <label class="permission-module-check">
+
+                                    <input
+                                        type="checkbox"
+                                        class="permission-module-toggle"
+                                        data-role-id="{{ role.id }}"
+                                        data-module="{{ module }}"
+                                    >
+
+                                    <span>
+                                        alle
+                                    </span>
+
+                                </label>
+
+                            </div>
+
+
+                            <div class="permission-toggle-list">
+
+                                {% for permission in permissions %}
+
+                                    {% set parts = permission.name.split(".") %}
+                                    {% set permission_key = parts[1:]|join(".") if parts|length > 1 else permission.name %}
+
+                                    <label class="permission-toggle">
+
+                                        <input
+                                            type="checkbox"
+                                            name="role_{{ role.id }}"
+                                            value="{{ permission.id }}"
+                                            data-role-id="{{ role.id }}"
+                                            data-module="{{ module }}"
+                                            data-permission-id="{{ permission.id }}"
+
+                                            {% if permission in role.permissions %}
+                                                checked
+                                            {% endif %}
+                                        >
+
+                                        <span class="permission-toggle-content">
+
+                                            <strong>
+                                                {{ permission_key|replace("_", " ")|capitalize }}
+                                            </strong>
+
+                                            <small>
+                                                {{ permission.description or permission.name }}
+                                            </small>
+
+                                        </span>
+
+                                    </label>
+
+                                {% endfor %}
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </details>
+
+        {% endfor %}
+
+    </div>
+
+
+    <div class="form-actions permission-actions">
+
+        <button
+            type="submit"
+            class="btn-primary"
+        >
+            Rechte speichern
+        </button>
+
+        <a
+            href="{{ url_for('core.home') }}"
+            class="btn-secondary"
+        >
+            Abbrechen
+        </a>
+
+    </div>
+
+</form>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    function updateRoleCount(roleId) {
+
+        const checked = document.querySelectorAll(
+            `input[type="checkbox"][name="role_${roleId}"]:checked`
+        ).length;
+
+        const counter = document.querySelector(
+            `[data-role-count="${roleId}"]`
+        );
+
+        if (counter) {
+            counter.textContent = `${checked} Rechte aktiv`;
+        }
+
+    }
+
+
+    function updateModuleToggle(roleId, moduleName) {
+
+        const permissionInputs = Array.from(
+            document.querySelectorAll(
+                `input[type="checkbox"][name="role_${roleId}"][data-module="${moduleName}"]`
+            )
+        );
+
+        const moduleToggle = document.querySelector(
+            `.permission-module-toggle[data-role-id="${roleId}"][data-module="${moduleName}"]`
+        );
+
+        if (!moduleToggle || permissionInputs.length === 0) {
+            return;
+        }
+
+        const checkedCount = permissionInputs.filter(input => input.checked).length;
+
+        moduleToggle.checked = checkedCount === permissionInputs.length;
+        moduleToggle.indeterminate = checkedCount > 0 && checkedCount < permissionInputs.length;
+
+    }
+
+
+    function updateAllModuleToggles() {
+
+        document
+            .querySelectorAll(".permission-module-toggle")
+            .forEach(toggle => {
+
+                updateModuleToggle(
+                    toggle.dataset.roleId,
+                    toggle.dataset.module
+                );
+
+            });
+
+    }
+
+
+    document
+        .querySelectorAll('input[type="checkbox"][name^="role_"]')
+        .forEach(input => {
+
+            input.addEventListener("change", () => {
+
+                const roleId = input.dataset.roleId;
+                const moduleName = input.dataset.module;
+
+                updateRoleCount(roleId);
+                updateModuleToggle(roleId, moduleName);
+
+            });
+
+        });
+
+
+    document
+        .querySelectorAll(".permission-module-toggle")
+        .forEach(toggle => {
+
+            toggle.addEventListener("change", () => {
+
+                const roleId = toggle.dataset.roleId;
+                const moduleName = toggle.dataset.module;
+
+                document
+                    .querySelectorAll(
+                        `input[type="checkbox"][name="role_${roleId}"][data-module="${moduleName}"]`
+                    )
+                    .forEach(input => {
+                        input.checked = toggle.checked;
+                    });
+
+                toggle.indeterminate = false;
+
+                updateRoleCount(roleId);
+
+            });
+
+        });
+
+
+    document
+        .querySelectorAll(".permission-role-card")
+        .forEach(card => {
+
+            const roleId = card.dataset.roleCard;
+
+            updateRoleCount(roleId);
+
+        });
+
+
+    updateAllModuleToggles();
+
+});
+</script>
+
+{% endblock %}
