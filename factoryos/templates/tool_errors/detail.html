@@ -28,12 +28,16 @@
 
     <div class="page-actions">
 
-        <a
-            href="{{ url_for('tool_error.export_pdf', error_id=error.id) }}"
-            class="btn-small btn-primary"
-        >
-            📄 PDF Export
-        </a>
+        {% if can_export_pdf|default(false) %}
+
+            <a
+                href="{{ url_for('tool_error.export_pdf', error_id=error.id) }}"
+                class="btn-small btn-primary"
+            >
+                📄 PDF Export
+            </a>
+
+        {% endif %}
 
         {% if can_delete_error|default(false) %}
 
