@@ -71,6 +71,7 @@ from factoryos.modules.masterdata.shared.constants import TOOL_STATUSES
 
 @bp.route("/")
 @login_required
+@permission_required("tool_error.view")
 def dashboard():
 
     errors = get_tool_errors()
@@ -89,6 +90,7 @@ def dashboard():
 
 @bp.route("/list")
 @login_required
+@permission_required("tool_error.view")
 def list_errors():
 
     errors = get_tool_errors()
@@ -107,7 +109,7 @@ def list_errors():
 
 @bp.route("/create", methods=["GET", "POST"])
 @login_required
-@role_required(*TOOL_ERROR_EDIT_ROLES)
+@permission_required("tool_error.create")
 def create():
 
     tools = get_all_tools()
@@ -169,6 +171,7 @@ def create():
 
 @bp.route("/<int:error_id>")
 @login_required
+@permission_required("tool_error.view")
 def detail(error_id):
 
     error = get_tool_error(error_id)
@@ -243,7 +246,7 @@ def detail(error_id):
 
 @bp.route("/<int:error_id>/edit", methods=["GET", "POST"])
 @login_required
-@role_required(*TOOL_ERROR_EDIT_ROLES)
+@permission_required("tool_error.edit")
 def edit(error_id):
 
     error = get_tool_error(error_id)
@@ -334,7 +337,6 @@ def edit(error_id):
 
 @bp.route("/upload_temp_image", methods=["POST"])
 @login_required
-@role_required(*TOOL_ERROR_EDIT_ROLES)
 def upload_temp():
 
     try:
@@ -391,7 +393,7 @@ def upload_temp():
 
 @bp.route("/delete_temp_image/<int:image_id>", methods=["POST"])
 @login_required
-@role_required(*TOOL_ERROR_EDIT_ROLES)
+@permission_required("tool_error.edit")
 def delete_temp_image(image_id):
 
     image = ToolErrorImage.query.get_or_404(image_id)
@@ -482,7 +484,7 @@ def get_image(image_id):
 
 @bp.route("/image/<int:image_id>/marker", methods=["POST"])
 @login_required
-@role_required(*TOOL_ERROR_EDIT_ROLES)
+@permission_required("tool_error.edit")
 def update_marker(image_id):
 
     image = ToolErrorImage.query.get_or_404(image_id)
@@ -536,7 +538,7 @@ def update_marker(image_id):
 
 @bp.route("/<int:error_id>/start-review")
 @login_required
-@role_required(*TOOL_ERROR_EDIT_ROLES)
+@permission_required("tool_error.submit")
 def start_review_route(error_id):
 
     error = get_tool_error(error_id)
@@ -574,7 +576,7 @@ def start_review_route(error_id):
 
 @bp.route("/<int:error_id>/return-to-draft")
 @login_required
-@role_required(*TOOL_ERROR_REVIEW_ROLES)
+@permission_required("tool_error.return")
 def return_to_draft_route(error_id):
 
     error = get_tool_error(error_id)
@@ -612,7 +614,7 @@ def return_to_draft_route(error_id):
 
 @bp.route("/<int:error_id>/release")
 @login_required
-@role_required(*TOOL_ERROR_REVIEW_ROLES)
+@permission_required("tool_error.release")
 def release_route(error_id):
 
     error = get_tool_error(error_id)
@@ -650,7 +652,7 @@ def release_route(error_id):
 
 @bp.route("/<int:error_id>/close")
 @login_required
-@role_required(*TOOL_ERROR_REVIEW_ROLES)
+@permission_required("tool_error.close")
 def close_route(error_id):
 
     error = get_tool_error(error_id)
@@ -688,7 +690,7 @@ def close_route(error_id):
 
 @bp.route("/<int:error_id>/new-revision")
 @login_required
-@role_required(*TOOL_ERROR_REVIEW_ROLES)
+@permission_required("tool_error.revision")
 def new_revision(error_id):
 
     error = get_tool_error(error_id)
@@ -807,7 +809,7 @@ def set_tool_status_route(error_id):
 
 @bp.route("/<int:error_id>/delete", methods=["POST"])
 @login_required
-@role_required(*TOOL_ERROR_ADMIN_ROLES)
+@permission_required("tool_error.delete")
 def delete(error_id):
 
     error = get_tool_error(error_id)
@@ -846,6 +848,7 @@ def delete(error_id):
 
 @bp.route("/<int:error_id>/export-pdf")
 @login_required
+@permission_required("tool_error.pdf_export")
 def export_pdf(error_id):
 
     error = get_tool_error(error_id)
