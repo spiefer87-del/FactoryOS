@@ -247,9 +247,9 @@ def detail(error_id):
             and has_permission(current_user, "tool_error.edit")
         ),
     
-        can_submit_review=(
+        can__review=(
             can_start_review(error)
-            and has_permission(current_user, "tool_error.submit_review")
+            and has_permission(current_user, "tool_error._review")
         ),
     
         can_return_to_draft=(
@@ -381,6 +381,7 @@ def edit(error_id):
 
 @bp.route("/upload_temp_image", methods=["POST"])
 @login_required
+@permission_required("tool_error.edit")
 def upload_temp():
 
     try:
@@ -582,7 +583,7 @@ def update_marker(image_id):
 
 @bp.route("/<int:error_id>/start-review")
 @login_required
-@permission_required("tool_error.submit")
+@permission_required("tool_error.submit_review")
 def start_review_route(error_id):
 
     error = get_tool_error(error_id)
@@ -620,7 +621,7 @@ def start_review_route(error_id):
 
 @bp.route("/<int:error_id>/return-to-draft")
 @login_required
-@permission_required("tool_error.return")
+@permission_required("tool_error.return_to_draft")
 def return_to_draft_route(error_id):
 
     error = get_tool_error(error_id)
