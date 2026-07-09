@@ -583,7 +583,7 @@ def update_marker(image_id):
 
 @bp.route("/<int:error_id>/start-review")
 @login_required
-@permission_required("tool_error.submit")
+@permission_required("tool_error.submit_review")
 def start_review_route(error_id):
 
     error = get_tool_error(error_id)
