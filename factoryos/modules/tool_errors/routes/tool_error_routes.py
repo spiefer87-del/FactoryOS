@@ -68,13 +68,14 @@ from factoryos.modules.masterdata.shared.constants import TOOL_STATUSES
 # =========================
 # DASHBOARD
 # =========================
-
 @bp.route("/")
 @login_required
 @permission_required("tool_error.view")
 def dashboard():
 
-    errors = get_tool_errors()
+    errors = get_tool_errors(
+        include_history=False
+    )
 
     return render_template(
         "tool_errors/dashboard.html",
@@ -82,26 +83,42 @@ def dashboard():
         WORKFLOW_STATUSES=WORKFLOW_STATUSES,
         WORKFLOW_STATUS_COLORS=WORKFLOW_STATUS_COLORS
     )
-
+    
 
 # =========================
 # LISTE
 # =========================
-
 @bp.route("/list")
 @login_required
 @permission_required("tool_error.view")
 def list_errors():
 
-    errors = get_tool_errors()
+    errors = get_tool_errors(
+        include_history=False
+    )
 
     return render_template(
         "tool_errors/list.html",
         errors=errors,
-        WORKFLOW_STATUSES=WORKFLOW_STATUSES,
-        WORKFLOW_STATUS_COLORS=WORKFLOW_STATUS_COLORS
-    )
 
+        WORKFLOW_STATUSES=WORKFLOW_STATUSES,
+        WORKFLOW_STATUS_COLORS=WORKFLOW_STATUS_COLORS,
+
+        can_create_error=has_permission(
+            current_user,
+            "tool_error.create"
+        ),
+
+        can_delete_errors=has_permission(
+            current_user,
+            "tool_error.delete"
+        ),
+
+        can_export_pdf=has_permission(
+            current_user,
+            "tool_error.pdf_export"
+        )
+    )
 
 # =========================
 # CREATE
