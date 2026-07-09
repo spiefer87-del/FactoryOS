@@ -1,3 +1,39 @@
+{# =====================================
+   WORKFLOW HEADER COMPONENT
+   Erwartete Variablen:
+   title
+   subtitle
+   revision
+   workflow_status
+   is_current
+
+   URLs:
+   edit_url
+   review_url
+   return_to_draft_url
+   release_url
+   close_url
+   revision_url
+
+   Rechte / Logik:
+   can_edit_error
+   can_submit_review
+   can_return_to_draft
+   can_release_error
+   can_close_error
+   can_create_revision
+   show_history_button
+===================================== #}
+
+{% set allow_history = show_history_button|default(false) %}
+{% set allow_edit = can_edit_error|default(false) %}
+{% set allow_submit_review = can_submit_review|default(false) %}
+{% set allow_return_to_draft = can_return_to_draft|default(false) %}
+{% set allow_release = can_release_error|default(false) %}
+{% set allow_close = can_close_error|default(false) %}
+{% set allow_create_revision = can_create_revision|default(false) %}
+
+
 <div class="workflow-header-card">
 
     <!-- ===================================== -->
@@ -22,10 +58,11 @@
 
         </div>
 
+
         <div class="workflow-meta">
 
             <span class="workflow-revision">
-                Revision {{ revision }}
+                Revision {{ revision or 1 }}
             </span>
 
             {% if is_current %}
@@ -48,7 +85,7 @@
 
 
     <!-- ===================================== -->
-    <!-- STATUS -->
+    <!-- AKTUELLER STATUS -->
     <!-- ===================================== -->
 
     <div class="workflow-status-row">
@@ -80,7 +117,7 @@
         {% else %}
 
             <span class="workflow-current-status">
-                {{ workflow_status }}
+                {{ workflow_status or "-" }}
             </span>
 
         {% endif %}
@@ -94,9 +131,11 @@
 
     <div class="workflow-steps">
 
-        <div class="workflow-step {% if workflow_status == 'draft' %}active{% elif workflow_status in ['review','released','closed'] %}done{% endif %}">
+        <div class="workflow-step {% if workflow_status == 'draft' %}active{% elif workflow_status in ['review', 'released', 'closed'] %}done{% endif %}">
 
-            <div class="workflow-circle">1</div>
+            <div class="workflow-circle">
+                1
+            </div>
 
             <div class="workflow-label">
                 Entwurf
@@ -104,9 +143,12 @@
 
         </div>
 
-        <div class="workflow-step {% if workflow_status == 'review' %}active{% elif workflow_status in ['released','closed'] %}done{% endif %}">
 
-            <div class="workflow-circle">2</div>
+        <div class="workflow-step {% if workflow_status == 'review' %}active{% elif workflow_status in ['released', 'closed'] %}done{% endif %}">
+
+            <div class="workflow-circle">
+                2
+            </div>
 
             <div class="workflow-label">
                 In Prüfung
@@ -114,9 +156,12 @@
 
         </div>
 
+
         <div class="workflow-step {% if workflow_status == 'released' %}active{% elif workflow_status == 'closed' %}done{% endif %}">
 
-            <div class="workflow-circle">3</div>
+            <div class="workflow-circle">
+                3
+            </div>
 
             <div class="workflow-label">
                 Freigegeben
@@ -124,9 +169,12 @@
 
         </div>
 
+
         <div class="workflow-step {% if workflow_status == 'closed' %}active{% endif %}">
 
-            <div class="workflow-circle">4</div>
+            <div class="workflow-circle">
+                4
+            </div>
 
             <div class="workflow-label">
                 Geschlossen
@@ -143,7 +191,7 @@
 
     <div class="workflow-actions">
 
-        {% if show_history_button|default(false) %}
+        {% if allow_history %}
 
             <button
                 type="button"
@@ -156,7 +204,7 @@
         {% endif %}
 
 
-        {% if can_edit_error|default(false) %}
+        {% if allow_edit and edit_url is defined %}
 
             <a
                 class="btn-secondary"
@@ -168,7 +216,7 @@
         {% endif %}
 
 
-        {% if can_submit_review|default(false) %}
+        {% if allow_submit_review and review_url is defined %}
 
             <a
                 class="btn-primary"
@@ -180,7 +228,7 @@
         {% endif %}
 
 
-        {% if can_return_to_draft|default(false) %}
+        {% if allow_return_to_draft and return_to_draft_url is defined %}
 
             <a
                 class="btn-secondary"
@@ -192,7 +240,7 @@
         {% endif %}
 
 
-        {% if can_release_error|default(false) %}
+        {% if allow_release and release_url is defined %}
 
             <a
                 class="btn-success"
@@ -204,7 +252,7 @@
         {% endif %}
 
 
-        {% if can_close_error|default(false) %}
+        {% if allow_close and close_url is defined %}
 
             <a
                 class="btn-secondary"
@@ -216,7 +264,7 @@
         {% endif %}
 
 
-        {% if can_create_revision|default(false) %}
+        {% if allow_create_revision and revision_url is defined %}
 
             <a
                 class="btn-primary"
@@ -227,6 +275,53 @@
 
         {% endif %}
 
+
+        {% if not allow_history
+            and not allow_edit
+            and not allow_submit_review
+            and not allow_return_to_draft
+            and not allow_release
+            and not allow_close
+            and not allow_create_revision %}
+
+            <span class="workflow-no-actions">
+                Keine Workflow-Aktion verfügbar
+            </span>
+
+        {% endif %}
+
     </div>
+
+
+    <!-- ===================================== -->
+    <!-- OPTIONAL DEBUG -->
+    <!-- In detail.html aktivieren mit:
+         {% set workflow_debug = true %}
+    <!-- ===================================== -->
+
+    {% if workflow_debug|default(false) %}
+
+        <div
+            style="
+                margin-top: 12px;
+                padding: 10px;
+                border: 1px solid #facc15;
+                background: #fef9c3;
+                border-radius: 8px;
+                font-size: 13px;
+            "
+        >
+            <strong>Workflow Debug</strong><br>
+            workflow_status = {{ workflow_status }}<br>
+            is_current = {{ is_current }}<br>
+            can_edit_error = {{ can_edit_error|default("UNDEFINED") }}<br>
+            can_submit_review = {{ can_submit_review|default("UNDEFINED") }}<br>
+            can_return_to_draft = {{ can_return_to_draft|default("UNDEFINED") }}<br>
+            can_release_error = {{ can_release_error|default("UNDEFINED") }}<br>
+            can_close_error = {{ can_close_error|default("UNDEFINED") }}<br>
+            can_create_revision = {{ can_create_revision|default("UNDEFINED") }}
+        </div>
+
+    {% endif %}
 
 </div>
