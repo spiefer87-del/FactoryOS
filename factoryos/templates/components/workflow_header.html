@@ -293,35 +293,6 @@
     </div>
 
 
-    <!-- ===================================== -->
-    <!-- OPTIONAL DEBUG -->
-    <!-- In detail.html aktivieren mit:
-         {% set workflow_debug = true %}
-    <!-- ===================================== -->
 
-    {% if workflow_debug|default(true) %}
-
-        <div
-            style="
-                margin-top: 12px;
-                padding: 10px;
-                border: 1px solid #facc15;
-                background: #fef9c3;
-                border-radius: 8px;
-                font-size: 13px;
-            "
-        >
-            <strong>Workflow Debug</strong><br>
-            workflow_status = {{ workflow_status }}<br>
-            is_current = {{ is_current }}<br>
-            can_edit_error = {{ can_edit_error|default("UNDEFINED") }}<br>
-            can_submit_review = {{ can_submit_review|default("UNDEFINED") }}<br>
-            can_return_to_draft = {{ can_return_to_draft|default("UNDEFINED") }}<br>
-            can_release_error = {{ can_release_error|default("UNDEFINED") }}<br>
-            can_close_error = {{ can_close_error|default("UNDEFINED") }}<br>
-            can_create_revision = {{ can_create_revision|default("UNDEFINED") }}
-        </div>
-
-    {% endif %}
-
+    
 </div>
