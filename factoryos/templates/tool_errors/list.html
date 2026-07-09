@@ -2,15 +2,48 @@
 
 {% block content %}
 
-<h2>Tool Errors</h2>
+<!-- ===================================== -->
+<!-- HEADER -->
+<!-- ===================================== -->
 
-<a class="btn-primary"
-   href="{{ url_for('tool_error.create') }}">
-   Fehler melden
-</a>
+<div class="page-header">
+
+    <div>
+
+        <h2>
+            Tool Errors
+        </h2>
+
+        <div class="page-subtitle">
+            Aktuelle Fehlermeldungen und Revisionsstände
+        </div>
+
+    </div>
+
+    <div class="page-actions">
+
+        {% if can_create_error|default(false) %}
+
+            <a
+                class="btn-primary"
+                href="{{ url_for('tool_error.create') }}"
+            >
+                Fehler melden
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+{% set table_id = "toolErrorList" %}
 
 {% set columns = [
     "FM-Nr.",
+    "Revision",
+    "Workflow",
     "Werkzeug",
     "Fehler",
     "Datum",
@@ -19,38 +52,118 @@
 
 {% set rows = [] %}
 
+
 {% for error in errors %}
 
-{% set tool_link = 
-    '<a href="' ~ url_for("tools.detail", tool_id=error.tool.id) ~ '">' ~ error.tool.tool_no ~ '</a>'
-    if error.tool else error.tool_id
-%}
+    <!-- FM-NUMMER -->
+    {% set fm_no = error.error_no or ("FM" ~ error.created_at.strftime("%y") ~ "-" ~ "%03d"|format(error.id)) %}
 
-{% set actions = '
-<div class="table-actions">
-    <a class="btn-small btn-edit"
-       href="' ~ url_for("tool_error.detail", error_id=error.id) ~ '">
-       Details
-    </a>
-    <a class="btn-small btn-delete"
-       href="' ~ url_for("tool_error.delete", error_id=error.id) ~ '"
-       onclick="return confirm(\'Wirklich löschen?\')">
-       Löschen
-    </a>
-</div>
-' %}
 
-{% set row = [
-    error.error_no or ("FM" ~ error.created_at.strftime("%y") ~ "-" ~ "%03d"|format(error.id)),
-    tool_link,
-    error.error_type,
-    error.created_at.strftime("%d.%m.%Y %H:%M"),
-    actions
-] %}
+    <!-- REVISION -->
+    {% set revision_badge %}
 
-{% set _ = rows.append(row) %}
+        <span class="status-badge status-aktiv">
+            Rev. {{ error.revision or 1 }}
+        </span>
+
+    {% endset %}
+
+
+    <!-- WORKFLOW -->
+    {% set workflow_badge %}
+
+        <span class="status-badge {{ WORKFLOW_STATUS_COLORS.get(error.workflow_status, '') }}">
+            {{ WORKFLOW_STATUSES.get(error.workflow_status, error.workflow_status) }}
+        </span>
+
+    {% endset %}
+
+
+    <!-- WERKZEUG -->
+    {% set tool_link %}
+
+        {% if error.tool %}
+
+            <a
+                href="{{ url_for('tools.detail', tool_id=error.tool.id) }}"
+                class="tool-badge"
+            >
+                {{ error.tool.tool_no }}
+            </a>
+
+        {% else %}
+
+            {{ error.tool_id or "-" }}
+
+        {% endif %}
+
+    {% endset %}
+
+
+    <!-- AKTIONEN -->
+    {% set actions %}
+
+        <div class="table-actions">
+
+            <a
+                class="btn-small btn-edit"
+                href="{{ url_for('tool_error.detail', error_id=error.id) }}"
+            >
+                Details
+            </a>
+
+
+            {% if can_export_pdf|default(false) %}
+
+                <a
+                    class="btn-small btn-primary"
+                    href="{{ url_for('tool_error.export_pdf', error_id=error.id) }}"
+                >
+                    PDF
+                </a>
+
+            {% endif %}
+
+
+            {% if can_delete_errors|default(false)
+                and error.workflow_status == "draft"
+                and error.is_current %}
+
+                <form
+                    method="POST"
+                    action="{{ url_for('tool_error.delete', error_id=error.id) }}"
+                    style="display:inline;"
+                    onsubmit="return confirm('Fehlermeldung wirklich löschen?');"
+                >
+                    <button
+                        type="submit"
+                        class="btn-small btn-delete"
+                    >
+                        Löschen
+                    </button>
+                </form>
+
+            {% endif %}
+
+        </div>
+
+    {% endset %}
+
+
+    {% set row = [
+        fm_no,
+        revision_badge,
+        workflow_badge,
+        tool_link,
+        error.error_type or "-",
+        error.created_at.strftime("%d.%m.%Y %H:%M") if error.created_at else "-",
+        actions
+    ] %}
+
+    {% set _ = rows.append(row) %}
 
 {% endfor %}
+
 
 {% include "components/table.html" with context %}
 
