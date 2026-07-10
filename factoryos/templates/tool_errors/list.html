@@ -45,6 +45,7 @@
     "Revision",
     "Workflow",
     "Werkzeug",
+    "Werkzeugname",
     "Fehler",
     "Datum",
     "Aktionen"
@@ -55,21 +56,49 @@
 
 {% for error in errors %}
 
-    <!-- FM-NUMMER -->
+    {% set revisions = revisions_by_error.get(error.id, []) %}
+    {% set history_dialog_id = "revisionHistoryDialog_" ~ error.id %}
+
+    <!-- ===================================== -->
+    <!-- FM-NUMMER KLICKBAR -->
+    <!-- ===================================== -->
+
     {% set fm_no = error.error_no or ("FM" ~ error.created_at.strftime("%y") ~ "-" ~ "%03d"|format(error.id)) %}
 
+    {% set fm_link %}
 
-    <!-- REVISION -->
-    {% set revision_badge %}
-
-        <span class="status-badge status-aktiv">
-            Rev. {{ error.revision or 1 }}
-        </span>
+        <a
+            href="{{ url_for('tool_error.detail', error_id=error.id) }}"
+            class="table-main-link"
+        >
+            {{ fm_no }}
+        </a>
 
     {% endset %}
 
 
+    <!-- ===================================== -->
+    <!-- REVISION KLICKBAR -->
+    <!-- ===================================== -->
+
+    {% set revision_button %}
+
+        <button
+            type="button"
+            class="revision-list-button"
+            onclick="document.getElementById('{{ history_dialog_id }}').showModal();"
+            title="Revisionshistorie anzeigen"
+        >
+            Rev. {{ error.revision or 1 }}
+        </button>
+
+    {% endset %}
+
+
+    <!-- ===================================== -->
     <!-- WORKFLOW -->
+    <!-- ===================================== -->
+
     {% set workflow_badge %}
 
         <span class="status-badge {{ WORKFLOW_STATUS_COLORS.get(error.workflow_status, '') }}">
@@ -79,7 +108,10 @@
     {% endset %}
 
 
-    <!-- WERKZEUG -->
+    <!-- ===================================== -->
+    <!-- WERKZEUGNUMMER -->
+    <!-- ===================================== -->
+
     {% set tool_link %}
 
         {% if error.tool %}
@@ -100,7 +132,29 @@
     {% endset %}
 
 
+    <!-- ===================================== -->
+    <!-- WERKZEUGNAME -->
+    <!-- ===================================== -->
+
+    {% set tool_name %}
+
+        {% if error.tool and error.tool.name %}
+
+            {{ error.tool.name }}
+
+        {% else %}
+
+            -
+
+        {% endif %}
+
+    {% endset %}
+
+
+    <!-- ===================================== -->
     <!-- AKTIONEN -->
+    <!-- ===================================== -->
+
     {% set actions %}
 
         <div class="table-actions">
@@ -151,10 +205,11 @@
 
 
     {% set row = [
-        fm_no,
-        revision_badge,
+        fm_link,
+        revision_button,
         workflow_badge,
         tool_link,
+        tool_name,
         error.error_type or "-",
         error.created_at.strftime("%d.%m.%Y %H:%M") if error.created_at else "-",
         actions
@@ -166,5 +221,142 @@
 
 
 {% include "components/table.html" with context %}
+
+
+<!-- ===================================== -->
+<!-- REVISION HISTORY DIALOGS -->
+<!-- ===================================== -->
+
+{% for error in errors %}
+
+    {% set revisions = revisions_by_error.get(error.id, []) %}
+    {% set history_dialog_id = "revisionHistoryDialog_" ~ error.id %}
+
+    <dialog id="{{ history_dialog_id }}" class="revision-dialog">
+
+        <div class="revision-dialog-header">
+
+            <div>
+
+                <h3>
+                    Revisionshistorie
+                </h3>
+
+                <div class="revision-dialog-subtitle">
+                    {{ error.error_no }} · {{ error.error_type or "-" }}
+                </div>
+
+            </div>
+
+            <form method="dialog">
+
+                <button
+                    type="submit"
+                    class="dialog-close-btn"
+                    aria-label="Schließen"
+                >
+                    ×
+                </button>
+
+            </form>
+
+        </div>
+
+
+        <div class="revision-history-list">
+
+            {% if revisions %}
+
+                {% for rev in revisions %}
+
+                    <a
+                        href="{{ url_for('tool_error.detail', error_id=rev.id) }}"
+                        class="revision-history-item {% if rev.id == error.id %}active{% endif %}"
+                    >
+
+                        <div class="revision-history-main">
+
+                            <strong>
+                                Revision {{ rev.revision }}
+                            </strong>
+
+                            <span class="status-badge {{ WORKFLOW_STATUS_COLORS.get(rev.workflow_status, '') }}">
+                                {{ WORKFLOW_STATUSES.get(rev.workflow_status, rev.workflow_status) }}
+                            </span>
+
+                            {% if rev.is_current %}
+
+                                <span class="status-badge status-aktiv">
+                                    Aktuell
+                                </span>
+
+                            {% else %}
+
+                                <span class="status-badge status-inaktiv">
+                                    Historisch
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+                        <div class="revision-history-meta">
+
+                            <span>
+                                Erstellt:
+                                <strong>
+                                    {{ rev.created_at.strftime("%d.%m.%Y %H:%M") if rev.created_at else "-" }}
+                                </strong>
+                            </span>
+
+                            <span>
+                                Von:
+                                <strong>
+                                    {{ rev.reported_by.username if rev.reported_by else "-" }}
+                                </strong>
+                            </span>
+
+                            {% if rev.released_at %}
+
+                                <span>
+                                    Freigegeben:
+                                    <strong>
+                                        {{ rev.released_at.strftime("%d.%m.%Y %H:%M") }}
+                                    </strong>
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+                    </a>
+
+                {% endfor %}
+
+            {% else %}
+
+                <div class="empty-state">
+                    Keine Historie vorhanden
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <form method="dialog" class="revision-dialog-footer">
+
+            <button
+                type="submit"
+                class="btn-secondary"
+            >
+                Schließen
+            </button>
+
+        </form>
+
+    </dialog>
+
+{% endfor %}
 
 {% endblock %}
