@@ -97,9 +97,15 @@ def list_errors():
         include_history=False
     )
 
+    revisions_by_error = {}
+
+    for error in errors:
+        revisions_by_error[error.id] = get_revisions(error)
+
     return render_template(
         "tool_errors/list.html",
         errors=errors,
+        revisions_by_error=revisions_by_error,
 
         WORKFLOW_STATUSES=WORKFLOW_STATUSES,
         WORKFLOW_STATUS_COLORS=WORKFLOW_STATUS_COLORS,
@@ -119,7 +125,7 @@ def list_errors():
             "tool_error.pdf_export"
         )
     )
-
+    
 # =========================
 # CREATE
 # =========================
