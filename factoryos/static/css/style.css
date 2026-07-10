@@ -414,6 +414,36 @@ background:white;
 width:220px;
 }
 
+/* =====================================
+   TOOL ERROR LIST
+===================================== */
+
+.table-main-link {
+    font-weight: 700;
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.table-main-link:hover {
+    text-decoration: underline;
+}
+
+.revision-list-button {
+    border: none;
+    background: #eef2ff;
+    color: #3730a3;
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.revision-list-button:hover {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
 
 
 /* ------------------------------------------------ */
