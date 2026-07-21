@@ -1,1 +1,661 @@
+{% extends "layout/base.html" %}
 
+{% block content %}
+
+<!-- ===================================== -->
+<!-- HEADER -->
+<!-- ===================================== -->
+
+<div class="page-header">
+
+    <div>
+
+        <h2>
+            Werkzeugliste
+        </h2>
+
+        <div class="page-subtitle">
+            Stammdaten, Artikelzuordnung und Statusübersicht
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ===================================== -->
+<!-- TABLE WRAPPER -->
+<!-- ===================================== -->
+
+<div class="fos-table-wrapper">
+
+    <div class="fos-table-toolbar tool-list-toolbar">
+
+        <input
+            type="text"
+            class="fos-search"
+            placeholder="Suchen..."
+            data-table-search="tools-table"
+        >
+
+
+        <!-- ===================================== -->
+        <!-- SPALTENAUSWAHL -->
+        <!-- ===================================== -->
+
+        <details class="column-picker">
+
+            <summary>
+                Spalten auswählen
+            </summary>
+
+            <div class="column-picker-panel">
+
+                <label>
+                    <input
+                        type="checkbox"
+                        value="tool_no"
+                        data-column-toggle
+                        data-default-visible="true"
+                    >
+                    Werkzeugnr.
+                </label>
+
+                <label>
+                    <input
+                        type="checkbox"
+                        value="external_tool_no"
+                        data-column-toggle
+                        data-default-visible="true"
+                    >
+                    Externe Werkzeugnr.
+                </label>
+
+                <label>
+                    <input
+                        type="checkbox"
+                        value="name"
+                        data-column-toggle
+                        data-default-visible="true"
+                    >
+                    Werkzeugname
+                </label>
+
+                <label>
+                    <input
+                        type="checkbox"
+                        value="article_no"
+                        data-column-toggle
+                        data-default-visible="true"
+                    >
+                    Artikelnummer
+                </label>
+
+                <label>
+                    <input
+                        type="checkbox"
+                        value="article_name"
+                        data-column-toggle
+                        data-default-visible="true"
+                    >
+                    Artikelname
+                </label>
+
+                <label>
+                    <input
+                        type="checkbox"
+                        value="location"
+                        data-column-toggle
+                        data-default-visible="true"
+                    >
+                    Standort
+                </label>
+
+                <label>
+                    <input
+                        type="checkbox"
+                        value="status"
+                        data-column-toggle
+                        data-default-visible="true"
+                    >
+                    Status
+                </label>
+
+                <label>
+                    <input
+                        type="checkbox"
+                        value="built_by"
+                        data-column-toggle
+                        data-default-visible="false"
+                    >
+                    Hersteller
+                </label>
+
+                <label>
+                    <input
+                        type="checkbox"
+                        value="build_year"
+                        data-column-toggle
+                        data-default-visible="false"
+                    >
+                    Baujahr
+                </label>
+
+                <label>
+                    <input
+                        type="checkbox"
+                        value="shot_counter"
+                        data-column-toggle
+                        data-default-visible="false"
+                    >
+                    Schusszähler
+                </label>
+
+                <label>
+                    <input
+                        type="checkbox"
+                        value="cavities"
+                        data-column-toggle
+                        data-default-visible="false"
+                    >
+                    Kavitäten
+                </label>
+
+                <label>
+                    <input
+                        type="checkbox"
+                        value="core_pulls"
+                        data-column-toggle
+                        data-default-visible="false"
+                    >
+                    Kernzüge
+                </label>
+
+                <label>
+                    <input
+                        type="checkbox"
+                        value="hotrunner_zones"
+                        data-column-toggle
+                        data-default-visible="false"
+                    >
+                    Heißkanalzonen
+                </label>
+
+                <label>
+                    <input
+                        type="checkbox"
+                        value="weight"
+                        data-column-toggle
+                        data-default-visible="false"
+                    >
+                    Gewicht
+                </label>
+
+                <label>
+                    <input
+                        type="checkbox"
+                        value="dimensions"
+                        data-column-toggle
+                        data-default-visible="false"
+                    >
+                    Abmessungen
+                </label>
+
+                <label>
+                    <input
+                        type="checkbox"
+                        value="description"
+                        data-column-toggle
+                        data-default-visible="false"
+                    >
+                    Beschreibung
+                </label>
+
+                <div class="column-picker-actions">
+
+                    <button
+                        type="button"
+                        class="btn-small btn-secondary"
+                        id="resetToolColumns"
+                    >
+                        Standard
+                    </button>
+
+                </div>
+
+            </div>
+
+        </details>
+
+    </div>
+
+
+    <div class="fos-table-container">
+
+        <table class="fos-table" id="tools-table">
+
+            <thead>
+
+                <tr>
+
+                    <th data-col="tool_no">
+                        Werkzeugnr.
+                    </th>
+
+                    <th data-col="external_tool_no">
+                        Externe Werkzeugnr.
+                    </th>
+
+                    <th data-col="name">
+                        Werkzeugname
+                    </th>
+
+                    <th data-col="article_no">
+                        Artikelnummer
+                    </th>
+
+                    <th data-col="article_name">
+                        Artikelname
+                    </th>
+
+                    <th data-col="location">
+                        Standort
+                    </th>
+
+                    <th data-col="status">
+                        Status
+                    </th>
+
+                    <th data-col="built_by">
+                        Hersteller
+                    </th>
+
+                    <th data-col="build_year">
+                        Baujahr
+                    </th>
+
+                    <th data-col="shot_counter">
+                        Schusszähler
+                    </th>
+
+                    <th data-col="cavities">
+                        Kavitäten
+                    </th>
+
+                    <th data-col="core_pulls">
+                        Kernzüge
+                    </th>
+
+                    <th data-col="hotrunner_zones">
+                        Heißkanal
+                    </th>
+
+                    <th data-col="weight">
+                        Gewicht
+                    </th>
+
+                    <th data-col="dimensions">
+                        Abmessungen
+                    </th>
+
+                    <th data-col="description">
+                        Beschreibung
+                    </th>
+
+                    <th data-col="actions">
+                        Aktionen
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for tool in tools %}
+
+                    <tr>
+
+                        <!-- Werkzeugnummer -->
+                        <td data-col="tool_no">
+
+                            <a
+                                href="{{ url_for('tools.detail', tool_id=tool.id) }}"
+                                class="table-main-link"
+                            >
+                                {{ tool.tool_no }}
+                            </a>
+
+                        </td>
+
+
+                        <!-- Externe Werkzeugnummer -->
+                        <td data-col="external_tool_no">
+                            {{ tool.external_tool_no or "-" }}
+                        </td>
+
+
+                        <!-- Werkzeugname -->
+                        <td data-col="name">
+                            {{ tool.name or "-" }}
+                        </td>
+
+
+                        <!-- Artikelnummer -->
+                        <td data-col="article_no">
+
+                            {% if tool.articles %}
+
+                                <div class="article-list">
+
+                                    {% for article in tool.articles %}
+
+                                        <div>
+
+                                            <a href="{{ url_for('articles.detail', article_id=article.id) }}">
+                                                {{ article.article_no }}
+                                            </a>
+
+                                        </div>
+
+                                    {% endfor %}
+
+                                </div>
+
+                            {% else %}
+
+                                <span class="empty-state">
+                                    -
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Artikelname -->
+                        <td data-col="article_name">
+
+                            {% if tool.articles %}
+
+                                <div class="article-list">
+
+                                    {% for article in tool.articles %}
+
+                                        <div>
+                                            {{ article.article_name or "-" }}
+                                        </div>
+
+                                    {% endfor %}
+
+                                </div>
+
+                            {% else %}
+
+                                <span class="empty-state">
+                                    -
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Standort -->
+                        <td data-col="location">
+                            {{ tool.location or "-" }}
+                        </td>
+
+
+                        <!-- Status -->
+                        <td data-col="status">
+
+                            <span class="status-badge {{ TOOL_STATUS_COLORS.get(tool.tool_status) }}">
+                                {{ TOOL_STATUSES.get(tool.tool_status, tool.tool_status) }}
+                            </span>
+
+                        </td>
+
+
+                        <!-- Hersteller -->
+                        <td data-col="built_by">
+                            {{ tool.built_by or "-" }}
+                        </td>
+
+
+                        <!-- Baujahr -->
+                        <td data-col="build_year">
+                            {{ tool.build_year or "-" }}
+                        </td>
+
+
+                        <!-- Schusszähler -->
+                        <td data-col="shot_counter">
+
+                            {% if tool.shot_counter is not none %}
+                                {{ "{:,}".format(tool.shot_counter).replace(",", ".") }}
+                            {% else %}
+                                -
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Kavitäten -->
+                        <td data-col="cavities">
+                            {{ tool.cavities or "-" }}
+                        </td>
+
+
+                        <!-- Kernzüge -->
+                        <td data-col="core_pulls">
+                            {{ tool.core_pulls or "-" }}
+                        </td>
+
+
+                        <!-- Heißkanalzonen -->
+                        <td data-col="hotrunner_zones">
+                            {{ tool.hotrunner_zones or "-" }}
+                        </td>
+
+
+                        <!-- Gewicht -->
+                        <td data-col="weight">
+
+                            {% if tool.tool_weight_kg %}
+                                {{ tool.tool_weight_kg }} kg
+                            {% else %}
+                                -
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Abmessungen -->
+                        <td data-col="dimensions">
+
+                            {% if tool.tool_length_mm or tool.tool_width_mm or tool.tool_height_mm %}
+
+                                {{ tool.tool_length_mm or "-" }}
+                                ×
+                                {{ tool.tool_width_mm or "-" }}
+                                ×
+                                {{ tool.tool_height_mm or "-" }}
+                                mm
+
+                            {% else %}
+
+                                -
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Beschreibung -->
+                        <td data-col="description">
+                            {{ tool.description or "-" }}
+                        </td>
+
+
+                        <!-- Aktionen -->
+                        <td data-col="actions">
+
+                            <div class="table-actions">
+
+                                <a
+                                    class="btn-small btn-edit"
+                                    href="{{ url_for('tools.edit', tool_id=tool.id) }}"
+                                >
+                                    Bearbeiten
+                                </a>
+
+                                <a
+                                    class="btn-small btn-delete"
+                                    href="{{ url_for('tools.delete', tool_id=tool.id) }}"
+                                >
+                                    Löschen
+                                </a>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <div class="fos-pagination" data-table="tools-table"></div>
+
+</div>
+
+
+<!-- ===================================== -->
+<!-- COLUMN VISIBILITY SCRIPT -->
+<!-- ===================================== -->
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const table = document.getElementById("tools-table");
+
+    if (!table) {
+        return;
+    }
+
+    const storageKey = "factoryos.tools.list.visibleColumns";
+
+    const toggles = Array.from(
+        document.querySelectorAll("[data-column-toggle]")
+    );
+
+    const resetButton = document.getElementById("resetToolColumns");
+
+    const defaultVisibleColumns = toggles
+        .filter(toggle => toggle.dataset.defaultVisible === "true")
+        .map(toggle => toggle.value);
+
+    function getSavedColumns() {
+
+        try {
+
+            const saved = JSON.parse(
+                localStorage.getItem(storageKey)
+            );
+
+            if (Array.isArray(saved) && saved.length > 0) {
+                return saved;
+            }
+
+        } catch (error) {
+            console.warn("Spalteneinstellung konnte nicht geladen werden", error);
+        }
+
+        return defaultVisibleColumns;
+
+    }
+
+
+    let visibleColumns = getSavedColumns();
+
+
+    function saveColumns() {
+
+        localStorage.setItem(
+            storageKey,
+            JSON.stringify(visibleColumns)
+        );
+
+    }
+
+
+    function applyColumnVisibility() {
+
+        toggles.forEach(toggle => {
+            toggle.checked = visibleColumns.includes(toggle.value);
+        });
+
+        table
+            .querySelectorAll("[data-col]")
+            .forEach(cell => {
+
+                const col = cell.dataset.col;
+
+                if (col === "actions") {
+                    cell.style.display = "";
+                    return;
+                }
+
+                cell.style.display = visibleColumns.includes(col)
+                    ? ""
+                    : "none";
+
+            });
+
+    }
+
+
+    toggles.forEach(toggle => {
+
+        toggle.addEventListener("change", () => {
+
+            visibleColumns = toggles
+                .filter(item => item.checked)
+                .map(item => item.value);
+
+            saveColumns();
+            applyColumnVisibility();
+
+        });
+
+    });
+
+
+    if (resetButton) {
+
+        resetButton.addEventListener("click", () => {
+
+            visibleColumns = defaultVisibleColumns;
+
+            saveColumns();
+            applyColumnVisibility();
+
+        });
+
+    }
+
+
+    applyColumnVisibility();
+
+});
+</script>
+
+{% endblock %}
