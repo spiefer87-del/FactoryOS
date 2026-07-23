@@ -80,12 +80,21 @@ def dashboard():
     return render_template(
         "tool_errors/dashboard.html",
         errors=errors,
+
+        can_create_error=has_permission(
+            current_user,
+            "tool_error.create"
+        ),
+
+        can_import_errors=has_permission(
+            current_user,
+            "tool_error.create"
+        ),
+
         can_export_excel=has_permission(
             current_user,
             "tool_error.excel_export"
-        ),
-        WORKFLOW_STATUSES=WORKFLOW_STATUSES,
-        WORKFLOW_STATUS_COLORS=WORKFLOW_STATUS_COLORS
+        )
     )
     
 
