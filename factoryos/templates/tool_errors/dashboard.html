@@ -1,1 +1,156 @@
+{% extends "layout/base.html" %}
 
+{% block content %}
+
+<!-- ===================================== -->
+<!-- HEADER -->
+<!-- ===================================== -->
+
+<div class="page-header">
+
+    <div>
+
+        <h2>
+            Tool Errors
+        </h2>
+
+        <div class="page-subtitle">
+            Fehlermeldungen erfassen, importieren, exportieren und verwalten
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ===================================== -->
+<!-- DASHBOARD -->
+<!-- ===================================== -->
+
+<div class="dashboard-grid">
+
+    <!-- ===================================== -->
+    <!-- FEHLERLISTE -->
+    <!-- ===================================== -->
+
+    <a
+        href="{{ url_for('tool_error.list_errors') }}"
+        class="dashboard-card"
+    >
+
+        <div class="card-icon">
+            📋
+        </div>
+
+        <div class="card-title">
+            Fehlerliste
+        </div>
+
+        <div class="card-desc">
+            Alle Tool Errors anzeigen
+        </div>
+
+    </a>
+
+
+    <!-- ===================================== -->
+    <!-- FEHLER MELDEN -->
+    <!-- ===================================== -->
+
+    {% if can_create_error|default(false) %}
+
+        <a
+            href="{{ url_for('tool_error.create') }}"
+            class="dashboard-card"
+        >
+
+            <div class="card-icon">
+                ➕
+            </div>
+
+            <div class="card-title">
+                Fehler melden
+            </div>
+
+            <div class="card-desc">
+                Neue Fehlermeldung erfassen
+            </div>
+
+        </a>
+
+    {% endif %}
+
+
+    <!-- ===================================== -->
+    <!-- EXCEL IMPORT -->
+    <!-- ===================================== -->
+
+    {% if can_import_errors|default(false) %}
+
+        <a
+            href="{{ url_for('tool_error.import_errors') }}"
+            class="dashboard-card"
+        >
+
+            <div class="card-icon">
+                📥
+            </div>
+
+            <div class="card-title">
+                Excel Import
+            </div>
+
+            <div class="card-desc">
+                Tool Errors aus Excel importieren
+            </div>
+
+        </a>
+
+    {% endif %}
+
+
+    <!-- ===================================== -->
+    <!-- EXCEL EXPORT -->
+    <!-- ===================================== -->
+
+    {% if can_export_excel|default(false) %}
+
+        <div class="dashboard-card dashboard-card-static">
+
+            <div class="card-icon">
+                📤
+            </div>
+
+            <div class="card-title">
+                Excel Export
+            </div>
+
+            <div class="card-desc">
+                Tool Errors als Excel-Datei exportieren
+            </div>
+
+            <div class="dashboard-card-actions">
+
+                <a
+                    href="{{ url_for('tool_error.export_errors_excel') }}"
+                    class="btn-small btn-primary"
+                >
+                    Aktuelle exportieren
+                </a>
+
+                <a
+                    href="{{ url_for('tool_error.export_errors_excel', history=1) }}"
+                    class="btn-small btn-secondary"
+                >
+                    Mit Historie
+                </a>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
