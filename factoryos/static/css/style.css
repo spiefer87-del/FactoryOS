@@ -268,7 +268,24 @@ color:#777;
 margin-top:6px;
 }
 
+/* =====================================
+   DASHBOARD CARD ACTIONS
+===================================== */
 
+.dashboard-card-static {
+    cursor: default;
+}
+
+.dashboard-card-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+}
+
+.dashboard-card-actions a {
+    text-decoration: none;
+}
 
 /* ------------------------------------------------ */
 /* LOGIN PAGE */
