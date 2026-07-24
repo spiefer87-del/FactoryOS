@@ -89,24 +89,28 @@
     </a>
 
 
-    <a
-        href="{{ url_for('tools.import_tools') }}"
-        class="dashboard-card"
-    >
+    {% if can_import_tools_excel|default(false) %}
 
-        <div class="card-icon">
-            📥
-        </div>
-
-        <div class="card-title">
-            Excel Import
-        </div>
-
-        <div class="card-desc">
-            Werkzeuge aus Excel importieren
-        </div>
-
-    </a>
+        <a
+            href="{{ url_for('tools.import_tools') }}"
+            class="dashboard-card"
+        >
+    
+            <div class="card-icon">
+                📥
+            </div>
+    
+            <div class="card-title">
+                Excel Import
+            </div>
+    
+            <div class="card-desc">
+                Werkzeuge aus Excel importieren
+            </div>
+    
+        </a>
+    
+    {% endif %}
 
 
     {% if can_export_tools_excel|default(false) %}
