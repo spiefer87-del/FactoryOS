@@ -14,7 +14,7 @@ from ..services.tool_export_service import (
 
 @bp.route("/export/excel")
 @login_required
-@permission_required("tools.tools.excel_export")
+@permission_required("tools.excel_export")
 def export_tools_excel():
 
     output = export_tools_to_excel()
