@@ -13,6 +13,11 @@ def dashboard():
     return render_template(
         "masterdata/tools/dashboard.html",
 
+        can_import_tools_excel=has_permission(
+            current_user,
+            "tools.excel_import"
+        ),
+
         can_export_tools_excel=has_permission(
             current_user,
             "tools.excel_export"
