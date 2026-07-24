@@ -15,6 +15,6 @@ def dashboard():
 
         can_export_tools_excel=has_permission(
             current_user,
-            "masterdata.tools.excel_export"
+            "tools.excel_export"
         )
     )
