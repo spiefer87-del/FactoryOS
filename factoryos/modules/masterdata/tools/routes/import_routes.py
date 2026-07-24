@@ -11,6 +11,7 @@ from flask import (
 
 from flask_login import login_required
 from openpyxl import Workbook
+from factoryos.core.auth import permission_required
 
 from . import bp
 
@@ -22,9 +23,9 @@ from ..services.tool_import_service import (
 # =====================================================
 # IMPORT
 # =====================================================
-
 @bp.route("/import", methods=["GET", "POST"])
 @login_required
+@permission_required("tools.excel_import")
 def import_tools():
 
     if request.method == "POST":
@@ -75,6 +76,7 @@ def import_tools():
 
 @bp.route("/import/template")
 @login_required
+@permission_required("tools.excel_import")
 def download_import_template():
 
     wb = Workbook()
