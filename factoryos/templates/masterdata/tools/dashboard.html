@@ -1,1 +1,137 @@
+{% extends "layout/base.html" %}
 
+{% block content %}
+
+<!-- ===================================== -->
+<!-- HEADER -->
+<!-- ===================================== -->
+
+<div class="page-header">
+
+    <div>
+
+        <h2>
+            Werkzeuge
+        </h2>
+
+        <div class="page-subtitle">
+            Werkzeug-Stammdaten verwalten, importieren und exportieren
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ===================================== -->
+<!-- DASHBOARD -->
+<!-- ===================================== -->
+
+<div class="dashboard-grid">
+
+    <a
+        href="{{ url_for('tools.list_tools') }}"
+        class="dashboard-card"
+    >
+
+        <div class="card-icon">
+            🛠
+        </div>
+
+        <div class="card-title">
+            Werkzeugliste
+        </div>
+
+        <div class="card-desc">
+            Alle Werkzeuge anzeigen
+        </div>
+
+    </a>
+
+
+    <a
+        href="{{ url_for('tools.create') }}"
+        class="dashboard-card"
+    >
+
+        <div class="card-icon">
+            ➕
+        </div>
+
+        <div class="card-title">
+            Werkzeug anlegen
+        </div>
+
+        <div class="card-desc">
+            Neues Werkzeug erstellen
+        </div>
+
+    </a>
+
+
+    <a
+        href="{{ url_for('tools.list_tools') }}"
+        class="dashboard-card"
+    >
+
+        <div class="card-icon">
+            ✏️
+        </div>
+
+        <div class="card-title">
+            Werkzeug bearbeiten
+        </div>
+
+        <div class="card-desc">
+            Werkzeug auswählen und bearbeiten
+        </div>
+
+    </a>
+
+
+    <a
+        href="{{ url_for('tools.import_tools') }}"
+        class="dashboard-card"
+    >
+
+        <div class="card-icon">
+            📥
+        </div>
+
+        <div class="card-title">
+            Excel Import
+        </div>
+
+        <div class="card-desc">
+            Werkzeuge aus Excel importieren
+        </div>
+
+    </a>
+
+
+    {% if can_export_tools_excel|default(false) %}
+
+        <a
+            href="{{ url_for('tools.export_tools_excel') }}"
+            class="dashboard-card"
+        >
+
+            <div class="card-icon">
+                📤
+            </div>
+
+            <div class="card-title">
+                Excel Export
+            </div>
+
+            <div class="card-desc">
+                Werkzeug-Stammdaten als Excel exportieren
+            </div>
+
+        </a>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
