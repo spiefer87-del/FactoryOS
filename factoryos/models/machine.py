@@ -1,14 +1,16 @@
-from factoryos.extensions import db
+"""
+Kompatibilitätsimport für ältere FactoryOS-Module.
 
+Das zentrale Maschinenmodell befindet sich jetzt unter:
+factoryos.modules.masterdata.machines.models
+"""
 
-class Machine(db.Model):
+from factoryos.modules.masterdata.machines.models import (
+    Machine,
+    InjectionMoldingData,
+)
 
-    __tablename__ = "machines"
-
-    id = db.Column(db.Integer, primary_key=True)
-
-    name = db.Column(db.String(120), unique=True)
-
-    location = db.Column(db.String(120))
-
-    active = db.Column(db.Boolean, default=True)
+__all__ = [
+    "Machine",
+    "InjectionMoldingData",
+]
