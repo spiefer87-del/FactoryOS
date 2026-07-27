@@ -1,1 +1,197 @@
+{% extends "layout/base.html" %}
 
+{% block content %}
+
+<div class="page-header">
+
+    <div>
+
+        <h2>Maschinenliste</h2>
+
+        <div class="page-subtitle">
+            Maschinenstammdaten und technische Daten
+        </div>
+
+    </div>
+
+    <div class="page-actions">
+
+        {% if can_create_machine|default(false) %}
+
+            <a
+                href="{{ url_for('machines.create') }}"
+                class="btn-primary"
+            >
+                Maschine anlegen
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<div class="fos-table-wrapper">
+
+    <div class="fos-table-toolbar">
+
+        <input
+            type="text"
+            class="fos-search"
+            placeholder="Maschinen suchen..."
+            data-table-search="machines-table"
+        >
+
+    </div>
+
+
+    <div class="fos-table-container">
+
+        <table
+            class="fos-table"
+            id="machines-table"
+        >
+
+            <thead>
+
+                <tr>
+                    <th>Maschinennr.</th>
+                    <th>Externe Nr.</th>
+                    <th>Name</th>
+                    <th>Maschinentyp</th>
+                    <th>Hersteller</th>
+                    <th>Modell</th>
+                    <th>Schließkraft</th>
+                    <th>Standort</th>
+                    <th>Status</th>
+                    <th>Aktionen</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for machine in machines %}
+
+                    {% set injection = machine.injection_molding_data %}
+
+                    <tr>
+
+                        <td>
+
+                            <a
+                                href="{{ url_for('machines.detail', machine_id=machine.id) }}"
+                                class="table-main-link"
+                            >
+                                {{ machine.machine_no }}
+                            </a>
+
+                        </td>
+
+                        <td>
+                            {{ machine.external_machine_no or "-" }}
+                        </td>
+
+                        <td>
+                            {{ machine.name or "-" }}
+                        </td>
+
+                        <td>
+                            {{ MACHINE_TYPES.get(machine.machine_type, machine.machine_type) }}
+                        </td>
+
+                        <td>
+                            {{ machine.manufacturer or "-" }}
+                        </td>
+
+                        <td>
+                            {{ machine.model or "-" }}
+                        </td>
+
+                        <td>
+
+                            {% if injection and injection.clamping_force_kn is not none %}
+                                {{ injection.clamping_force_kn }} kN
+                            {% else %}
+                                -
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+                            {{ machine.location or "-" }}
+                        </td>
+
+                        <td>
+
+                            <span class="status-badge {{ MACHINE_STATUS_COLORS.get(machine.machine_status, '') }}">
+                                {{ MACHINE_STATUSES.get(machine.machine_status, machine.machine_status) }}
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            <div class="table-actions">
+
+                                <a
+                                    class="btn-small btn-edit"
+                                    href="{{ url_for('machines.detail', machine_id=machine.id) }}"
+                                >
+                                    Details
+                                </a>
+
+                                {% if can_edit_machines|default(false) %}
+
+                                    <a
+                                        class="btn-small btn-edit"
+                                        href="{{ url_for('machines.edit', machine_id=machine.id) }}"
+                                    >
+                                        Bearbeiten
+                                    </a>
+
+                                {% endif %}
+
+                                {% if can_delete_machines|default(false) %}
+
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for('machines.delete', machine_id=machine.id) }}"
+                                        style="display:inline;"
+                                        onsubmit="return confirm('Maschine wirklich löschen?');"
+                                    >
+
+                                        <button
+                                            type="submit"
+                                            class="btn-small btn-delete"
+                                        >
+                                            Löschen
+                                        </button>
+
+                                    </form>
+
+                                {% endif %}
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <div
+        class="fos-pagination"
+        data-table="machines-table"
+    ></div>
+
+</div>
+
+{% endblock %}
