@@ -1,4 +1,5 @@
 from datetime import datetime
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from factoryos.extensions import db
 
@@ -100,7 +101,25 @@ class Machine(db.Model):
         nullable=False,
         default="aktiv"
     )
+    # =====================================================
+    # KOMPATIBILITÄT ZUM ALTEN MASCHINENMODELL
+    # =====================================================
 
+    @hybrid_property
+    def active(self):
+        return self.machine_status == "aktiv"
+
+    @active.setter
+    def active(self, value):
+        self.machine_status = (
+            "aktiv"
+            if value
+            else "stillgelegt"
+        )
+
+    @active.expression
+    def active(cls):
+        return cls.machine_status == "aktiv"
     # =====================================================
     # SYSTEM
     # =====================================================
