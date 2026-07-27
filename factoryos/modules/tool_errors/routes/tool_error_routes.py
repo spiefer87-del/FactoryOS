@@ -88,7 +88,7 @@ def dashboard():
 
         can_import_errors=has_permission(
             current_user,
-            "tool_error.create"
+            "tool_error.excel_import"
         ),
 
         can_export_excel=has_permission(
