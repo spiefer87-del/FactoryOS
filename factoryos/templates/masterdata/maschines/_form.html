@@ -1,0 +1,385 @@
+{% set m = machine if machine is defined else none %}
+{% set injection = m.injection_molding_data if m and m.injection_molding_data else none %}
+
+<div class="form-grid">
+
+    <div class="form-group full">
+        <h3 class="section-title">Identifikation</h3>
+    </div>
+
+    <div class="form-group">
+        <label>Maschinennummer *</label>
+        <input
+            type="text"
+            name="machine_no"
+            value="{{ m.machine_no if m else '' }}"
+            required
+        >
+    </div>
+
+    <div class="form-group">
+        <label>Externe Maschinennummer</label>
+        <input
+            type="text"
+            name="external_machine_no"
+            value="{{ m.external_machine_no if m and m.external_machine_no else '' }}"
+        >
+    </div>
+
+    <div class="form-group">
+        <label>Maschinenname</label>
+        <input
+            type="text"
+            name="name"
+            value="{{ m.name if m and m.name else '' }}"
+        >
+    </div>
+
+    <div class="form-group">
+        <label>Maschinentyp *</label>
+
+        <select
+            name="machine_type"
+            id="machine_type"
+            required
+        >
+
+            {% for key, label in MACHINE_TYPES.items() %}
+
+                <option
+                    value="{{ key }}"
+                    {% if (m and m.machine_type == key) or (not m and key == "injection_molding") %}
+                        selected
+                    {% endif %}
+                >
+                    {{ label }}
+                </option>
+
+            {% endfor %}
+
+        </select>
+    </div>
+
+    <div class="form-group full">
+        <label>Beschreibung</label>
+
+        <textarea name="description">{{ m.description if m and m.description else '' }}</textarea>
+    </div>
+
+
+    <div class="form-group full">
+        <h3 class="section-title">Herstellerdaten</h3>
+    </div>
+
+    <div class="form-group">
+        <label>Hersteller</label>
+        <input
+            type="text"
+            name="manufacturer"
+            value="{{ m.manufacturer if m and m.manufacturer else '' }}"
+        >
+    </div>
+
+    <div class="form-group">
+        <label>Modell / Typ</label>
+        <input
+            type="text"
+            name="model"
+            value="{{ m.model if m and m.model else '' }}"
+        >
+    </div>
+
+    <div class="form-group">
+        <label>Seriennummer</label>
+        <input
+            type="text"
+            name="serial_no"
+            value="{{ m.serial_no if m and m.serial_no else '' }}"
+        >
+    </div>
+
+    <div class="form-group">
+        <label>Baujahr</label>
+        <input
+            type="number"
+            name="build_year"
+            min="1900"
+            max="2200"
+            value="{{ m.build_year if m and m.build_year else '' }}"
+        >
+    </div>
+
+
+    <div class="form-group full">
+        <h3 class="section-title">Steuerung und Automation</h3>
+    </div>
+
+    <div class="form-group">
+        <label>Steuerung</label>
+        <input
+            type="text"
+            name="controller_type"
+            value="{{ m.controller_type if m and m.controller_type else '' }}"
+        >
+    </div>
+
+    <div class="form-group">
+        <label>Automation / Roboter</label>
+        <input
+            type="text"
+            name="automation_type"
+            value="{{ m.automation_type if m and m.automation_type else '' }}"
+        >
+    </div>
+
+
+    <div class="form-group full">
+        <h3 class="section-title">Organisation und Wartung</h3>
+    </div>
+
+    <div class="form-group">
+        <label>Standort</label>
+        <input
+            type="text"
+            name="location"
+            value="{{ m.location if m and m.location else '' }}"
+        >
+    </div>
+
+    <div class="form-group">
+        <label>Status</label>
+
+        <select name="machine_status">
+
+            {% for key, label in MACHINE_STATUSES.items() %}
+
+                <option
+                    value="{{ key }}"
+                    {% if (m and m.machine_status == key) or (not m and key == "aktiv") %}
+                        selected
+                    {% endif %}
+                >
+                    {{ label }}
+                </option>
+
+            {% endfor %}
+
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Betriebsstunden</label>
+        <input
+            type="number"
+            name="operating_hours"
+            min="0"
+            value="{{ m.operating_hours if m and m.operating_hours is not none else '' }}"
+        >
+    </div>
+
+    <div class="form-group">
+        <label>Letzte Wartung</label>
+        <input
+            type="date"
+            name="last_service_at"
+            value="{{ m.last_service_at.strftime('%Y-%m-%d') if m and m.last_service_at else '' }}"
+        >
+    </div>
+
+    <div class="form-group">
+        <label>Nächste Wartung</label>
+        <input
+            type="date"
+            name="next_service_at"
+            value="{{ m.next_service_at.strftime('%Y-%m-%d') if m and m.next_service_at else '' }}"
+        >
+    </div>
+
+
+    <div
+        id="injection-molding-fields"
+        class="form-group full"
+    >
+
+        <div class="form-grid">
+
+            <div class="form-group full">
+                <h3 class="section-title">Spritzgießdaten</h3>
+            </div>
+
+            <div class="form-group">
+                <label>Schließkraft (kN)</label>
+                <input
+                    type="number"
+                    step="0.01"
+                    name="clamping_force_kn"
+                    value="{{ injection.clamping_force_kn if injection and injection.clamping_force_kn is not none else '' }}"
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Schneckendurchmesser (mm)</label>
+                <input
+                    type="number"
+                    step="0.01"
+                    name="screw_diameter_mm"
+                    value="{{ injection.screw_diameter_mm if injection and injection.screw_diameter_mm is not none else '' }}"
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Max. Schussgewicht (g)</label>
+                <input
+                    type="number"
+                    step="0.01"
+                    name="max_shot_weight_g"
+                    value="{{ injection.max_shot_weight_g if injection and injection.max_shot_weight_g is not none else '' }}"
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Max. Einspritzdruck (bar)</label>
+                <input
+                    type="number"
+                    step="0.01"
+                    name="max_injection_pressure_bar"
+                    value="{{ injection.max_injection_pressure_bar if injection and injection.max_injection_pressure_bar is not none else '' }}"
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Holmabstand Breite (mm)</label>
+                <input
+                    type="number"
+                    step="0.01"
+                    name="tie_bar_width_mm"
+                    value="{{ injection.tie_bar_width_mm if injection and injection.tie_bar_width_mm is not none else '' }}"
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Holmabstand Höhe (mm)</label>
+                <input
+                    type="number"
+                    step="0.01"
+                    name="tie_bar_height_mm"
+                    value="{{ injection.tie_bar_height_mm if injection and injection.tie_bar_height_mm is not none else '' }}"
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Min. Werkzeughöhe (mm)</label>
+                <input
+                    type="number"
+                    step="0.01"
+                    name="min_mold_height_mm"
+                    value="{{ injection.min_mold_height_mm if injection and injection.min_mold_height_mm is not none else '' }}"
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Max. Werkzeughöhe (mm)</label>
+                <input
+                    type="number"
+                    step="0.01"
+                    name="max_mold_height_mm"
+                    value="{{ injection.max_mold_height_mm if injection and injection.max_mold_height_mm is not none else '' }}"
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Öffnungsweg (mm)</label>
+                <input
+                    type="number"
+                    step="0.01"
+                    name="opening_stroke_mm"
+                    value="{{ injection.opening_stroke_mm if injection and injection.opening_stroke_mm is not none else '' }}"
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Auswerferweg (mm)</label>
+                <input
+                    type="number"
+                    step="0.01"
+                    name="ejector_stroke_mm"
+                    value="{{ injection.ejector_stroke_mm if injection and injection.ejector_stroke_mm is not none else '' }}"
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Max. Werkzeuggewicht (kg)</label>
+                <input
+                    type="number"
+                    step="0.01"
+                    name="max_tool_weight_kg"
+                    value="{{ injection.max_tool_weight_kg if injection and injection.max_tool_weight_kg is not none else '' }}"
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Heizzonen</label>
+                <input
+                    type="number"
+                    min="0"
+                    name="heating_zones"
+                    value="{{ injection.heating_zones if injection and injection.heating_zones is not none else '' }}"
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Düsenradius (mm)</label>
+                <input
+                    type="number"
+                    step="0.01"
+                    name="nozzle_radius_mm"
+                    value="{{ injection.nozzle_radius_mm if injection and injection.nozzle_radius_mm is not none else '' }}"
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Düsendurchmesser (mm)</label>
+                <input
+                    type="number"
+                    step="0.01"
+                    name="nozzle_diameter_mm"
+                    value="{{ injection.nozzle_diameter_mm if injection and injection.nozzle_diameter_mm is not none else '' }}"
+                >
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const machineType = document.getElementById("machine_type");
+    const injectionFields = document.getElementById(
+        "injection-molding-fields"
+    );
+
+    function updateMachineTypeFields() {
+
+        if (
+            machineType.value === "injection_molding"
+        ) {
+            injectionFields.classList.remove("hidden");
+        } else {
+            injectionFields.classList.add("hidden");
+        }
+
+    }
+
+    machineType.addEventListener(
+        "change",
+        updateMachineTypeFields
+    );
+
+    updateMachineTypeFields();
+
+});
+                  </script>
