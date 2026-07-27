@@ -1,1 +1,85 @@
+{% extends "layout/base.html" %}
 
+{% block content %}
+
+<div class="page-header">
+
+    <div>
+
+        <h2>Maschinen</h2>
+
+        <div class="page-subtitle">
+            Maschinenstammdaten verwalten
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="dashboard-grid">
+
+    <a
+        href="{{ url_for('machines.list_machines') }}"
+        class="dashboard-card"
+    >
+
+        <div class="card-icon">🏭</div>
+
+        <div class="card-title">
+            Maschinenliste
+        </div>
+
+        <div class="card-desc">
+            Alle Maschinen anzeigen
+        </div>
+
+    </a>
+
+
+    {% if can_create_machine|default(false) %}
+
+        <a
+            href="{{ url_for('machines.create') }}"
+            class="dashboard-card"
+        >
+
+            <div class="card-icon">➕</div>
+
+            <div class="card-title">
+                Maschine anlegen
+            </div>
+
+            <div class="card-desc">
+                Neue Maschine erstellen
+            </div>
+
+        </a>
+
+    {% endif %}
+
+
+    {% if can_edit_machines|default(false) %}
+
+        <a
+            href="{{ url_for('machines.list_machines') }}"
+            class="dashboard-card"
+        >
+
+            <div class="card-icon">✏️</div>
+
+            <div class="card-title">
+                Maschine bearbeiten
+            </div>
+
+            <div class="card-desc">
+                Maschine auswählen und bearbeiten
+            </div>
+
+        </a>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
