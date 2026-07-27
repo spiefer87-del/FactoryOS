@@ -1,0 +1,323 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+{% set injection = machine.injection_molding_data %}
+
+<div class="page-header">
+
+    <div>
+
+        <h2>{{ machine.machine_no }}</h2>
+
+        <div class="page-subtitle">
+            {{ machine.name or "-" }}
+        </div>
+
+    </div>
+
+    <div class="page-actions">
+
+        {% if can_edit_machine|default(false) %}
+
+            <a
+                class="btn-small btn-edit"
+                href="{{ url_for('machines.edit', machine_id=machine.id) }}"
+            >
+                ✏ Bearbeiten
+            </a>
+
+        {% endif %}
+
+        {% if can_delete_machine|default(false) %}
+
+            <form
+                method="POST"
+                action="{{ url_for('machines.delete', machine_id=machine.id) }}"
+                style="display:inline;"
+                onsubmit="return confirm('Maschine wirklich löschen?');"
+            >
+
+                <button
+                    type="submit"
+                    class="btn-small btn-delete"
+                >
+                    🗑 Löschen
+                </button>
+
+            </form>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<div class="detail-card">
+
+    <h3 class="section-title">
+        Basisdaten
+    </h3>
+
+    <div class="detail-grid">
+
+        <div class="detail-item">
+            <label>Maschinennummer</label>
+            <div>{{ machine.machine_no }}</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Externe Nummer</label>
+            <div>{{ machine.external_machine_no or "-" }}</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Name</label>
+            <div>{{ machine.name or "-" }}</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Maschinentyp</label>
+            <div>
+                {{ MACHINE_TYPES.get(machine.machine_type, machine.machine_type) }}
+            </div>
+        </div>
+
+        <div class="detail-item">
+            <label>Status</label>
+
+            <span class="status-badge {{ MACHINE_STATUS_COLORS.get(machine.machine_status, '') }}">
+                {{ MACHINE_STATUSES.get(machine.machine_status, machine.machine_status) }}
+            </span>
+        </div>
+
+        <div class="detail-item">
+            <label>Standort</label>
+            <div>{{ machine.location or "-" }}</div>
+        </div>
+
+        <div class="detail-item full">
+            <label>Beschreibung</label>
+            <div>{{ machine.description or "-" }}</div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="detail-card">
+
+    <h3 class="section-title">
+        Herstellerdaten
+    </h3>
+
+    <div class="detail-grid">
+
+        <div class="detail-item">
+            <label>Hersteller</label>
+            <div>{{ machine.manufacturer or "-" }}</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Modell / Typ</label>
+            <div>{{ machine.model or "-" }}</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Seriennummer</label>
+            <div>{{ machine.serial_no or "-" }}</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Baujahr</label>
+            <div>{{ machine.build_year or "-" }}</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Steuerung</label>
+            <div>{{ machine.controller_type or "-" }}</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Automation</label>
+            <div>{{ machine.automation_type or "-" }}</div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="detail-card">
+
+    <h3 class="section-title">
+        Betrieb und Wartung
+    </h3>
+
+    <div class="detail-grid">
+
+        <div class="detail-item">
+            <label>Betriebsstunden</label>
+            <div>{{ machine.operating_hours or "-" }}</div>
+        </div>
+
+        <div class="detail-item">
+            <label>Letzte Wartung</label>
+            <div>
+                {{ machine.last_service_at.strftime("%d.%m.%Y") if machine.last_service_at else "-" }}
+            </div>
+        </div>
+
+        <div class="detail-item">
+            <label>Nächste Wartung</label>
+            <div>
+                {{ machine.next_service_at.strftime("%d.%m.%Y") if machine.next_service_at else "-" }}
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+{% if machine.machine_type == "injection_molding" %}
+
+    <div class="detail-card">
+
+        <h3 class="section-title">
+            Spritzgießdaten
+        </h3>
+
+        {% if injection %}
+
+            <div class="detail-grid">
+
+                <div class="detail-item">
+                    <label>Schließkraft</label>
+                    <div>{{ injection.clamping_force_kn or "-" }} kN</div>
+                </div>
+
+                <div class="detail-item">
+                    <label>Schneckendurchmesser</label>
+                    <div>{{ injection.screw_diameter_mm or "-" }} mm</div>
+                </div>
+
+                <div class="detail-item">
+                    <label>Max. Schussgewicht</label>
+                    <div>{{ injection.max_shot_weight_g or "-" }} g</div>
+                </div>
+
+                <div class="detail-item">
+                    <label>Max. Einspritzdruck</label>
+                    <div>{{ injection.max_injection_pressure_bar or "-" }} bar</div>
+                </div>
+
+                <div class="detail-item">
+                    <label>Holmabstand</label>
+                    <div>
+                        {{ injection.tie_bar_width_mm or "-" }}
+                        ×
+                        {{ injection.tie_bar_height_mm or "-" }}
+                        mm
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <label>Werkzeughöhe</label>
+                    <div>
+                        {{ injection.min_mold_height_mm or "-" }}
+                        bis
+                        {{ injection.max_mold_height_mm or "-" }}
+                        mm
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <label>Öffnungsweg</label>
+                    <div>{{ injection.opening_stroke_mm or "-" }} mm</div>
+                </div>
+
+                <div class="detail-item">
+                    <label>Auswerferweg</label>
+                    <div>{{ injection.ejector_stroke_mm or "-" }} mm</div>
+                </div>
+
+                <div class="detail-item">
+                    <label>Max. Werkzeuggewicht</label>
+                    <div>{{ injection.max_tool_weight_kg or "-" }} kg</div>
+                </div>
+
+                <div class="detail-item">
+                    <label>Heizzonen</label>
+                    <div>{{ injection.heating_zones or "-" }}</div>
+                </div>
+
+                <div class="detail-item">
+                    <label>Düsenradius</label>
+                    <div>{{ injection.nozzle_radius_mm or "-" }} mm</div>
+                </div>
+
+                <div class="detail-item">
+                    <label>Düsendurchmesser</label>
+                    <div>{{ injection.nozzle_diameter_mm or "-" }} mm</div>
+                </div>
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-state">
+                Keine Spritzgießdaten hinterlegt
+            </div>
+
+        {% endif %}
+
+    </div>
+
+{% endif %}
+
+
+<div class="detail-card">
+
+    <h3 class="section-title">
+        Systeminformationen
+    </h3>
+
+    <div class="detail-grid">
+
+        <div class="detail-item">
+            <label>Erstellt am</label>
+            <div>
+                {{ machine.created_at.strftime("%d.%m.%Y %H:%M") if machine.created_at else "-" }}
+            </div>
+        </div>
+
+        <div class="detail-item">
+            <label>Erstellt von</label>
+            <div>
+                {{ machine.created_by.username if machine.created_by else "-" }}
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+{% include "components/changelog.html" %}
+
+
+<div class="detail-footer">
+
+    <a
+        href="{{ url_for('machines.list_machines') }}"
+        class="btn-secondary"
+    >
+        ← Zurück zur Liste
+    </a>
+
+</div>
+
+{% endblock %}
