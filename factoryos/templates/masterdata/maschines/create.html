@@ -1,0 +1,37 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<h2 style="margin-bottom:25px;">
+    Maschine anlegen
+</h2>
+
+<div class="form-card">
+
+    <form method="POST">
+
+        {% include "masterdata/machines/_form.html" %}
+
+        <div class="form-actions">
+
+            <button
+                type="submit"
+                class="btn-primary"
+            >
+                Maschine anlegen
+            </button>
+
+            <a
+                href="{{ url_for('machines.dashboard') }}"
+                class="btn-secondary"
+            >
+                Abbrechen
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}
