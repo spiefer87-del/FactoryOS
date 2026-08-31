@@ -114,7 +114,7 @@ def _machine_data_from_form(data):
         elif field in DATE_FIELDS:
             value = _to_datetime(value)
 
-        result[field] = value or None
+        result[field] = None if value == "" else value
 
     result["machine_type"] = (
         result.get("machine_type")
