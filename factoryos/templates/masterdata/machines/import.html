@@ -1,0 +1,45 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2>Maschinen importieren</h2>
+        <div class="page-subtitle">Maschinenstammdaten aus Excel importieren</div>
+    </div>
+    <div class="page-actions">
+        <a href="{{ url_for('machines.download_import_template') }}" class="btn-secondary">
+            📄 Vorlage herunterladen
+        </a>
+    </div>
+</div>
+
+<div class="form-card">
+    <form method="POST" enctype="multipart/form-data">
+        <div class="form-group full">
+            <label>Excel-Datei</label>
+            <input type="file" name="file" accept=".xlsx" required>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">📥 Import starten</button>
+            <a href="{{ url_for('machines.dashboard') }}" class="btn-secondary">Abbrechen</a>
+        </div>
+    </form>
+</div>
+
+<div class="detail-card">
+    <h3 class="section-title">Hinweise</h3>
+    <div class="detail-grid">
+        <div class="detail-item full">
+            <div>Existiert eine Maschinennummer bereits, werden die vorhandenen Stammdaten aktualisiert.</div>
+        </div>
+        <div class="detail-item full">
+            <div>Neue Maschinennummern werden automatisch als neue Maschinen angelegt.</div>
+        </div>
+        <div class="detail-item full">
+            <div>Für Spritzgießmaschinen kann als Maschinentyp <strong>injection_molding</strong> oder <strong>Spritzgießmaschine</strong> verwendet werden.</div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

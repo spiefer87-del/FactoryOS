@@ -1,0 +1,48 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2>Maschinen Import Ergebnis</h2>
+        <div class="page-subtitle">Ergebnis des Excel-Imports</div>
+    </div>
+</div>
+
+<div class="detail-card">
+    <h3 class="section-title">Zusammenfassung</h3>
+    <div class="detail-grid">
+        <div class="detail-item"><label>Neu angelegt</label><div>{{ created }}</div></div>
+        <div class="detail-item"><label>Aktualisiert</label><div>{{ updated }}</div></div>
+        <div class="detail-item"><label>Fehler</label><div>{{ errors|length }}</div></div>
+    </div>
+</div>
+
+{% if errors %}
+<div class="detail-card">
+    <h3 class="section-title">Nicht importierte Datensätze</h3>
+    <div class="fos-table-container">
+        <table class="fos-table">
+            <thead><tr><th>Zeile</th><th>Maschine</th><th>Grund</th></tr></thead>
+            <tbody>
+            {% for error in errors %}
+                <tr>
+                    <td>{{ error.row }}</td>
+                    <td>{{ error.machine_no or "-" }}</td>
+                    <td>{{ error.reason }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="detail-card"><div class="empty-state">✅ Alle Datensätze wurden erfolgreich importiert.</div></div>
+{% endif %}
+
+<div class="detail-footer">
+    <a href="{{ url_for('machines.import_machines') }}" class="btn-secondary">Neuer Import</a>
+    <a href="{{ url_for('machines.list_machines') }}" class="btn-primary">Zur Maschinenliste</a>
+</div>
+
+{% endblock %}

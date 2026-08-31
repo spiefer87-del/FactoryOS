@@ -91,7 +91,10 @@
 
     {% if can_import_machines|default(false) %}
 
-        <div class="dashboard-card dashboard-card-disabled">
+        <a
+            href="{{ url_for('machines.import_machines') }}"
+            class="dashboard-card"
+        >
 
             <div class="card-icon">
                 📥
@@ -102,10 +105,10 @@
             </div>
 
             <div class="card-desc">
-                Wird im nächsten Schritt ergänzt
+                Maschinen aus Excel importieren
             </div>
 
-        </div>
+        </a>
 
     {% endif %}
 
