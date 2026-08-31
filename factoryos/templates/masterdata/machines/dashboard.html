@@ -115,7 +115,10 @@
 
     {% if can_export_machines|default(false) %}
 
-        <div class="dashboard-card dashboard-card-disabled">
+        <a
+            href="{{ url_for('machines.export_machines_excel') }}"
+            class="dashboard-card"
+        >
 
             <div class="card-icon">
                 📤
@@ -126,10 +129,10 @@
             </div>
 
             <div class="card-desc">
-                Wird im nächsten Schritt ergänzt
+                Maschinen als Excel exportieren
             </div>
 
-        </div>
+        </a>
 
     {% endif %}
 
