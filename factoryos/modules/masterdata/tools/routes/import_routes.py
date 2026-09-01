@@ -11,12 +11,14 @@ from flask import (
 
 from flask_login import login_required
 from openpyxl import Workbook
+from openpyxl.styles import Font
 from factoryos.core.auth import permission_required
 
 from . import bp
 
 from ..services.tool_import_service import (
-    import_tools_from_excel
+    EXPECTED_HEADERS,
+    import_tools_from_excel,
 )
 
 
@@ -32,10 +34,21 @@ def import_tools():
 
         file = request.files.get("file")
 
-        if not file:
+        if not file or not file.filename:
 
             flash(
                 "Keine Datei ausgewählt.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("tools.import_tools")
+            )
+
+        if not file.filename.lower().endswith(".xlsx"):
+
+            flash(
+                "Bitte eine XLSX-Datei auswählen.",
                 "danger"
             )
 
@@ -84,38 +97,10 @@ def download_import_template():
     ws = wb.active
     ws.title = "Werkzeuge"
 
-    headers = [
+    ws.append(EXPECTED_HEADERS)
 
-        "tool_no",
-        "external_tool_no",
-        "name",
-        "description",
-
-        "built_by",
-        "build_year",
-
-        "location",
-        "tool_status",
-
-        "cavities",
-        "core_pulls",
-        "hotrunner_zones",
-
-        "tool_weight_kg",
-        "tool_length_mm",
-        "tool_width_mm",
-        "tool_height_mm",
-
-        "centering_nozzle_side",
-        "centering_ejector_side",
-
-        "ejector_connection",
-        "demolding_type",
-
-        "automation_type"
-    ]
-
-    ws.append(headers)
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
 
     # ==========================================
     # BEISPIELDATENSATZ
@@ -131,8 +116,11 @@ def download_import_template():
         "Muster Werkzeugbau",
         2024,
 
+        125000,
+        "01.06.2026",
+
         "Regal A1",
-        "Aktiv",
+        "aktiv",
 
         8,
         2,
@@ -149,8 +137,13 @@ def download_import_template():
         "Hydraulisch",
         "Auswerfer",
 
-        "Linearroboter"
+        "Linearroboter",
+        "Ja"
     ])
+
+    for column in ws.columns:
+        letter = column[0].column_letter
+        ws.column_dimensions[letter].width = 22
 
     output = BytesIO()
 
