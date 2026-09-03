@@ -444,6 +444,17 @@
 
         </div>
 
+
+        <div class="detail-item full">
+
+            <label>Archivordner</label>
+
+            <div>
+                <code>{{ storage_path }}</code>
+            </div>
+
+        </div>
+
     </div>
 
 </div>
@@ -526,6 +537,47 @@
 
 </div>
     
+
+<!-- ===================================== -->
+<!-- ARCHIVIERTE PDFS -->
+<!-- ===================================== -->
+
+<div class="detail-card">
+
+    <h3 class="section-title">
+        Archivierte PDFs
+    </h3>
+
+    {% if archived_pdfs %}
+
+        <div class="document-list">
+
+            {% for pdf in archived_pdfs %}
+
+                <a
+                    href="{{ storage_url(pdf.path) }}"
+                    class="btn-small btn-secondary"
+                    target="_blank"
+                    rel="noopener"
+                >
+                    {{ pdf.filename }} · {{ pdf.size }} · {{ pdf.modified_at }}
+                </a>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="empty-state">
+            Beim ersten PDF-Export wird die Datei hier dauerhaft archiviert.
+        </div>
+
+    {% endif %}
+
+</div>
+
+
 <!-- ===================================== -->
 <!-- AKTIVITÄTEN -->
 <!-- ===================================== -->

@@ -9,6 +9,7 @@ from .extensions import db, login_manager, migrate
 from .core.blueprint_loader import load_blueprints
 from .core import routes as core_routes
 from .core.db_seed import run_seeds
+from .core.storage import ensure_storage_structure, storage_url
 
 def create_app():
 
@@ -17,6 +18,11 @@ def create_app():
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
     app.config.from_object(Config)
+
+    app.jinja_env.globals["storage_url"] = storage_url
+
+    with app.app_context():
+        ensure_storage_structure()
 
     db.init_app(app)
         

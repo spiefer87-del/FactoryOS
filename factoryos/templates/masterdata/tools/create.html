@@ -210,6 +210,30 @@
     <input type="file" name="images" multiple accept="image/*">
 </div>
 
+<hr class="full">
+
+<!-- ================================== -->
+<!-- DOKUMENTE -->
+<!-- ================================== -->
+
+<div class="form-group full">
+    <h3 class="section-title">Dokumente</h3>
+</div>
+
+<div class="form-group">
+    <label>Ablage</label>
+    <select name="document_category">
+        {% for key, label in DOCUMENT_CATEGORIES.items() %}
+            <option value="{{ key }}">{{ label }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="form-group full">
+    <label>PDFs und Dokumente hochladen</label>
+    <input type="file" name="documents" multiple>
+</div>
+
 </div>
 
 

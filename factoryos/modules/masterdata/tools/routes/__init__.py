@@ -14,5 +14,6 @@ from .delete_routes import *
 from .detail_routes import *
 from .search_routes import *
 from .image_routes import *
+from .document_routes import *
 from .import_routes import *
 from .export_routes import *

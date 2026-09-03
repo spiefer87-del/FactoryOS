@@ -10,7 +10,7 @@
     <div class="image-card-image">
 
         <img
-            src="{{ url_for('static', filename=image.image_path) }}"
+            src="{{ storage_url(image.image_path) }}"
             alt="Bild"
             loading="lazy"
         >

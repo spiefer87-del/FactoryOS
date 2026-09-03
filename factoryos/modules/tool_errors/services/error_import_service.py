@@ -7,6 +7,9 @@ from factoryos.core.services.change_log_service import log_change
 
 from factoryos.modules.masterdata.tools.models import Tool
 from factoryos.modules.tool_errors.models import ToolError
+from factoryos.modules.tool_errors.services.tool_error_storage_service import (
+    create_tool_error_folders,
+)
 
 
 STATUS_MAPPING = {
@@ -190,6 +193,7 @@ def import_errors_from_excel(file, user_id):
 
         db.session.add(error)
         db.session.flush()
+        create_tool_error_folders(error)
 
         # ==========================================
         # TOOL STATUS AKTUALISIEREN

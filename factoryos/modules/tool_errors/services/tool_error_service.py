@@ -1,9 +1,6 @@
-import os
-import uuid
 from datetime import datetime
 from io import BytesIO
 
-from flask import current_app
 from sqlalchemy import func
 
 from reportlab.platypus import (
@@ -26,9 +23,18 @@ from PIL import Image as PILImage, ImageDraw, ImageFont, ImageOps
 from factoryos.extensions import db
 from factoryos.modules.masterdata.tools.models import Tool
 from factoryos.core.services.change_log_service import log_change, build_changes
+from factoryos.core.storage import resolve_stored_file
 from factoryos.modules.masterdata.shared.constants import TOOL_STATUSES
 
 from ..models import ToolError, ToolErrorImage
+from .tool_error_storage_service import (
+    archive_tool_error_pdf,
+    archive_tool_error_revision,
+    create_tool_error_folders,
+    move_image_to_error,
+    move_tool_error_revision,
+    save_tool_error_image,
+)
 from .workflow_service import ensure_editable
 
 
@@ -107,12 +113,13 @@ def create_tool_error(form, user_id):
         ).all()
 
         for img in images:
-            img.tool_error_id = error.id
-            img.temp_id = None
+            move_image_to_error(img, error)
 
     tool = Tool.query.get(tool_id)
 
     if tool:
+
+        create_tool_error_folders(error)
 
         changes["Werkzeug"] = {
             "old": None,
@@ -157,6 +164,7 @@ def update_tool_error(error, form):
     ensure_editable(error)
 
     tool = Tool.query.get(error.tool_id)
+    old_tool_no = tool.tool_no if tool else None
 
     new_data = {
         "tool_id": int(form.get("tool_id")),
@@ -190,6 +198,17 @@ def update_tool_error(error, form):
     error.machine_id = new_data["machine_id"]
     error.error_type = new_data["error_type"]
     error.description = new_data["description"]
+
+    if (
+        old_tool_no
+        and tool
+        and old_tool_no != tool.tool_no
+    ):
+        move_tool_error_revision(
+            error,
+            old_tool_no,
+            tool.tool_no,
+        )
 
     new_status = form.get("tool_status")
 
@@ -235,6 +254,8 @@ def upload_image(
         tool_error_id=None
     ):
 
+    error = None
+
     if tool_error_id:
 
         error = ToolError.query.get(tool_error_id)
@@ -242,33 +263,21 @@ def upload_image(
         if error:
             ensure_editable(error)
 
-    if not file:
+    if not file or not file.filename:
         print("Kein File")
         return None
 
-    upload_folder = os.path.join(
-        current_app.static_folder,
-        "uploads/tool_errors"
+    image_path = save_tool_error_image(
+        file,
+        temp_id=temp_id,
+        error=error,
     )
-
-    os.makedirs(
-        upload_folder,
-        exist_ok=True
-    )
-
-    filename = f"{uuid.uuid4()}_{file.filename}"
-    filepath = os.path.join(
-        upload_folder,
-        filename
-    )
-
-    file.save(filepath)
 
     image = ToolErrorImage(
         tool_error_id=tool_error_id,
         temp_id=temp_id,
 
-        image_path=f"uploads/tool_errors/{filename}",
+        image_path=image_path,
 
         marker_x=float(marker_x) if marker_x else None,
         marker_y=float(marker_y) if marker_y else None,
@@ -305,8 +314,7 @@ def assign_images_to_error(temp_id, error_id):
     ).all()
 
     for img in images:
-        img.tool_error_id = error_id
-        img.temp_id = None
+        move_image_to_error(img, error)
 
     db.session.commit()
 
@@ -368,6 +376,8 @@ def delete_tool_error(error):
         action="delete",
         category="production"
     )
+
+    archive_tool_error_revision(error)
 
     for image in error.images:
         db.session.delete(image)
@@ -500,12 +510,9 @@ def generate_tool_error_pdf(error):
 
     def build_marked_image(image, marker_number):
 
-        image_path = os.path.join(
-            current_app.static_folder,
-            image.image_path
-        )
+        image_path = resolve_stored_file(image.image_path)
 
-        if not os.path.exists(image_path):
+        if not image_path.is_file():
             return None
 
         pil_img = ImageOps.exif_transpose(
@@ -736,7 +743,11 @@ def generate_tool_error_pdf(error):
 
     doc.build(content)
 
+    archive_tool_error_pdf(
+        error,
+        buffer.getvalue(),
+    )
+
     buffer.seek(0)
 
     return buffer
-

@@ -1,6 +1,4 @@
 #factoryos/modules/tool_errors/routes/tool_error_routes.py
-import os
-
 from flask import (
     render_template,
     request,
@@ -16,6 +14,7 @@ from flask_login import login_required, current_user
 from factoryos.extensions import db
 from factoryos.core.auth import permission_required, has_permission
 from factoryos.core.models.change_log import ChangeLog
+from factoryos.core.storage import storage_url
 
 from . import bp
 
@@ -34,6 +33,11 @@ from ..services.tool_error_service import (
     assign_images_to_error,
     set_tool_status,
     generate_tool_error_pdf
+)
+from ..services.tool_error_storage_service import (
+    delete_tool_error_image_file,
+    get_tool_error_storage_path,
+    list_tool_error_pdfs,
 )
 
 from ..services.workflow_service import (
@@ -304,7 +308,10 @@ def detail(error_id):
         can_export_pdf=has_permission(
             current_user,
             "tool_error.pdf_export"
-        )
+        ),
+
+        storage_path=get_tool_error_storage_path(error),
+        archived_pdfs=list_tool_error_pdfs(error)
     )
 
 
@@ -476,19 +483,6 @@ def delete_temp_image(image_id):
             if error:
                 ensure_editable(error)
 
-        image_path = os.path.join(
-            "uploads",
-            "tool_errors",
-            os.path.basename(image.image_path)
-        )
-
-        full_path = os.path.join(
-            os.getcwd(),
-            "factoryos",
-            "static",
-            image_path
-        )
-
         same_file_used = (
             ToolErrorImage.query
             .filter(
@@ -498,8 +492,8 @@ def delete_temp_image(image_id):
             .count()
         )
 
-        if same_file_used == 0 and os.path.exists(full_path):
-            os.remove(full_path)
+        if same_file_used == 0:
+            delete_tool_error_image_file(image)
 
         db.session.delete(image)
         db.session.commit()
@@ -535,10 +529,7 @@ def get_image(image_id):
 
     return jsonify({
         "id": image.id,
-        "image_url": url_for(
-            "static",
-            filename=image.image_path
-        ),
+        "image_url": storage_url(image.image_path),
         "marker_x": image.marker_x,
         "marker_y": image.marker_y,
         "marker_px": image.marker_px,
@@ -695,10 +686,19 @@ def release_route(error_id):
             current_user.id
         )
 
-        flash(
-            "Fehlermeldung wurde freigegeben.",
-            "success"
-        )
+        try:
+            generate_tool_error_pdf(error)
+        except Exception as pdf_error:
+            flash(
+                "Fehlermeldung wurde freigegeben, aber das Archiv-PDF "
+                f"konnte nicht erstellt werden: {pdf_error}",
+                "danger"
+            )
+        else:
+            flash(
+                "Fehlermeldung wurde freigegeben und als PDF archiviert.",
+                "success"
+            )
 
     except PermissionError as e:
 
@@ -934,6 +934,3 @@ def export_pdf(error_id):
     )
 
     return response
-
-
-

@@ -4,6 +4,9 @@ from openpyxl import load_workbook
 
 from factoryos.extensions import db
 from factoryos.modules.masterdata.tools.models import Tool
+from factoryos.modules.masterdata.tools.services.tool_storage_service import (
+    create_tool_folders,
+)
 
 
 EXPECTED_HEADERS = [
@@ -347,6 +350,9 @@ def import_tools_from_excel(file):
                     tool.tool_status = mapped_status
 
                 db.session.flush()
+
+                if is_new:
+                    create_tool_folders(tool.tool_no)
 
             if is_new:
                 created += 1

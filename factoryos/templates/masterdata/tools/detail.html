@@ -257,7 +257,7 @@
 {% for img in tool.images %}
 <div class="image-wrapper">
 
-    <img src="{{ url_for('static', filename=img.image_path) }}">
+    <img src="{{ storage_url(img.image_path) }}">
 
     {% if img.title %}
         <div class="image-title">{{ img.title }}</div>
@@ -274,6 +274,104 @@
 
 {% else %}
 <div class="empty-state">Keine Bilder vorhanden</div>
+{% endif %}
+
+</div>
+
+
+
+<!-- ================================= -->
+<!-- DOKUMENTE -->
+<!-- ================================= -->
+
+<div class="detail-card">
+
+<h3 class="section-title">Dokumente</h3>
+
+<form
+    method="POST"
+    action="{{ url_for('tools.upload_documents', tool_id=tool.id) }}"
+    enctype="multipart/form-data"
+    class="form-container"
+>
+    <div class="form-group">
+        <label>Ablage</label>
+        <select name="document_category">
+            {% for key, label in DOCUMENT_CATEGORIES.items() %}
+                <option value="{{ key }}">{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>PDFs und Dokumente</label>
+        <input type="file" name="documents" multiple required>
+    </div>
+
+    <button type="submit" class="btn-small btn-primary">
+        Dateien hochladen
+    </button>
+</form>
+
+{% if documents %}
+
+<div class="table-wrapper" style="margin-top:20px;">
+<table class="fos-table">
+    <thead>
+        <tr>
+            <th>Ablage</th>
+            <th>Datei</th>
+            <th>Größe</th>
+            <th>Geändert</th>
+            <th>Aktionen</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for document in documents %}
+        <tr>
+            <td>{{ document.category_label }}</td>
+            <td>{{ document.filename }}</td>
+            <td>{{ document.size }}</td>
+            <td>{{ document.modified_at }}</td>
+            <td>
+                <a
+                    href="{{ url_for(
+                        'tools.download_document',
+                        tool_id=tool.id,
+                        category=document.category,
+                        filename=document.filename
+                    ) }}"
+                    class="btn-small btn-secondary"
+                >
+                    Herunterladen
+                </a>
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'tools.delete_document',
+                        tool_id=tool.id,
+                        category=document.category,
+                        filename=document.filename
+                    ) }}"
+                    style="display:inline;"
+                    onsubmit="return confirm('Dokument in die Historie verschieben?');"
+                >
+                    <button type="submit" class="btn-small btn-delete">
+                        Archivieren
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+{% else %}
+<div class="empty-state" style="margin-top:20px;">
+    Keine Dokumente vorhanden
+</div>
 {% endif %}
 
 </div>
@@ -302,6 +400,11 @@
         <div>
             {{ tool.created_by.username if tool.created_by else "-" }}
         </div>
+    </div>
+
+    <div class="detail-item full">
+        <label>Archivordner</label>
+        <div><code>{{ storage_path }}</code></div>
     </div>
 
 </div>

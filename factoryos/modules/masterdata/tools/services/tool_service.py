@@ -3,7 +3,10 @@ from factoryos.modules.masterdata.tools.models import Tool
 from factoryos.modules.tool_errors.models import ToolError
 
 from factoryos.modules.masterdata.tools.services.tool_storage_service import (
+    create_tool_folders,
     save_tool_images,
+    save_tool_documents,
+    validate_tool_documents,
     delete_tool_images_by_ids,
     delete_tool_folder,
     rename_tool_folder
@@ -19,7 +22,17 @@ from factoryos.core.services.change_log_service import (
 # CREATE
 # =====================================================
 
-def create_tool(data, files):
+def create_tool(
+        data,
+        image_files,
+        document_files=None,
+        document_category="documents"
+    ):
+
+    validate_tool_documents(
+        document_files,
+        document_category
+    )
 
     tool = Tool(
         # 🔹 Identifikation
@@ -61,7 +74,13 @@ def create_tool(data, files):
     db.session.add(tool)
     db.session.flush()
 
-    save_tool_images(tool, files)
+    create_tool_folders(tool.tool_no)
+    save_tool_images(tool, image_files)
+    save_tool_documents(
+        tool,
+        document_files,
+        category=document_category
+    )
     
 
     # ==========================================
@@ -89,7 +108,19 @@ def create_tool(data, files):
 # UPDATE
 # =====================================================
 
-def update_tool(tool, data, files, delete_ids):
+def update_tool(
+        tool,
+        data,
+        image_files,
+        delete_ids,
+        document_files=None,
+        document_category="documents"
+    ):
+
+    validate_tool_documents(
+        document_files,
+        document_category
+    )
 
     new_data = {
 
@@ -139,7 +170,12 @@ def update_tool(tool, data, files, delete_ids):
 
     rename_tool_folder(old_tool_no, tool.tool_no)
     delete_tool_images_by_ids(delete_ids)
-    save_tool_images(tool, files)
+    save_tool_images(tool, image_files)
+    save_tool_documents(
+        tool,
+        document_files,
+        category=document_category
+    )
 
     if changes:
         log_change(

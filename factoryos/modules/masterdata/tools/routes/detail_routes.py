@@ -2,9 +2,13 @@ from flask import render_template, request
 from flask_login import login_required
 
 from . import bp
-from factoryos.modules.masterdata.tools.models import Tool
 from factoryos.core.queries.change_log_queries import get_logs
 from ..queries.tool_queries import get_tool
+from ..services.tool_storage_service import (
+    DOCUMENT_CATEGORIES,
+    get_tool_storage_path,
+    list_tool_documents,
+)
 
 from factoryos.modules.masterdata.shared.constants import TOOL_STATUSES
 
@@ -36,5 +40,8 @@ def detail(tool_id):
         "masterdata/tools/detail.html",
         tool=tool,
         logs=logs,
-        TOOL_STATUSES=TOOL_STATUSES
+        TOOL_STATUSES=TOOL_STATUSES,
+        documents=list_tool_documents(tool.tool_no),
+        DOCUMENT_CATEGORIES=DOCUMENT_CATEGORIES,
+        storage_path=get_tool_storage_path(tool.tool_no)
     )

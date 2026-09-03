@@ -1,14 +1,14 @@
-import os
-import uuid
-import shutil
 from datetime import datetime
 
-from flask import current_app
 from sqlalchemy import or_
 
 from factoryos.extensions import db
 from factoryos.modules.tool_errors.models import ToolError, ToolErrorImage
 from factoryos.core.services.change_log_service import log_change
+from factoryos.modules.tool_errors.services.tool_error_storage_service import (
+    copy_image_to_error,
+    create_tool_error_folders,
+)
 
 
 # =========================
@@ -218,50 +218,6 @@ def _next_revision_number(error):
     return max_revision + 1
 
 
-def _copy_image_file(image_path):
-
-    if not image_path:
-        return None
-
-    source_path = os.path.join(
-        current_app.static_folder,
-        image_path
-    )
-
-    if not os.path.exists(source_path):
-        return image_path
-
-    ext = os.path.splitext(source_path)[1]
-
-    if not ext:
-        ext = ".jpg"
-
-    filename = f"{uuid.uuid4()}{ext}"
-
-    relative_path = os.path.join(
-        "uploads",
-        "tool_errors",
-        filename
-    ).replace("\\", "/")
-
-    target_path = os.path.join(
-        current_app.static_folder,
-        relative_path
-    )
-
-    os.makedirs(
-        os.path.dirname(target_path),
-        exist_ok=True
-    )
-
-    shutil.copy2(
-        source_path,
-        target_path
-    )
-
-    return relative_path
-
-
 def create_revision(error, user_id):
 
     current = get_current_revision(error)
@@ -299,9 +255,14 @@ def create_revision(error, user_id):
     db.session.add(new_revision)
     db.session.flush()
 
+    create_tool_error_folders(new_revision)
+
     for image in current.images:
 
-        copied_path = _copy_image_file(image.image_path)
+        copied_path = copy_image_to_error(
+            image,
+            new_revision,
+        )
 
         new_image = ToolErrorImage(
             tool_error_id=new_revision.id,
@@ -527,4 +488,3 @@ def reopen(error):
 
     return return_to_draft(error)
     
-

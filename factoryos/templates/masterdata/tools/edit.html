@@ -215,7 +215,7 @@
         {% for img in tool.images %}
         <div class="image-wrapper">
 
-            <img src="{{ url_for('static', filename=img.image_path) }}">
+            <img src="{{ storage_url(img.image_path) }}">
 
             {% if img.is_primary %}
                 <div class="badge-primary">⭐ Hauptbild</div>
@@ -254,6 +254,51 @@
 <div class="form-group full">
     <label>Neue Bilder hinzufügen</label>
     <input type="file" name="images" multiple accept="image/*">
+</div>
+
+<hr class="full">
+
+<!-- ================================== -->
+<!-- DOKUMENTE -->
+<!-- ================================== -->
+
+<div class="form-group full">
+    <h3 class="section-title">Dokumente</h3>
+</div>
+
+{% if documents %}
+<div class="form-group full">
+    <div class="document-list">
+        {% for document in documents %}
+            <a
+                href="{{ url_for(
+                    'tools.download_document',
+                    tool_id=tool.id,
+                    category=document.category,
+                    filename=document.filename
+                ) }}"
+                class="btn-small btn-secondary"
+            >
+                {{ document.category_label }} · {{ document.filename }}
+                ({{ document.size }})
+            </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="form-group">
+    <label>Ablage</label>
+    <select name="document_category">
+        {% for key, label in DOCUMENT_CATEGORIES.items() %}
+            <option value="{{ key }}">{{ label }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="form-group full">
+    <label>Neue PDFs und Dokumente hinzufügen</label>
+    <input type="file" name="documents" multiple>
 </div>
 
 </div>
