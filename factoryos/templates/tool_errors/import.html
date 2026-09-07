@@ -9,18 +9,24 @@
 <div class="form-container">
 
     <p>
-        Importiert Tool Errors über eine Excel-Datei (.xlsx).
+        Importiert Werkzeugfehlermeldungen über eine Excel-Datei (.xlsx).
+        Eine zuvor exportierte Datei kann direkt wieder importiert werden.
+        Vorhandene Meldungen werden anhand von
+        <strong>error_no</strong> und <strong>revision</strong> aktualisiert.
     </p>
 
     <p>
-        Erforderliche Spalten:
+        Gemeinsame Spalten von Export, Import und Vorlage:
     </p>
 
     <ul>
-        <li><strong>tool_no</strong></li>
-        <li><strong>error_type</strong></li>
-        <li><strong>description</strong></li>
+        <li><strong>error_no</strong> (Pflichtfeld)</li>
+        <li><strong>revision</strong> (optional, Standard: 1)</li>
+        <li><strong>tool_no</strong> (Pflichtfeld)</li>
+        <li><strong>error_type</strong> (optional)</li>
+        <li><strong>description</strong> (optional)</li>
         <li><strong>tool_status</strong> (optional)</li>
+        <li><strong>order_id</strong> und <strong>machine_id</strong> (optional)</li>
     </ul>
 
     <div style="margin-bottom:20px;">

@@ -1,5 +1,3 @@
-from io import BytesIO
-
 from flask import (
     render_template,
     request,
@@ -10,7 +8,6 @@ from flask import (
 )
 
 from flask_login import login_required, current_user
-from openpyxl import Workbook
 
 from factoryos.core.auth import permission_required
 
@@ -18,6 +15,9 @@ from . import bp
 
 from ..services.error_import_service import (
     import_errors_from_excel
+)
+from ..services.error_export_service import (
+    tool_error_workbook_bytes
 )
 
 
@@ -45,6 +45,17 @@ def import_errors():
                 url_for("tool_error.import_errors")
             )
 
+        if not file.filename.lower().endswith(".xlsx"):
+
+            flash(
+                "Bitte eine XLSX-Datei auswählen.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("tool_error.import_errors")
+            )
+
         try:
 
             result = import_errors_from_excel(
@@ -55,6 +66,7 @@ def import_errors():
             return render_template(
                 "tool_errors/import_result.html",
                 created=result["created"],
+                updated=result["updated"],
                 errors=result["errors"]
             )
 
@@ -82,35 +94,8 @@ def import_errors():
 @login_required
 @permission_required("tool_error.excel_import")
 def download_error_import_template():
-
-    workbook = Workbook()
-
-    worksheet = workbook.active
-    worksheet.title = "Tool Errors"
-
-    worksheet.append([
-        "error_no",
-        "tool_no",
-        "error_type",
-        "description",
-        "tool_status"
-    ])
-
-    worksheet.append([
-        "FM26-001",
-        "WZ-10001",
-        "Gratbildung",
-        "Grat an der Trennebene",
-        "wartung"
-    ])
-
-    output = BytesIO()
-
-    workbook.save(output)
-    output.seek(0)
-
     return send_file(
-        output,
+        tool_error_workbook_bytes(),
         as_attachment=True,
         download_name="ToolError_Import_Vorlage.xlsx",
         mimetype=(
