@@ -1,0 +1,12 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+<div class="page-header"><div><h2>Materialien importieren</h2><div class="page-subtitle">Neue Materialien anlegen oder bestehende über material_no aktualisieren</div></div></div>
+<div class="alert alert-info">Eine zuvor exportierte Materialdatei kann direkt wieder importiert werden. Kunststoffart ist nur bei der Materialart <strong>Kunststoffmaterial</strong> erforderlich.</div>
+<div class="form-card">
+    <form method="post" enctype="multipart/form-data">
+        <div class="form-group"><label>Excel-Datei</label><input type="file" name="file" accept=".xlsx" required></div>
+        <div class="form-actions"><button type="submit" class="btn-primary">Import starten</button><a href="{{ url_for('materials.download_import_template') }}" class="btn-secondary">Leere Vorlage herunterladen</a></div>
+    </form>
+</div>
+{% endblock %}

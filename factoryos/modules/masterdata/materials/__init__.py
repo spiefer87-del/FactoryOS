@@ -1,0 +1,1 @@
+"""Material master data module."""

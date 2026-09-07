@@ -1,0 +1,95 @@
+{% set m = material if material is defined else none %}
+
+<div class="form-grid">
+    <div class="form-group full"><h3 class="section-title">Identifikation und Einordnung</h3></div>
+
+    <div class="form-group">
+        <label>Materialnummer *</label>
+        <input type="text" name="material_no" value="{{ m.material_no if m else '' }}" required>
+    </div>
+    <div class="form-group">
+        <label>Externe Materialnummer</label>
+        <input type="text" name="external_material_no" value="{{ m.external_material_no if m and m.external_material_no else '' }}">
+    </div>
+    <div class="form-group full">
+        <label>Genaue Bezeichnung / Handelsname *</label>
+        <input type="text" name="name" value="{{ m.name if m else '' }}" required>
+    </div>
+    <div class="form-group">
+        <label>Materialart *</label>
+        <select name="material_type" id="material_type" required>
+            {% for key, label in MATERIAL_TYPES.items() %}
+                <option value="{{ key }}" {% if (m and m.material_type == key) or (not m and key == 'plastic') %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group plastic-field">
+        <label>Kunststoffart *</label>
+        <select name="polymer_type" id="polymer_type">
+            <option value="">Bitte auswählen</option>
+            {% for key, label in POLYMER_TYPES.items() %}
+                <option value="{{ key }}" {% if m and m.polymer_type == key %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group full">
+        <label>Beschreibung</label>
+        <textarea name="description">{{ m.description if m and m.description else '' }}</textarea>
+    </div>
+
+    <div class="form-group full"><h3 class="section-title">Hersteller und Ausführung</h3></div>
+    <div class="form-group"><label>Hersteller</label><input type="text" name="manufacturer" value="{{ m.manufacturer if m and m.manufacturer else '' }}"></div>
+    <div class="form-group"><label>Farbe</label><input type="text" name="color" value="{{ m.color if m and m.color else '' }}"></div>
+    <div class="form-group"><label>Farbnummer</label><input type="text" name="color_no" value="{{ m.color_no if m and m.color_no else '' }}"></div>
+    <div class="form-group">
+        <label>Lieferform</label>
+        <select name="delivery_form"><option value="">Bitte auswählen</option>{% for key, label in MATERIAL_DELIVERY_FORMS.items() %}<option value="{{ key }}" {% if m and m.delivery_form == key %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    </div>
+    <div class="form-group">
+        <label>Basiseinheit *</label>
+        <select name="base_unit" required>{% for key, label in MATERIAL_BASE_UNITS.items() %}<option value="{{ key }}" {% if (m and m.base_unit == key) or (not m and key == 'kg') %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    </div>
+
+    <div class="form-group full plastic-field"><h3 class="section-title">Kunststoff- und Verarbeitungsdaten</h3></div>
+    <div class="form-group plastic-field"><label>Dichte (g/cm³)</label><input type="number" step="0.001" name="density_g_cm3" value="{{ m.density_g_cm3 if m and m.density_g_cm3 is not none else '' }}"></div>
+    <div class="form-group plastic-field"><label>Schmelzindex / MFR</label><input type="text" name="melt_flow_rate" value="{{ m.melt_flow_rate if m and m.melt_flow_rate else '' }}" placeholder="z. B. 12 g/10 min (230 °C/2,16 kg)"></div>
+    <div class="form-group plastic-field"><label>Trocknungstemperatur (°C)</label><input type="number" step="0.1" name="drying_temperature_c" value="{{ m.drying_temperature_c if m and m.drying_temperature_c is not none else '' }}"></div>
+    <div class="form-group plastic-field"><label>Trocknungszeit (h)</label><input type="number" step="0.1" name="drying_time_h" value="{{ m.drying_time_h if m and m.drying_time_h is not none else '' }}"></div>
+    <div class="form-group plastic-field"><label>Verarbeitung min. (°C)</label><input type="number" step="0.1" name="processing_temperature_min_c" value="{{ m.processing_temperature_min_c if m and m.processing_temperature_min_c is not none else '' }}"></div>
+    <div class="form-group plastic-field"><label>Verarbeitung max. (°C)</label><input type="number" step="0.1" name="processing_temperature_max_c" value="{{ m.processing_temperature_max_c if m and m.processing_temperature_max_c is not none else '' }}"></div>
+    <div class="form-group plastic-field"><label>Werkzeugtemperatur min. (°C)</label><input type="number" step="0.1" name="mold_temperature_min_c" value="{{ m.mold_temperature_min_c if m and m.mold_temperature_min_c is not none else '' }}"></div>
+    <div class="form-group plastic-field"><label>Werkzeugtemperatur max. (°C)</label><input type="number" step="0.1" name="mold_temperature_max_c" value="{{ m.mold_temperature_max_c if m and m.mold_temperature_max_c is not none else '' }}"></div>
+
+    <div class="form-group full"><h3 class="section-title">Lager und Beschaffung</h3></div>
+    <div class="form-group"><label>Lagerort</label><input type="text" name="storage_location" value="{{ m.storage_location if m and m.storage_location else '' }}"></div>
+    <div class="form-group"><label>Status</label><select name="material_status">{% for key, label in MATERIAL_STATUSES.items() %}<option value="{{ key }}" {% if (m and m.material_status == key) or (not m and key == 'aktiv') %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="form-group"><label>Mindestbestand</label><input type="number" step="0.001" name="minimum_stock" value="{{ m.minimum_stock if m and m.minimum_stock is not none else '' }}"></div>
+    <div class="form-group"><label>Meldebestand</label><input type="number" step="0.001" name="reorder_point" value="{{ m.reorder_point if m and m.reorder_point is not none else '' }}"></div>
+    <div class="form-group"><label>Bevorzugter Lieferant</label><input type="text" name="preferred_supplier_name" value="{{ m.preferred_supplier_name if m and m.preferred_supplier_name else '' }}"><small>Wird später mit dem Lieferantenstamm verknüpft.</small></div>
+    <div class="form-group"><label>Materialnummer beim Lieferanten</label><input type="text" name="supplier_material_no" value="{{ m.supplier_material_no if m and m.supplier_material_no else '' }}"></div>
+    <div class="form-group"><label><input type="checkbox" name="hazardous_material" value="1" {% if m and m.hazardous_material %}checked{% endif %}> Gefahrstoff</label></div>
+
+    {% if not m %}
+        <div class="form-group full"><h3 class="section-title">Dokumente (optional)</h3></div>
+        <div class="form-group"><label>Materialdatenblätter</label><input type="file" name="data_sheets" multiple></div>
+        <div class="form-group"><label>Sicherheitsdatenblätter</label><input type="file" name="safety_data_sheets" multiple></div>
+        <div class="form-group"><label>Zertifikate</label><input type="file" name="certificates" multiple></div>
+        <div class="form-group"><label>Sonstige Dokumente / Bilder</label><input type="file" name="other" multiple></div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const type = document.getElementById("material_type");
+    const polymer = document.getElementById("polymer_type");
+    const togglePlasticFields = function () {
+        const plastic = type.value === "plastic";
+        document.querySelectorAll(".plastic-field").forEach(function (field) {
+            field.style.display = plastic ? "" : "none";
+        });
+        polymer.required = plastic;
+    };
+    type.addEventListener("change", togglePlasticFields);
+    togglePlasticFields();
+});
+</script>

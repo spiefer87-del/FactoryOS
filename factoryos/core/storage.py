@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 
 
 TOOL_ROOT_PARTS = ("Stammdaten", "Werkzeuge")
+MATERIAL_ROOT_PARTS = ("Stammdaten", "Materialien")
 
 TOOL_FOLDERS = {
     "images": "Werkzeugbilder",
@@ -21,6 +22,21 @@ DOCUMENT_CATEGORIES = {
     "documents": "Dokumente",
     "service": "Wartung",
     "history": "Historie",
+}
+
+MATERIAL_FOLDERS = {
+    "data_sheets": "Datenblaetter",
+    "safety_data_sheets": "Sicherheitsdatenblaetter",
+    "certificates": "Zertifikate",
+    "other": "Sonstige_Dokumente",
+    "history": "Historie",
+}
+
+MATERIAL_DOCUMENT_CATEGORIES = {
+    "data_sheets": "Datenblätter",
+    "safety_data_sheets": "Sicherheitsdatenblätter",
+    "certificates": "Zertifikate",
+    "other": "Sonstige Dokumente",
 }
 
 
@@ -62,6 +78,12 @@ def ensure_storage_structure():
             "_Archiv",
             "Geloeschte_Werkzeuge",
         ),
+        root.joinpath(*MATERIAL_ROOT_PARTS),
+        root.joinpath(
+            *MATERIAL_ROOT_PARTS,
+            "_Archiv",
+            "Geloeschte_Materialien",
+        ),
         root.joinpath(
             *TOOL_ROOT_PARTS,
             "_Unzugeordnet",
@@ -100,6 +122,29 @@ def ensure_tool_structure(tool_no):
     base = tool_folder(tool_no)
 
     for folder_name in TOOL_FOLDERS.values():
+        (base / folder_name).mkdir(parents=True, exist_ok=True)
+
+    return base
+
+
+def material_folder(material_no):
+    return storage_root().joinpath(
+        *MATERIAL_ROOT_PARTS,
+        _safe_segment(material_no, "Material_ohne_Nummer"),
+    )
+
+
+def material_category_folder(material_no, category):
+    if category not in MATERIAL_FOLDERS:
+        raise ValueError(f"Unbekannte Material-Ablage: {category}")
+
+    return material_folder(material_no) / MATERIAL_FOLDERS[category]
+
+
+def ensure_material_structure(material_no):
+    base = material_folder(material_no)
+
+    for folder_name in MATERIAL_FOLDERS.values():
         (base / folder_name).mkdir(parents=True, exist_ok=True)
 
     return base
@@ -163,7 +208,10 @@ def is_managed_storage_path(stored_path):
     except ValueError:
         return False
 
-    return relative.parts[:2] == TOOL_ROOT_PARTS
+    return relative.parts[:2] in {
+        TOOL_ROOT_PARTS,
+        MATERIAL_ROOT_PARTS,
+    }
 
 
 def resolve_stored_file(stored_path):

@@ -57,6 +57,14 @@ def seed_permissions():
         "tools.edit",
         "tools.delete",
 
+        "materials.view",
+        "materials.create",
+        "materials.edit",
+        "materials.delete",
+        "materials.documents",
+        "materials.excel_import",
+        "materials.excel_export",
+
         "production.start",
         "production.stop",
 

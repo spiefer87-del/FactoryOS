@@ -20,6 +20,31 @@
     "tool_status": "Werkzeugstatus",
     "cavities": "Kavitäten",
 
+    "material_no": "Materialnummer",
+    "external_material_no": "externe Materialnummer",
+    "material_type": "Materialart",
+    "polymer_type": "Kunststoffart",
+    "manufacturer": "Hersteller",
+    "color": "Farbe",
+    "color_no": "Farbnummer",
+    "delivery_form": "Lieferform",
+    "base_unit": "Basiseinheit",
+    "density_g_cm3": "Dichte (g/cm³)",
+    "melt_flow_rate": "Schmelzindex / MFR",
+    "drying_temperature_c": "Trocknungstemperatur (°C)",
+    "drying_time_h": "Trocknungszeit (h)",
+    "processing_temperature_min_c": "Verarbeitung min. (°C)",
+    "processing_temperature_max_c": "Verarbeitung max. (°C)",
+    "mold_temperature_min_c": "Werkzeugtemperatur min. (°C)",
+    "mold_temperature_max_c": "Werkzeugtemperatur max. (°C)",
+    "storage_location": "Lagerort",
+    "minimum_stock": "Mindestbestand",
+    "reorder_point": "Meldebestand",
+    "material_status": "Materialstatus",
+    "hazardous_material": "Gefahrstoff",
+    "preferred_supplier_name": "Bevorzugter Lieferant",
+    "supplier_material_no": "Lieferanten-Materialnummer",
+
     "core_pulls": "Kernzüge",
     "hotrunner_zones": "Heißkanalzonen",
 
@@ -58,6 +83,7 @@
     "create": "erstellt",
     "update": "aktualisiert",
     "delete": "gelöscht",
+    "import": "importiert",
 
     "start_review": "zur Prüfung eingereicht",
     "return_to_draft": "zur Bearbeitung zurückgegeben",
@@ -121,6 +147,11 @@
     {% elif log.entity_type == "tool_error" %}
         <div class="changelog-entity">
             ⚠️ Fehlermeldung {{ log.entity_name or log.entity_id }}
+        </div>
+
+    {% elif log.entity_type == "material" %}
+        <div class="changelog-entity">
+            🧱 Material {{ log.entity_name or log.entity_id }}
         </div>
     
     {% else %}

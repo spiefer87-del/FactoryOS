@@ -1,0 +1,14 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+<h2 style="margin-bottom:25px;">Material anlegen</h2>
+<div class="form-card">
+    <form method="post" enctype="multipart/form-data">
+        {% include "masterdata/materials/_form.html" %}
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">Material anlegen</button>
+            <a href="{{ url_for('materials.dashboard') }}" class="btn-secondary">Abbrechen</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

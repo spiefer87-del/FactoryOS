@@ -1,0 +1,52 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2>Materialien</h2>
+        <div class="page-subtitle">Kunststoffmaterialien, Betriebs- und Hilfsstoffe verwalten</div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <a href="{{ url_for('materials.list_materials') }}" class="dashboard-card">
+        <div class="card-icon">🧱</div>
+        <div class="card-title">Materialübersicht</div>
+        <div class="card-desc">Alle Materialien anzeigen</div>
+    </a>
+
+    {% if can_create %}
+        <a href="{{ url_for('materials.create') }}" class="dashboard-card">
+            <div class="card-icon">➕</div>
+            <div class="card-title">Material anlegen</div>
+            <div class="card-desc">Neuen Materialstamm erfassen</div>
+        </a>
+    {% endif %}
+
+    {% if can_edit %}
+        <a href="{{ url_for('materials.list_materials') }}" class="dashboard-card">
+            <div class="card-icon">✏️</div>
+            <div class="card-title">Material bearbeiten</div>
+            <div class="card-desc">Material auswählen und bearbeiten</div>
+        </a>
+    {% endif %}
+
+    {% if can_import %}
+        <a href="{{ url_for('materials.import_materials') }}" class="dashboard-card">
+            <div class="card-icon">📥</div>
+            <div class="card-title">Excel Import</div>
+            <div class="card-desc">Materiallisten importieren</div>
+        </a>
+    {% endif %}
+
+    {% if can_export %}
+        <a href="{{ url_for('materials.export_materials_excel') }}" class="dashboard-card">
+            <div class="card-icon">📤</div>
+            <div class="card-title">Excel Export</div>
+            <div class="card-desc">Importfähige Materialliste exportieren</div>
+        </a>
+    {% endif %}
+</div>
+
+{% endblock %}

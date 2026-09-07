@@ -1,6 +1,7 @@
 from flask import render_template
-from flask_login import login_required
+from flask_login import current_user, login_required
 from . import bp
+from factoryos.core.auth import has_permission
 from factoryos.modules.masterdata.core.registry import list_masterdata
 
 
@@ -11,5 +12,9 @@ def dashboard():
 
     return render_template(
         "masterdata/dashboard.html",
-        modules=modules
+        modules=modules,
+        can_view_materials=has_permission(
+            current_user,
+            "materials.view"
+        )
     )

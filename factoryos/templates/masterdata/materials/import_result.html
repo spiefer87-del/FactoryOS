@@ -1,0 +1,10 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+<h2>Materialimport – Ergebnis</h2>
+<div class="detail-card"><h3>Zusammenfassung</h3><ul><li><strong>Neu angelegt:</strong> {{ created }}</li><li><strong>Aktualisiert:</strong> {{ updated }}</li><li><strong>Fehler:</strong> {{ errors|length }}</li></ul></div>
+{% if errors %}
+<div class="detail-card"><h3>Nicht importierte Datensätze</h3><div class="fos-table-container"><table class="fos-table"><thead><tr><th>Zeile</th><th>Material</th><th>Grund</th></tr></thead><tbody>{% for error in errors %}<tr><td>{{ error.row }}</td><td>{{ error.material_no }}</td><td>{{ error.reason }}</td></tr>{% endfor %}</tbody></table></div></div>
+{% else %}<div class="alert alert-success">Alle Datensätze wurden erfolgreich importiert.</div>{% endif %}
+<div class="form-actions"><a href="{{ url_for('materials.import_materials') }}" class="btn-secondary">Neuer Import</a><a href="{{ url_for('materials.dashboard') }}" class="btn-primary">Zum Dashboard</a></div>
+{% endblock %}

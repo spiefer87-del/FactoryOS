@@ -1,0 +1,114 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2>{{ material.material_no }}</h2>
+        <div class="page-subtitle">{{ material.name }}</div>
+    </div>
+    <div class="page-actions">
+        {% if can_edit %}<a class="btn-small btn-edit" href="{{ url_for('materials.edit', material_id=material.id) }}">✏ Bearbeiten</a>{% endif %}
+        {% if can_delete %}
+            <form method="post" action="{{ url_for('materials.delete', material_id=material.id) }}" style="display:inline" onsubmit="return confirm('Material wirklich löschen und Ablage archivieren?');">
+                <button type="submit" class="btn-small btn-delete">🗑 Löschen</button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="detail-card">
+    <h3 class="section-title">Basisdaten</h3>
+    <div class="detail-grid">
+        <div class="detail-item"><label>Materialnummer</label><div>{{ material.material_no }}</div></div>
+        <div class="detail-item"><label>Externe Nummer</label><div>{{ material.external_material_no or '-' }}</div></div>
+        <div class="detail-item"><label>Genaue Bezeichnung / Handelsname</label><div>{{ material.name }}</div></div>
+        <div class="detail-item"><label>Materialart</label><div>{{ MATERIAL_TYPES.get(material.material_type, material.material_type) }}</div></div>
+        <div class="detail-item"><label>Status</label><span class="status-badge {{ MATERIAL_STATUS_COLORS.get(material.material_status, '') }}">{{ MATERIAL_STATUSES.get(material.material_status, material.material_status) }}</span></div>
+        <div class="detail-item"><label>Basiseinheit</label><div>{{ MATERIAL_BASE_UNITS.get(material.base_unit, material.base_unit) }}</div></div>
+        <div class="detail-item full"><label>Beschreibung</label><div>{{ material.description or '-' }}</div></div>
+    </div>
+</div>
+
+<div class="detail-card">
+    <h3 class="section-title">Hersteller und Ausführung</h3>
+    <div class="detail-grid">
+        <div class="detail-item"><label>Hersteller</label><div>{{ material.manufacturer or '-' }}</div></div>
+        <div class="detail-item"><label>Farbe</label><div>{{ material.color or '-' }}</div></div>
+        <div class="detail-item"><label>Farbnummer</label><div>{{ material.color_no or '-' }}</div></div>
+        <div class="detail-item"><label>Lieferform</label><div>{{ MATERIAL_DELIVERY_FORMS.get(material.delivery_form, material.delivery_form or '-') }}</div></div>
+        <div class="detail-item"><label>Gefahrstoff</label><div>{{ 'Ja' if material.hazardous_material else 'Nein' }}</div></div>
+    </div>
+</div>
+
+{% if material.material_type == 'plastic' %}
+<div class="detail-card">
+    <h3 class="section-title">Kunststoff- und Verarbeitungsdaten</h3>
+    <div class="detail-grid">
+        <div class="detail-item"><label>Kunststoffart</label><div>{{ POLYMER_TYPES.get(material.polymer_type, material.polymer_type or '-') }}</div></div>
+        <div class="detail-item"><label>Dichte</label><div>{{ (material.density_g_cm3|string + ' g/cm³') if material.density_g_cm3 is not none else '-' }}</div></div>
+        <div class="detail-item"><label>Schmelzindex / MFR</label><div>{{ material.melt_flow_rate or '-' }}</div></div>
+        <div class="detail-item"><label>Trocknung</label><div>{% if material.drying_temperature_c is not none or material.drying_time_h is not none %}{{ material.drying_temperature_c if material.drying_temperature_c is not none else '-' }} °C / {{ material.drying_time_h if material.drying_time_h is not none else '-' }} h{% else %}-{% endif %}</div></div>
+        <div class="detail-item"><label>Verarbeitungstemperatur</label><div>{% if material.processing_temperature_min_c is not none or material.processing_temperature_max_c is not none %}{{ material.processing_temperature_min_c if material.processing_temperature_min_c is not none else '-' }} bis {{ material.processing_temperature_max_c if material.processing_temperature_max_c is not none else '-' }} °C{% else %}-{% endif %}</div></div>
+        <div class="detail-item"><label>Werkzeugtemperatur</label><div>{% if material.mold_temperature_min_c is not none or material.mold_temperature_max_c is not none %}{{ material.mold_temperature_min_c if material.mold_temperature_min_c is not none else '-' }} bis {{ material.mold_temperature_max_c if material.mold_temperature_max_c is not none else '-' }} °C{% else %}-{% endif %}</div></div>
+    </div>
+</div>
+{% endif %}
+
+<div class="detail-card">
+    <h3 class="section-title">Lager und Beschaffung</h3>
+    <div class="detail-grid">
+        <div class="detail-item"><label>Lagerort</label><div>{{ material.storage_location or '-' }}</div></div>
+        <div class="detail-item"><label>Mindestbestand</label><div>{{ material.minimum_stock if material.minimum_stock is not none else '-' }} {{ material.base_unit or '' }}</div></div>
+        <div class="detail-item"><label>Meldebestand</label><div>{{ material.reorder_point if material.reorder_point is not none else '-' }} {{ material.base_unit or '' }}</div></div>
+        <div class="detail-item"><label>Bevorzugter Lieferant</label><div>{{ material.preferred_supplier_name or '-' }}</div></div>
+        <div class="detail-item"><label>Lieferanten-Materialnummer</label><div>{{ material.supplier_material_no or '-' }}</div></div>
+        <div class="detail-item full"><label>Ablagepfad</label><div>{{ storage_path }}</div></div>
+    </div>
+</div>
+
+<div class="detail-card">
+    <h3 class="section-title">Materialdokumente</h3>
+    {% if can_documents %}
+        <form method="post" enctype="multipart/form-data" action="{{ url_for('materials.upload_documents', material_id=material.id) }}" class="form-grid">
+            <div class="form-group">
+                <label>Kategorie</label>
+                <select name="document_category">{% for key, label in MATERIAL_DOCUMENT_CATEGORIES.items() %}<option value="{{ key }}">{{ label }}</option>{% endfor %}</select>
+            </div>
+            <div class="form-group"><label>Dateien</label><input type="file" name="documents" multiple required></div>
+            <div class="form-group full"><button type="submit" class="btn-primary">Dokumente hochladen</button></div>
+        </form>
+    {% endif %}
+
+    {% if documents %}
+        <div class="fos-table-container">
+            <table class="fos-table">
+                <thead><tr><th>Kategorie</th><th>Datei</th><th>Größe</th><th>Geändert</th><th>Aktionen</th></tr></thead>
+                <tbody>
+                    {% for document in documents %}
+                        <tr>
+                            <td>{{ document.category_label }}</td><td>{{ document.filename }}</td><td>{{ document.size }}</td><td>{{ document.modified_at }}</td>
+                            <td>
+                                <a class="btn-small btn-edit" href="{{ url_for('materials.download_document', material_id=material.id, category=document.category, filename=document.filename) }}">Herunterladen</a>
+                                {% if can_documents %}<form method="post" action="{{ url_for('materials.delete_document', material_id=material.id, category=document.category, filename=document.filename) }}" style="display:inline" onsubmit="return confirm('Dokument ins Archiv verschieben?');"><button type="submit" class="btn-small btn-delete">Archivieren</button></form>{% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}<div class="empty-state">Noch keine Materialdokumente vorhanden.</div>{% endif %}
+</div>
+
+<div class="detail-card">
+    <h3 class="section-title">Systeminformationen</h3>
+    <div class="detail-grid">
+        <div class="detail-item"><label>Erstellt am</label><div>{{ material.created_at.strftime('%d.%m.%Y %H:%M') if material.created_at else '-' }}</div></div>
+        <div class="detail-item"><label>Erstellt von</label><div>{{ material.created_by.username if material.created_by else '-' }}</div></div>
+    </div>
+</div>
+
+{% include "components/changelog.html" %}
+<div class="detail-footer"><a href="{{ url_for('materials.list_materials') }}" class="btn-secondary">← Zurück zur Liste</a></div>
+
+{% endblock %}

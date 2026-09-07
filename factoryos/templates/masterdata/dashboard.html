@@ -38,6 +38,16 @@
 
     </a>
 
+    {% if can_view_materials|default(false) %}
+        <a
+            href="{{ url_for('materials.dashboard') }}"
+            class="dashboard-card"
+        >
+            <div class="card-icon">🧱</div>
+            <div class="card-title">Materialien</div>
+        </a>
+    {% endif %}
+
 </div>
 
 {% endblock %}
