@@ -1,1 +1,229 @@
+{% extends "layout/base.html" %}
 
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/booking_timeline.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="booking-page">
+    <div class="booking-page-header">
+        <div>
+            <p class="booking-eyebrow">Produktion</p>
+            <h1>Maschinen Booking</h1>
+            <p class="booking-subtitle">
+                Maschinenbelegung, Ist-Zeiten und voraussichtliche Fertigstellung auf einen Blick.
+            </p>
+        </div>
+        <a class="btn-secondary booking-back" href="{{ url_for('production.dashboard') }}">
+            Zurück zur Produktion
+        </a>
+    </div>
+
+    <div class="booking-kpis" aria-label="Aktueller Maschinenstatus">
+        <div class="booking-kpi">
+            <span class="booking-kpi-label">Maschinen</span>
+            <strong>{{ counters.machines }}</strong>
+        </div>
+        <div class="booking-kpi booking-kpi-production">
+            <span class="booking-kpi-label">Produktion</span>
+            <strong>{{ counters.production }}</strong>
+        </div>
+        <div class="booking-kpi booking-kpi-setup">
+            <span class="booking-kpi-label">Rüsten</span>
+            <strong>{{ counters.setup }}</strong>
+        </div>
+        <div class="booking-kpi booking-kpi-downtime">
+            <span class="booking-kpi-label">Störung</span>
+            <strong>{{ counters.downtime }}</strong>
+        </div>
+        <div class="booking-kpi booking-kpi-other">
+            <span class="booking-kpi-label">Pause / sonstig</span>
+            <strong>{{ counters.other }}</strong>
+        </div>
+        <div class="booking-kpi booking-kpi-free">
+            <span class="booking-kpi-label">Frei / ohne Buchung</span>
+            <strong>{{ counters.free }}</strong>
+        </div>
+    </div>
+
+    <section class="booking-panel" aria-labelledby="timeline-heading">
+        <div class="booking-toolbar">
+            <div>
+                <h2 id="timeline-heading">Maschinen-Timeline</h2>
+                <p>
+                    Stand {{ now.strftime('%d.%m.%Y, %H:%M') }} Uhr ·
+                    {{ range_start.strftime('%d.%m. %H:%M') }} bis
+                    {{ range_end.strftime('%d.%m. %H:%M') }} Uhr
+                </p>
+            </div>
+            <form method="get" class="booking-horizon-form">
+                <label for="zeitraum">Zeitraum</label>
+                <select id="zeitraum" name="zeitraum" onchange="this.form.submit()">
+                    {% for key, option in horizons.items() %}
+                    <option value="{{ key }}" {% if key == horizon_key %}selected{% endif %}>
+                        {{ option.label }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <noscript><button class="btn-secondary" type="submit">Anzeigen</button></noscript>
+            </form>
+        </div>
+
+        <div class="booking-legend" aria-label="Legende">
+            <span><i class="legend-swatch production"></i>Produktion</span>
+            <span><i class="legend-swatch setup"></i>Rüsten</span>
+            <span><i class="legend-swatch downtime"></i>Störung</span>
+            <span><i class="legend-swatch pause"></i>Pause</span>
+            <span><i class="legend-swatch free"></i>Frei</span>
+            <span><i class="legend-swatch forecast"></i>Prognose</span>
+            <span><i class="legend-now"></i>Jetzt</span>
+        </div>
+
+        {% if lanes %}
+        <p class="booking-scroll-hint">Auf kleinen Bildschirmen die Timeline seitlich verschieben.</p>
+        <div class="timeline-scroll" tabindex="0" aria-label="Horizontale Maschinen-Timeline">
+            <div class="timeline-board">
+                <div class="timeline-row timeline-axis-row">
+                    <div class="timeline-machine-cell timeline-corner">Maschine</div>
+                    <div class="timeline-track timeline-axis">
+                        {% for tick in ticks %}
+                        <div class="timeline-tick" style="left: {{ '%.4f'|format(tick.position) }}%;">
+                            <span>{{ tick.date_label }}</span>
+                            <strong>{{ tick.label }}</strong>
+                        </div>
+                        {% endfor %}
+                        <div class="timeline-now-line" style="left: {{ '%.4f'|format(now_position) }}%;">
+                            <span>Jetzt</span>
+                        </div>
+                    </div>
+                </div>
+
+                {% for lane in lanes %}
+                <div class="timeline-row">
+                    <div class="timeline-machine-cell">
+                        <strong>{{ lane.machine.machine_no }}</strong>
+                        <span>{{ lane.machine.name or 'Ohne Bezeichnung' }}</span>
+                        {% if lane.machine.machine_status != 'aktiv' %}
+                        <small>{{ lane.machine.machine_status }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="timeline-track timeline-lane">
+                        {% for tick in ticks %}
+                        <i class="timeline-gridline" style="left: {{ '%.4f'|format(tick.position) }}%;"></i>
+                        {% endfor %}
+                        <i class="timeline-now-line" style="left: {{ '%.4f'|format(now_position) }}%;"></i>
+
+                        {% for item in lane["items"] %}
+                            {% set item_title = item.process_label ~ ': ' ~ item.label %}
+                            {% if item.kind == 'forecast' %}
+                                {% set item_title = item_title ~ ' – voraussichtlich ' ~ item.forecast.at.strftime('%d.%m.%Y, %H:%M') ~ ' Uhr' %}
+                            {% elif item.booking.end_time %}
+                                {% set item_title = item_title ~ ' – ' ~ item.booking.start_time.strftime('%d.%m. %H:%M') ~ ' bis ' ~ item.booking.end_time.strftime('%d.%m. %H:%M') ~ ' Uhr' %}
+                            {% else %}
+                                {% set item_title = item_title ~ ' – gestartet ' ~ item.booking.start_time.strftime('%d.%m. %H:%M') ~ ' Uhr' %}
+                            {% endif %}
+
+                            {% if item.booking.order %}
+                            <a class="timeline-bar {{ item.class }} {{ item.kind }}"
+                               href="{{ url_for('orders.detail', order_id=item.booking.order.id) }}"
+                               style="left: {{ '%.4f'|format(item.left) }}%; width: {{ '%.4f'|format(item.width) }}%;"
+                               title="{{ item_title }}">
+                                <span>{{ item.label }}</span>
+                            </a>
+                            {% else %}
+                            <div class="timeline-bar {{ item.class }} {{ item.kind }}"
+                                 style="left: {{ '%.4f'|format(item.left) }}%; width: {{ '%.4f'|format(item.width) }}%;"
+                                 title="{{ item_title }}">
+                                <span>{{ item.label }}</span>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if not lane["items"] %}
+                        <span class="timeline-empty">Keine Buchung in diesem Zeitraum</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="booking-empty-state">
+            <strong>Noch keine Maschinen angelegt</strong>
+            <p>Sobald Maschinen in den Stammdaten vorhanden sind, erscheinen sie hier.</p>
+        </div>
+        {% endif %}
+    </section>
+
+    {% if lanes %}
+    <section class="booking-panel" aria-labelledby="current-heading">
+        <div class="booking-section-heading">
+            <h2 id="current-heading">Aktueller Stand</h2>
+            <p>Detailübersicht der laufenden Maschinenzustände.</p>
+        </div>
+        <div class="machine-status-grid">
+            {% for lane in lanes %}
+            <article class="machine-status-card status-{{ lane.active_class }}">
+                <div class="machine-status-header">
+                    <div>
+                        <strong>{{ lane.machine.machine_no }}</strong>
+                        <span>{{ lane.machine.name or 'Ohne Bezeichnung' }}</span>
+                    </div>
+                    <span class="machine-status-badge">{{ lane.active_process_label }}</span>
+                </div>
+
+                {% if lane.active_booking %}
+                <dl>
+                    <div>
+                        <dt>Gestartet</dt>
+                        <dd>{{ lane.active_booking.start_time.strftime('%d.%m.%Y, %H:%M') }} Uhr</dd>
+                    </div>
+                    <div>
+                        <dt>Auftrag</dt>
+                        <dd>
+                            {% if lane.active_booking.order %}
+                            <a href="{{ url_for('orders.detail', order_id=lane.active_booking.order.id) }}">
+                                {{ lane.active_booking.order.order_no }}
+                            </a>
+                            {% else %}
+                            –
+                            {% endif %}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt>Werkzeug</dt>
+                        <dd>{{ lane.active_booking.tool_no or '–' }}</dd>
+                    </div>
+                    <div>
+                        <dt>Voraussichtlich fertig</dt>
+                        <dd>
+                            {% if lane.active_forecast %}
+                            <strong>{{ lane.active_forecast.at.strftime('%d.%m.%Y, %H:%M') }} Uhr</strong>
+                            <small>
+                                Noch {{ lane.active_forecast.remaining_qty }} Stück ·
+                                Zyklus {{ '%.2f'|format(lane.active_forecast.cycle_time_s) }} s
+                            </small>
+                            {% elif lane.active_booking.process == 'PROD' %}
+                            <span class="forecast-missing">Keine Prognose – Zykluszeit oder Auftragsdaten fehlen.</span>
+                            {% else %}
+                            –
+                            {% endif %}
+                        </dd>
+                    </div>
+                </dl>
+                {% else %}
+                <p class="machine-no-booking">Für diese Maschine läuft derzeit keine Buchung.</p>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <div class="forecast-note">
+        <strong>Hinweis zur Fertigstellungsprognose:</strong>
+        Sie wird aus Restmenge × Zykluszeit des Artikelstamms berechnet. Störungen, Pausen,
+        Ausschuss und Mehrfachkavitäten verändern den tatsächlichen Endzeitpunkt.
+    </div>
+</div>
+{% endblock %}

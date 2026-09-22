@@ -1,5 +1,7 @@
-from flask import render_template
+from flask import render_template, request
 from flask_login import login_required
+
+from factoryos.modules.production.services.timeline_service import get_machine_timeline
 
 from . import bp
 
@@ -16,7 +18,8 @@ def dashboard():
 @bp.route("/booking")
 @login_required
 def booking_dashboard():
-
+    timeline = get_machine_timeline(request.args.get("zeitraum", "24h"))
     return render_template(
-        "production/booking/dashboard.html"
+        "production/booking/dashboard.html",
+        **timeline,
     )
