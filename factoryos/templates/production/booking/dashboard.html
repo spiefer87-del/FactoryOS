@@ -14,9 +14,14 @@
                 Maschinenbelegung, Ist-Zeiten und voraussichtliche Fertigstellung auf einen Blick.
             </p>
         </div>
-        <a class="btn-secondary booking-back" href="{{ url_for('production.dashboard') }}">
-            Zurück zur Produktion
-        </a>
+        <div class="booking-header-actions">
+            <a class="btn-primary" href="{{ url_for('production.manual_start') }}">
+                Produktion starten
+            </a>
+            <a class="btn-secondary booking-back" href="{{ url_for('production.dashboard') }}">
+                Zurück zur Produktion
+            </a>
+        </div>
     </div>
 
     <div class="booking-kpis" aria-label="Aktueller Maschinenstatus">

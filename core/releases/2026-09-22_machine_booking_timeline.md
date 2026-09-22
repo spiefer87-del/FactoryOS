@@ -8,6 +8,11 @@
 - Fertigstellungsprognose für laufende Produktionsaufträge
 - mobile Detailkarten je Maschine
 - direkte Verknüpfung zum Auftrag
+- manueller Produktionsstart mit Auswahl von Auftrag und aktiver Maschine
+- Anzeige von Auftrags-, Werkzeug- und Maschineninformationen vor dem Start
+- optionaler Startkommentar an der Zeitbuchung
+- Schutz vor parallelem Start desselben Auftrags auf mehreren Maschinen
+- ausdrückliche Bestätigung beim Ablösen einer laufenden Maschinenbuchung
 
 ## Berechnung der Prognose
 

@@ -1,0 +1,206 @@
+{% extends "layout/base.html" %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/booking_timeline.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="booking-page manual-start-page">
+    <div class="booking-page-header">
+        <div>
+            <p class="booking-eyebrow">Maschinen Booking</p>
+            <h1>Produktion manuell starten</h1>
+            <p class="booking-subtitle">
+                Auftrag und Maschine auswählen und den Startvorgang bestätigen.
+            </p>
+        </div>
+        <a class="btn-secondary booking-back" href="{{ url_for('production.booking_dashboard') }}">
+            Zurück zur Timeline
+        </a>
+    </div>
+
+    <form method="post" class="manual-start-form" id="manual-start-form">
+        <section class="manual-start-card">
+            <div class="manual-step-number">1</div>
+            <div class="manual-step-content">
+                <label for="order_id">Auftrag auswählen</label>
+                <select id="order_id" name="order_id" required {% if not orders %}disabled{% endif %}>
+                    <option value="">Bitte Auftrag auswählen</option>
+                    {% for order in orders %}
+                    {% set active_order = active_by_order.get(order.id) %}
+                    <option value="{{ order.id }}"
+                            data-order-no="{{ order.order_no }}"
+                            data-article="{{ order.article or '–' }}"
+                            data-article-name="{{ order.article_name or '–' }}"
+                            data-tool="{{ order.tool_no or '–' }}"
+                            data-target="{{ order.target_qty or 0 }}"
+                            data-status="{{ order.status or 'offen' }}"
+                            data-running="{{ 'true' if active_order else 'false' }}"
+                            data-running-machine="{{ active_order.machine.machine_no if active_order and active_order.machine else '' }}"
+                            {% if selected_order_id == order.id %}selected{% endif %}>
+                        {{ order.order_no }} · {{ order.article or 'ohne Artikel' }}
+                        {% if active_order %} · läuft auf {{ active_order.machine.machine_no if active_order.machine else 'Maschine' }}{% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+
+                {% if not orders %}
+                <p class="manual-field-warning">
+                    Es sind keine offenen oder laufenden Aufträge vorhanden.
+                </p>
+                {% else %}
+                <div class="manual-selection-info" id="order-info" hidden>
+                    <div><span>Auftrag</span><strong data-value="orderNo">–</strong></div>
+                    <div><span>Artikel</span><strong data-value="article">–</strong></div>
+                    <div><span>Bezeichnung</span><strong data-value="articleName">–</strong></div>
+                    <div><span>Werkzeug</span><strong data-value="tool">–</strong></div>
+                    <div><span>Sollmenge</span><strong data-value="target">–</strong></div>
+                    <div><span>Status</span><strong data-value="status">–</strong></div>
+                </div>
+                <p class="manual-inline-alert" id="order-running-warning" hidden></p>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="manual-start-card">
+            <div class="manual-step-number">2</div>
+            <div class="manual-step-content">
+                <label for="machine_id">Maschine auswählen</label>
+                <select id="machine_id" name="machine_id" required {% if not machines %}disabled{% endif %}>
+                    <option value="">Bitte Maschine auswählen</option>
+                    {% for machine in machines %}
+                    {% set active_booking = active_by_machine.get(machine.id) %}
+                    {% set occupied = active_booking and active_booking.process != 'FREI' %}
+                    {% if active_booking and active_booking.order %}
+                        {% set current_label = active_booking.order.order_no %}
+                    {% elif active_booking %}
+                        {% set current_label = active_booking.process %}
+                    {% else %}
+                        {% set current_label = 'Frei' %}
+                    {% endif %}
+                    <option value="{{ machine.id }}"
+                            data-machine-no="{{ machine.machine_no }}"
+                            data-machine-name="{{ machine.name or '–' }}"
+                            data-location="{{ machine.location or '–' }}"
+                            data-occupied="{{ 'true' if occupied else 'false' }}"
+                            data-current="{{ current_label }}"
+                            data-started="{{ active_booking.start_time.strftime('%d.%m.%Y, %H:%M') if active_booking and occupied else '' }}"
+                            {% if selected_machine_id == machine.id %}selected{% endif %}>
+                        {{ machine.machine_no }} · {{ machine.name or 'ohne Bezeichnung' }}
+                        {% if occupied %} · belegt: {{ current_label }}{% else %} · frei{% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+
+                {% if not machines %}
+                <p class="manual-field-warning">Es sind keine aktiven Maschinen vorhanden.</p>
+                {% else %}
+                <div class="manual-selection-info" id="machine-info" hidden>
+                    <div><span>Maschine</span><strong data-value="machineNo">–</strong></div>
+                    <div><span>Bezeichnung</span><strong data-value="machineName">–</strong></div>
+                    <div><span>Standort</span><strong data-value="location">–</strong></div>
+                    <div><span>Aktueller Zustand</span><strong data-value="current">–</strong></div>
+                </div>
+
+                <div class="manual-replace-warning" id="replace-warning" hidden>
+                    <strong>Maschine ist bereits belegt</strong>
+                    <p id="replace-warning-text"></p>
+                    <label class="manual-confirm-check">
+                        <input type="checkbox" name="replace_active" value="yes" id="replace_active">
+                        <span>Die laufende Buchung beenden und den neuen Auftrag starten.</span>
+                    </label>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="manual-start-card">
+            <div class="manual-step-number">3</div>
+            <div class="manual-step-content">
+                <label for="comment">Startnotiz <span class="optional-label">optional</span></label>
+                <textarea id="comment" name="comment" maxlength="255" rows="3"
+                          placeholder="Zum Beispiel Schicht, Besonderheit oder Startgrund">{{ comment }}</textarea>
+                <small>Maximal 255 Zeichen. Die Notiz wird an der Zeitbuchung gespeichert.</small>
+            </div>
+        </section>
+
+        <div class="manual-start-summary">
+            <div>
+                <span>Gewählter Start</span>
+                <strong id="start-summary">Bitte Auftrag und Maschine auswählen.</strong>
+            </div>
+            <div class="manual-start-actions">
+                <a class="btn-secondary" href="{{ url_for('production.booking_dashboard') }}">Abbrechen</a>
+                <button class="btn-primary" type="submit"
+                        {% if not orders or not machines %}disabled{% endif %}>
+                    Produktion jetzt starten
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+(function () {
+    const orderSelect = document.getElementById("order_id");
+    const machineSelect = document.getElementById("machine_id");
+    if (!orderSelect || !machineSelect) return;
+
+    const orderInfo = document.getElementById("order-info");
+    const machineInfo = document.getElementById("machine-info");
+    const orderWarning = document.getElementById("order-running-warning");
+    const replaceWarning = document.getElementById("replace-warning");
+    const replaceText = document.getElementById("replace-warning-text");
+    const replaceCheckbox = document.getElementById("replace_active");
+    const summary = document.getElementById("start-summary");
+
+    function fillInfo(container, option, fields) {
+        if (!container) return;
+        container.hidden = !option || !option.value;
+        if (!option || !option.value) return;
+        fields.forEach(function (field) {
+            const target = container.querySelector('[data-value="' + field + '"]');
+            if (target) target.textContent = option.dataset[field] || "–";
+        });
+    }
+
+    function update() {
+        const order = orderSelect.options[orderSelect.selectedIndex];
+        const machine = machineSelect.options[machineSelect.selectedIndex];
+        fillInfo(orderInfo, order, ["orderNo", "article", "articleName", "tool", "target", "status"]);
+        fillInfo(machineInfo, machine, ["machineNo", "machineName", "location", "current"]);
+
+        if (orderWarning) {
+            const running = order && order.dataset.running === "true";
+            orderWarning.hidden = !running;
+            orderWarning.textContent = running
+                ? "Dieser Auftrag läuft bereits auf " + (order.dataset.runningMachine || "einer Maschine") + "."
+                : "";
+        }
+
+        if (replaceWarning) {
+            const occupied = machine && machine.dataset.occupied === "true";
+            replaceWarning.hidden = !occupied;
+            if (replaceCheckbox) {
+                replaceCheckbox.required = occupied;
+                if (!occupied) replaceCheckbox.checked = false;
+            }
+            if (occupied) {
+                const started = machine.dataset.started ? " seit " + machine.dataset.started + " Uhr" : "";
+                replaceText.textContent = "Aktuell läuft " + machine.dataset.current + started + ".";
+            }
+        }
+
+        if (order && order.value && machine && machine.value) {
+            summary.textContent = order.dataset.orderNo + " auf " + machine.dataset.machineNo;
+        } else {
+            summary.textContent = "Bitte Auftrag und Maschine auswählen.";
+        }
+    }
+
+    orderSelect.addEventListener("change", update);
+    machineSelect.addEventListener("change", update);
+    update();
+})();
+</script>
+{% endblock %}
