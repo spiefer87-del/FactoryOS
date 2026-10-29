@@ -15,6 +15,11 @@
             </p>
         </div>
         <div class="booking-header-actions">
+            {% if current_user.role and current_user.role.name|lower == 'admin' %}
+            <a class="btn-secondary" href="{{ url_for('production.booking_calendar_setup') }}">
+                Arbeitszeiten &amp; Feiertage
+            </a>
+            {% endif %}
             <a class="btn-primary" href="{{ url_for('production.manual_start') }}">
                 Produktion starten
             </a>
@@ -60,6 +65,9 @@
                     {{ range_start.strftime('%d.%m. %H:%M') }} bis
                     {{ range_end.strftime('%d.%m. %H:%M') }} Uhr
                 </p>
+                <p class="calendar-summary-line">
+                    Produktionskalender: {{ calendar_summary }}
+                </p>
             </div>
             <form method="get" class="booking-horizon-form">
                 <label for="zeitraum">Zeitraum</label>
@@ -81,6 +89,7 @@
             <span><i class="legend-swatch pause"></i>Pause</span>
             <span><i class="legend-swatch free"></i>Frei</span>
             <span><i class="legend-swatch forecast"></i>Prognose</span>
+            <span><i class="legend-swatch non-working"></i>Produktionsfrei</span>
             <span><i class="legend-now"></i>Jetzt</span>
         </div>
 
@@ -91,6 +100,13 @@
                 <div class="timeline-row timeline-axis-row">
                     <div class="timeline-machine-cell timeline-corner">Maschine</div>
                     <div class="timeline-track timeline-axis">
+                        {% for closure in calendar_closures %}
+                        <div class="timeline-closure axis-closure"
+                             style="left: {{ '%.4f'|format(closure.left) }}%; width: {{ '%.4f'|format(closure.width) }}%;"
+                             title="{{ closure.label }}: {{ closure.start_at.strftime('%d.%m. %H:%M') }} bis {{ closure.end_at.strftime('%d.%m. %H:%M') }} Uhr">
+                            <span>{{ closure.label }}</span>
+                        </div>
+                        {% endfor %}
                         {% for tick in ticks %}
                         <div class="timeline-tick" style="left: {{ '%.4f'|format(tick.position) }}%;">
                             <span>{{ tick.date_label }}</span>
@@ -113,6 +129,11 @@
                         {% endif %}
                     </div>
                     <div class="timeline-track timeline-lane">
+                        {% for closure in calendar_closures %}
+                        <i class="timeline-closure"
+                           style="left: {{ '%.4f'|format(closure.left) }}%; width: {{ '%.4f'|format(closure.width) }}%;"
+                           title="{{ closure.label }}"></i>
+                        {% endfor %}
                         {% for tick in ticks %}
                         <i class="timeline-gridline" style="left: {{ '%.4f'|format(tick.position) }}%;"></i>
                         {% endfor %}
@@ -208,6 +229,11 @@
                                 Noch {{ lane.active_forecast.remaining_qty }} Stück ·
                                 Zyklus {{ '%.2f'|format(lane.active_forecast.cycle_time_s) }} s
                             </small>
+                            {% if lane.active_forecast.calendar_delay_seconds %}
+                            <small class="calendar-delay-note">
+                                Produktionsfreie Zeit berücksichtigt: +{{ lane.active_forecast.calendar_delay_label }}
+                            </small>
+                            {% endif %}
                             {% elif lane.active_booking.process == 'PROD' %}
                             <span class="forecast-missing">Keine Prognose – Zykluszeit oder Auftragsdaten fehlen.</span>
                             {% else %}
@@ -227,8 +253,9 @@
 
     <div class="forecast-note">
         <strong>Hinweis zur Fertigstellungsprognose:</strong>
-        Sie wird aus Restmenge × Zykluszeit des Artikelstamms berechnet. Störungen, Pausen,
-        Ausschuss und Mehrfachkavitäten verändern den tatsächlichen Endzeitpunkt.
+        Sie wird aus Restmenge × Zykluszeit des Artikelstamms berechnet und berücksichtigt
+        den Produktionskalender einschließlich Wochenenden, Feiertagen und Brückentagen.
+        Störungen, Pausen, Ausschuss und Mehrfachkavitäten verändern den tatsächlichen Endzeitpunkt.
     </div>
 </div>
 {% endblock %}

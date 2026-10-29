@@ -279,6 +279,218 @@
     opacity: .55;
 }
 
+/* Produktionskalender */
+.calendar-setup-page {
+    max-width: 1100px;
+}
+
+.calendar-info-banner {
+    padding: 15px 18px;
+    margin-bottom: 18px;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    background: #eff6ff;
+    color: #1e3a8a;
+}
+
+.calendar-info-banner strong,
+.calendar-info-banner p {
+    display: block;
+    margin: 0;
+}
+
+.calendar-info-banner p {
+    margin-top: 3px;
+    color: #475569;
+    font-size: .84rem;
+}
+
+.calendar-week-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
+}
+
+.calendar-boundary-card {
+    padding: 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+.calendar-boundary-start { border-left: 4px solid #16a34a; }
+.calendar-boundary-end { border-left: 4px solid #dc2626; }
+
+.calendar-boundary-label {
+    display: block;
+    margin-bottom: 10px;
+    color: #334155;
+    font-size: .76rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.calendar-boundary-fields {
+    display: grid;
+    grid-template-columns: 1fr 130px;
+    gap: 10px;
+}
+
+.calendar-direction {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: #475569;
+    font-size: .75rem;
+    font-weight: 800;
+}
+
+.calendar-week-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.calendar-week-form .form-group,
+.calendar-exception-form .form-group {
+    margin: 0;
+}
+
+.calendar-week-form label,
+.calendar-exception-form label:not(.calendar-all-day-check) {
+    display: block;
+    margin-bottom: 5px;
+    color: #475569;
+    font-size: .76rem;
+    font-weight: 700;
+}
+
+.calendar-week-form select,
+.calendar-week-form input,
+.calendar-exception-form input[type="text"],
+.calendar-exception-form input[type="date"],
+.calendar-exception-form input[type="time"],
+.calendar-exception-form textarea {
+    width: 100%;
+    padding: 10px 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #fff;
+    color: #0f172a;
+    box-sizing: border-box;
+    font: inherit;
+}
+
+.calendar-exception-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px;
+}
+
+.calendar-field-wide {
+    grid-column: 1 / -1;
+}
+
+.calendar-all-day-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid #bbf7d0;
+    border-radius: 9px;
+    background: #f0fdf4;
+    cursor: pointer;
+}
+
+.calendar-all-day-check input {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+}
+
+.calendar-all-day-check strong,
+.calendar-all-day-check small {
+    display: block;
+}
+
+.calendar-all-day-check strong {
+    color: #166534;
+    font-size: .84rem;
+}
+
+.calendar-all-day-check small {
+    margin-top: 2px;
+    color: #64748b;
+    font-size: .73rem;
+}
+
+.calendar-time-field[hidden] {
+    display: none;
+}
+
+.calendar-exception-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.calendar-exception-list {
+    display: grid;
+    gap: 9px;
+}
+
+.calendar-exception-item {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #dc2626;
+    border-radius: 9px;
+    background: #fff;
+}
+
+.calendar-exception-item.is-past {
+    border-left-color: #94a3b8;
+    opacity: .68;
+}
+
+.calendar-exception-date strong,
+.calendar-exception-date span,
+.calendar-exception-content strong {
+    display: block;
+}
+
+.calendar-exception-date strong {
+    font-size: .83rem;
+}
+
+.calendar-exception-date span {
+    color: #64748b;
+    font-size: .72rem;
+}
+
+.calendar-exception-content p {
+    margin: 3px 0 0;
+    color: #64748b;
+    font-size: .76rem;
+}
+
+.calendar-summary-line {
+    color: #1d4ed8 !important;
+    font-weight: 700;
+}
+
+.calendar-delay-note {
+    color: #9a3412 !important;
+}
+
 .booking-kpi {
     position: relative;
     overflow: hidden;
@@ -380,6 +592,10 @@
 .legend-swatch.downtime { background: var(--booking-red); }
 .legend-swatch.pause { background: #7c3aed; }
 .legend-swatch.free { background: var(--booking-slate); }
+.legend-swatch.non-working {
+    border: 1px solid #cbd5e1;
+    background: repeating-linear-gradient(135deg, #f1f5f9 0 4px, #cbd5e1 4px 8px);
+}
 .legend-swatch.forecast {
     border: 1px solid #15803d;
     background: repeating-linear-gradient(135deg, #dcfce7 0 4px, #86efac 4px 8px);
@@ -509,6 +725,35 @@
     position: absolute;
     inset: 0 auto 0 0;
     border-left: 1px dashed #e2e8f0;
+}
+
+.timeline-closure {
+    position: absolute;
+    inset: 0 auto 0 0;
+    z-index: 1;
+    border-right: 1px solid rgba(100, 116, 139, .24);
+    border-left: 1px solid rgba(100, 116, 139, .24);
+    background: repeating-linear-gradient(
+        135deg,
+        rgba(226, 232, 240, .72) 0 7px,
+        rgba(203, 213, 225, .52) 7px 14px
+    );
+    pointer-events: auto;
+}
+
+.timeline-axis .axis-closure {
+    z-index: 0;
+    overflow: hidden;
+}
+
+.timeline-axis .axis-closure span {
+    position: absolute;
+    right: 4px;
+    bottom: 2px;
+    color: #64748b;
+    font-size: .6rem;
+    font-weight: 700;
+    white-space: nowrap;
 }
 
 .timeline-now-line {
@@ -812,6 +1057,40 @@
         text-align: center;
         box-sizing: border-box;
     }
+
+    .calendar-week-form {
+        grid-template-columns: 1fr;
+    }
+
+    .calendar-direction {
+        margin: -4px auto;
+    }
+
+    .calendar-week-actions {
+        grid-column: auto;
+    }
+
+    .calendar-week-actions button,
+    .calendar-exception-actions button {
+        width: 100%;
+    }
+
+    .calendar-exception-form {
+        grid-template-columns: 1fr;
+    }
+
+    .calendar-field-wide {
+        grid-column: auto;
+    }
+
+    .calendar-exception-item {
+        grid-template-columns: 1fr auto;
+    }
+
+    .calendar-exception-content {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
 }
 
 @media (max-width: 420px) {
@@ -821,5 +1100,9 @@
 
     .machine-status-card dl > div {
         grid-template-columns: 95px 1fr;
+    }
+
+    .calendar-boundary-fields {
+        grid-template-columns: 1fr;
     }
 }

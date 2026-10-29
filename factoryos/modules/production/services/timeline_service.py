@@ -7,6 +7,13 @@ from factoryos.extensions import db
 from factoryos.models.machine import Machine
 from factoryos.modules.masterdata.articles.models import Article
 from factoryos.modules.production.models import QuantityReport, TimeBooking
+from factoryos.modules.production.services.calendar_service import (
+    WEEKDAYS,
+    calculate_production_finish,
+    get_calendar_exceptions,
+    get_non_working_periods,
+    get_or_create_calendar_settings,
+)
 
 
 HORIZONS = {
@@ -69,7 +76,14 @@ def _booking_label(booking, process_label):
     return process_label
 
 
-def _forecast_for(booking, good_by_order, articles_by_number, now):
+def _forecast_for(
+    booking,
+    good_by_order,
+    articles_by_number,
+    now,
+    calendar_settings,
+    calendar_exceptions,
+):
     if booking.process != "PROD" or not booking.order:
         return None
 
@@ -85,14 +99,26 @@ def _forecast_for(booking, good_by_order, articles_by_number, now):
     good_qty = max(0, int(good_by_order.get(order.id, 0) or 0))
     remaining_qty = max(0, target_qty - good_qty)
     remaining_seconds = remaining_qty * article.cycle_time_s
+    finish_at = calculate_production_finish(
+        now,
+        remaining_seconds,
+        calendar_settings,
+        calendar_exceptions,
+    )
+    calendar_delay_seconds = max(
+        0,
+        int((finish_at - now).total_seconds() - remaining_seconds),
+    )
 
     return {
-        "at": now + timedelta(seconds=remaining_seconds),
+        "at": finish_at,
         "remaining_qty": remaining_qty,
         "good_qty": good_qty,
         "target_qty": target_qty,
         "cycle_time_s": article.cycle_time_s,
         "duration_label": _format_duration(remaining_seconds),
+        "calendar_delay_label": _format_duration(calendar_delay_seconds),
+        "calendar_delay_seconds": calendar_delay_seconds,
     }
 
 
@@ -119,6 +145,8 @@ def get_machine_timeline(horizon_key="24h", now=None):
     horizon = HORIZONS[horizon_key]
     range_start = now - horizon["past"]
     range_end = now + horizon["future"]
+    calendar_settings = get_or_create_calendar_settings()
+    calendar_exceptions = get_calendar_exceptions()
 
     machines = (
         Machine.query
@@ -209,7 +237,14 @@ def get_machine_timeline(horizon_key="24h", now=None):
                 })
 
             if booking.end_time is None:
-                forecast = _forecast_for(booking, good_by_order, articles_by_number, now)
+                forecast = _forecast_for(
+                    booking,
+                    good_by_order,
+                    articles_by_number,
+                    now,
+                    calendar_settings,
+                    calendar_exceptions,
+                )
                 if forecast:
                     active_forecast = forecast
                     forecast_end = min(forecast["at"], range_end)
@@ -263,6 +298,24 @@ def get_machine_timeline(horizon_key="24h", now=None):
             "active_class": active_class,
         })
 
+    weekday_names = dict(WEEKDAYS)
+    calendar_closures = []
+    for start_at, end_at, label in get_non_working_periods(
+        range_start,
+        range_end,
+        calendar_settings,
+        calendar_exceptions,
+    ):
+        left = _percent(start_at, range_start, range_end)
+        right = _percent(end_at, range_start, range_end)
+        calendar_closures.append({
+            "start_at": start_at,
+            "end_at": end_at,
+            "label": label,
+            "left": left,
+            "width": max(0.15, right - left),
+        })
+
     return {
         "lanes": lanes,
         "counters": counters,
@@ -273,4 +326,12 @@ def get_machine_timeline(horizon_key="24h", now=None):
         "now": now,
         "now_position": _percent(now, range_start, range_end),
         "ticks": _axis_ticks(range_start, range_end, horizon["tick"]),
+        "calendar_settings": calendar_settings,
+        "calendar_closures": calendar_closures,
+        "calendar_summary": (
+            f"{weekday_names.get(calendar_settings.week_start_day)} "
+            f"{calendar_settings.week_start_time} bis "
+            f"{weekday_names.get(calendar_settings.week_end_day)} "
+            f"{calendar_settings.week_end_time} Uhr"
+        ),
     }

@@ -1,0 +1,213 @@
+{% extends "layout/base.html" %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/booking_timeline.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="booking-page calendar-setup-page">
+    <div class="booking-page-header">
+        <div>
+            <p class="booking-eyebrow">Maschinen Booking</p>
+            <h1>Produktionskalender</h1>
+            <p class="booking-subtitle">
+                Regelmäßige Arbeitszeiten sowie Feiertage, Brückentage und Betriebsruhen festlegen.
+            </p>
+        </div>
+        <a class="btn-secondary booking-back" href="{{ url_for('production.booking_dashboard') }}">
+            Zurück zur Timeline
+        </a>
+    </div>
+
+    <div class="calendar-info-banner">
+        <strong>Wirkung auf die Prognose</strong>
+        <p>
+            FactoryOS zählt bei der Fertigstellungszeit nur die freigegebenen Produktionsstunden.
+            Zeiten außerhalb des Wochenplans und alle Ausnahmen werden automatisch übersprungen.
+        </p>
+    </div>
+
+    <section class="booking-panel">
+        <div class="booking-section-heading">
+            <h2>Regelmäßiger Wochenplan</h2>
+            <p>Ein zusammenhängendes Produktionsfenster pro Woche, passend zum Dreischichtbetrieb.</p>
+        </div>
+
+        <form method="post" class="calendar-week-form">
+            <input type="hidden" name="action" value="save_weekly_schedule">
+
+            <div class="calendar-boundary-card calendar-boundary-start">
+                <span class="calendar-boundary-label">Wochenstart</span>
+                <div class="calendar-boundary-fields">
+                    <div class="form-group">
+                        <label for="week_start_day">Wochentag</label>
+                        <select id="week_start_day" name="week_start_day" required>
+                            {% for value, label in weekdays %}
+                            <option value="{{ value }}" {% if settings.week_start_day == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="week_start_time">Uhrzeit</label>
+                        <input id="week_start_time" name="week_start_time" type="time"
+                               value="{{ settings.week_start_time }}" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="calendar-direction" aria-hidden="true">bis</div>
+
+            <div class="calendar-boundary-card calendar-boundary-end">
+                <span class="calendar-boundary-label">Wochenende</span>
+                <div class="calendar-boundary-fields">
+                    <div class="form-group">
+                        <label for="week_end_day">Wochentag</label>
+                        <select id="week_end_day" name="week_end_day" required>
+                            {% for value, label in weekdays %}
+                            <option value="{{ value }}" {% if settings.week_end_day == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="week_end_time">Uhrzeit</label>
+                        <input id="week_end_time" name="week_end_time" type="time"
+                               value="{{ settings.week_end_time }}" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="calendar-week-actions">
+                <button type="submit" class="btn-primary">Wochenplan speichern</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="booking-panel">
+        <div class="booking-section-heading">
+            <h2>Feiertag oder Brückentag hinzufügen</h2>
+            <p>Ganztägige oder zeitlich begrenzte Produktionsstopps pflegen.</p>
+        </div>
+
+        <form method="post" class="calendar-exception-form" id="calendar-exception-form">
+            <input type="hidden" name="action" value="add_exception">
+
+            <div class="form-group calendar-field-wide">
+                <label for="title">Bezeichnung</label>
+                <input id="title" name="title" type="text" maxlength="160" required
+                       list="exception-title-options" placeholder="Zum Beispiel Tag der Deutschen Einheit">
+                <datalist id="exception-title-options">
+                    <option value="Feiertag"></option>
+                    <option value="Brückentag"></option>
+                    <option value="Betriebsruhe"></option>
+                    <option value="Betriebsversammlung"></option>
+                </datalist>
+            </div>
+
+            <div class="form-group">
+                <label for="start_date">Von Datum</label>
+                <input id="start_date" name="start_date" type="date" value="{{ today.isoformat() }}" required>
+            </div>
+            <div class="form-group">
+                <label for="end_date">Bis Datum</label>
+                <input id="end_date" name="end_date" type="date" value="{{ today.isoformat() }}" required>
+            </div>
+
+            <label class="calendar-all-day-check calendar-field-wide">
+                <input id="all_day" name="all_day" type="checkbox" value="yes" checked>
+                <span>
+                    <strong>Ganztägig produktionsfrei</strong>
+                    <small>Für Feiertage, Brückentage und vollständige Betriebsruhe.</small>
+                </span>
+            </label>
+
+            <div class="form-group calendar-time-field" hidden>
+                <label for="start_time">Von Uhrzeit</label>
+                <input id="start_time" name="start_time" type="time" value="08:00">
+            </div>
+            <div class="form-group calendar-time-field" hidden>
+                <label for="end_time">Bis Uhrzeit</label>
+                <input id="end_time" name="end_time" type="time" value="12:00">
+            </div>
+
+            <div class="form-group calendar-field-wide">
+                <label for="note">Notiz <span class="optional-label">optional</span></label>
+                <textarea id="note" name="note" maxlength="500" rows="2"
+                          placeholder="Weitere Informationen zur Produktionsunterbrechung"></textarea>
+            </div>
+
+            <div class="calendar-exception-actions calendar-field-wide">
+                <button type="submit" class="btn-primary">Ausnahme hinzufügen</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="booking-panel">
+        <div class="booking-section-heading">
+            <h2>Hinterlegte Ausnahmen</h2>
+            <p>{{ exceptions|length }} produktionsfreie Zeiträume sind gespeichert.</p>
+        </div>
+
+        {% if exceptions %}
+        <div class="calendar-exception-list">
+            {% for exception in exceptions %}
+            <article class="calendar-exception-item {% if exception.end_at.date() < today %}is-past{% endif %}">
+                <div class="calendar-exception-date">
+                    <strong>{{ exception.start_at.strftime('%d.%m.%Y') }}</strong>
+                    {% if exception.display_end_date > exception.start_at.date() %}
+                    <span>bis {{ exception.display_end_date.strftime('%d.%m.%Y') }}</span>
+                    {% elif not exception.all_day %}
+                    <span>{{ exception.start_at.strftime('%H:%M') }}–{{ exception.end_at.strftime('%H:%M') }} Uhr</span>
+                    {% else %}
+                    <span>ganztägig</span>
+                    {% endif %}
+                </div>
+                <div class="calendar-exception-content">
+                    <strong>{{ exception.title }}</strong>
+                    {% if exception.note %}<p>{{ exception.note }}</p>{% endif %}
+                </div>
+                <form method="post"
+                      action="{{ url_for('production.delete_booking_calendar_exception', exception_id=exception.id) }}"
+                      onsubmit="return confirm('Diese Kalenderausnahme wirklich löschen?');">
+                    <button type="submit" class="btn-small btn-delete">Löschen</button>
+                </form>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="booking-empty-state">
+            <strong>Noch keine Feiertage oder Brückentage hinterlegt</strong>
+            <p>Die regelmäßigen Wochenendzeiten werden trotzdem bereits berücksichtigt.</p>
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<script>
+(function () {
+    const allDay = document.getElementById("all_day");
+    const timeFields = document.querySelectorAll(".calendar-time-field");
+    const startDate = document.getElementById("start_date");
+    const endDate = document.getElementById("end_date");
+
+    function updateTimeFields() {
+        const hidden = allDay.checked;
+        timeFields.forEach(function (field) {
+            field.hidden = hidden;
+            field.querySelector("input").required = !hidden;
+        });
+    }
+
+    allDay.addEventListener("change", updateTimeFields);
+    startDate.addEventListener("change", function () {
+        if (!endDate.value || endDate.value < startDate.value) endDate.value = startDate.value;
+        endDate.min = startDate.value;
+    });
+    endDate.min = startDate.value;
+    updateTimeFields();
+})();
+</script>
+{% endblock %}
