@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Musterungsauftrag {{ document.number }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sampling_print.css') }}">
+</head><body>
+<nav class="print-toolbar" aria-label="Druckaktionen">
+<button type="button" onclick="window.print()">Jetzt drucken</button>
+<a href="{{ url_for('sampling.export_pdf', sampling_id=record.id) }}">PDF herunterladen</a>
+<a href="{{ url_for('sampling.detail', sampling_id=record.id) }}">Zur Musterung</a>
+<span>Papier: A4, Hochformat</span>
+</nav>
+<main class="print-document">
+<header><p class="eyebrow">FactoryOS / Musterung</p><h1>Musterungsauftrag</h1><p class="order-number">{{ document.number }}</p><p class="reason">{{ document.reason }}</p>
+<p class="status">{{ 'BEARBEITUNGSSTAND - ' if document.preliminary else '' }}{{ document.status }}</p>
+<p class="metadata">Auftragsstand: Version {{ document.version }} / Ausgabe: {{ document.generated }}</p><p class="notice">{{ document.notice }}</p></header>
+{% for group in document.groups %}
+<section><h2>{{ group.title }}</h2>
+{% if group.rows %}<dl class="facts">{% for label,value in group.rows %}<div><dt>{{ label }}</dt><dd>{{ value }}</dd></div>{% endfor %}</dl>{% endif %}
+{% for label,value in group.texts %}<h3>{{ label }}</h3><p class="free-text">{{ value }}</p>{% endfor %}
+</section>{% endfor %}
+<section><h2>Prüfungen, Freigaben und Dokumentenlenkung</h2>
+<table><thead><tr><th>Prüfpunkt</th><th>Status</th><th>Datum</th><th>Bearbeitet von</th></tr></thead><tbody>
+{% for check in document.checks %}<tr><td>{{ check.label }}</td><td>{{ check.status }}</td><td>{{ check.date }}</td><td>{{ check.user }}</td></tr>{% endfor %}
+</tbody></table></section>
+{% if document.checks|selectattr('note')|list %}<section><h2>Prüfnotizen und Nachweisreferenzen</h2>{% for check in document.checks if check.note %}<h3>{{ check.label }}</h3><p class="free-text">{{ check.note }}</p>{% endfor %}</section>{% endif %}
+<section><h2>Abschluss und weitere Maßnahmen</h2><dl class="facts">{% for label,value in document.closing %}<div><dt>{{ label }}</dt><dd>{{ value }}</dd></div>{% endfor %}</dl>
+{% for label,value in document.closing_texts %}<h3>{{ label }}</h3><p class="free-text">{{ value }}</p>{% endfor %}</section>
+<footer>FactoryOS / Musterungsauftrag {{ document.number }} / Version {{ document.version }}</footer>
+</main></body></html>
+

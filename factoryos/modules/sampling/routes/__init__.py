@@ -1,6 +1,7 @@
 import secrets
 from datetime import date, datetime
-from flask import Blueprint, render_template, request, session, abort, redirect, url_for, flash
+from flask import Blueprint, render_template, request, session, abort, redirect, url_for, flash, send_file
+from werkzeug.utils import secure_filename
 from flask_login import login_required, current_user
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import StaleDataError
@@ -20,6 +21,28 @@ def csrf_token():
     if "sampling_csrf" not in session:
         session["sampling_csrf"] = secrets.token_urlsafe(32)
     return session["sampling_csrf"]
+
+
+@bp.route("/<int:sampling_id>/pdf")
+@login_required
+def export_pdf(sampling_id):
+    from ..pdf_service import build_pdf
+    record = SamplingOrder.query.get_or_404(sampling_id)
+    filename = f"Musterung_{record.id}_{secure_filename(record.order.order_no) or 'Auftrag'}.pdf"
+    response = send_file(build_pdf(record), mimetype="application/pdf",
+                         as_attachment=True, download_name=filename, max_age=0)
+    response.headers["Cache-Control"] = "private, no-store"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@bp.route("/<int:sampling_id>/print")
+@login_required
+def print_order(sampling_id):
+    from ..document_service import document_data
+    record = SamplingOrder.query.get_or_404(sampling_id)
+    response = render_template("sampling/print.html", record=record, document=document_data(record))
+    return response, 200, {"Cache-Control": "private, no-store"}
 
 
 def verify_csrf():

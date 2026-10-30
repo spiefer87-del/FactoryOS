@@ -1,5 +1,9 @@
 {% extends "sampling/base.html" %}
 {% block sampling_content %}
+<div class="page-actions sampling-export-actions">
+<a class="btn-secondary" href="{{ url_for('sampling.export_pdf', sampling_id=record.id) }}">PDF herunterladen</a>
+<a class="btn-secondary" href="{{ url_for('sampling.print_order', sampling_id=record.id) }}" target="_blank" rel="noopener">Druckansicht öffnen</a>
+</div>
 {% if active_bookings %}
 <div class="sampling-notice"><strong>Eine Maschinenbuchung läuft.</strong>
 <form method="post" action="{{ url_for('sampling.stop_booking', sampling_id=record.id) }}" onsubmit="return confirm('Laufende Musterungsbuchung jetzt beenden?');">
