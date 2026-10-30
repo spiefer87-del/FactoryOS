@@ -19,6 +19,10 @@ href="/static/css/qm_builder.css">
 <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
 
 {% block styles %}{% endblock %}
+{% set is_masterdata = request.blueprint in ['masterdata', 'articles', 'customers', 'tools', 'machines', 'materials'] %}
+{% if is_masterdata %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/masterdata_theme.css') }}">
+{% endif %}
     
 
 </head>
@@ -34,7 +38,7 @@ href="/static/css/qm_builder.css">
 
     {% include "layout/sidebar.html" %}
 
-    <main class="content">
+    <main class="content{% if is_masterdata %} masterdata-theme{% endif %}">
 
         <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}

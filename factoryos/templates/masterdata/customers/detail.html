@@ -1,13 +1,22 @@
 {% extends "layout/base.html" %}
 {% block content %}
-<div class="page-header"><h2>{{ customer.customer_no }} – {{ customer.name }}</h2>
-<a class="btn-primary" href="{{ url_for('customers.edit', customer_id=customer.id) }}">Bearbeiten</a></div>
-<div class="detail-card"><div class="detail-grid">
-{% for key, label in [('contact','Ansprechpartner'),('email','E-Mail'),('phone','Telefon'),('street','Straße'),('postal_code','Postleitzahl'),('city','Ort'),('country','Land'),('notes','Notizen')] %}
+<div class="page-header">
+<div><p class="md-eyebrow">Stammdaten / Kunden</p><h2>{{ customer.customer_no }}</h2><div class="page-subtitle">{{ customer.name }}</div></div>
+<div class="page-actions"><span class="status-badge {{ 'status-aktiv' if customer.active else 'status-inaktiv' }}">{{ 'Aktiv' if customer.active else 'Inaktiv' }}</span>
+<a class="btn-primary" href="{{ url_for('customers.edit', customer_id=customer.id) }}">Bearbeiten</a></div></div>
+<div class="md-sections">
+<section class="detail-card"><h3>Kontakt</h3><div class="detail-grid">
+{% for key, label in [('name','Firma / Name'),('contact','Ansprechpartner'),('email','E-Mail'),('phone','Telefon')] %}
 <div class="detail-item"><label>{{ label }}</label><div class="detail-value">{{ customer[key] or '–' }}</div></div>
 {% endfor %}
-<div class="detail-item"><label>Status</label><div>{{ 'Aktiv' if customer.active else 'Inaktiv' }}</div></div>
-</div></div>
+</div></section>
+<section class="detail-card"><h3>Anschrift</h3><div class="detail-grid">
+{% for key, label in [('street','Straße'),('postal_code','Postleitzahl'),('city','Ort'),('country','Land')] %}
+<div class="detail-item"><label>{{ label }}</label><div class="detail-value">{{ customer[key] or '–' }}</div></div>
+{% endfor %}
+</div></section>
+</div>
+<section class="detail-card"><h3>Notizen</h3><p class="md-notes">{{ customer.notes or 'Keine Notizen hinterlegt.' }}</p></section>
 <div class="detail-card"><h3>Zugeordnete Artikel</h3>
 {% for article in customer.articles %}<p><a href="{{ url_for('articles.detail', article_id=article.id) }}">{{ article.article_no }} – {{ article.article_name }}</a></p>
 {% else %}<p>Keine Artikel zugeordnet.</p>{% endfor %}</div>
