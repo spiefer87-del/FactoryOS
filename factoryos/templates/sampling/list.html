@@ -1,0 +1,17 @@
+{% extends "sampling/base.html" %}
+{% block sampling_content %}
+<header class="page-header"><div><p class="sampling-eyebrow">Auftragsabwicklung</p><h2>Musterungsaufträge</h2><p class="page-subtitle">Getrennt von bestehenden Produktionsaufträgen.</p></div>
+<div class="page-actions"><a class="btn-primary" href="{{ url_for('sampling.create') }}">Musterung anlegen</a><a class="btn-secondary" href="{{ url_for('orders.dashboard') }}">Aufträge</a></div></header>
+<form method="get" class="sampling-filters">
+<label>Anlass<select name="reason"><option value="">Alle Anlässe</option>{% for key,label in reasons.items() %}<option value="{{ key }}" {% if key==reason_filter %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+<label>Status<select name="state"><option value="">Alle Status</option>{% for key,label in states.items() %}<option value="{{ key }}" {% if key==state_filter %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+<button class="btn-secondary">Filtern</button></form>
+<div class="fos-table-wrapper"><div class="fos-table-toolbar"><input class="fos-search" data-table-search="sampling-table" placeholder="Auftrag suchen …" aria-label="Musterungsauftrag suchen"></div>
+<div class="fos-table-container"><table class="fos-table" id="sampling-table"><thead><tr><th>Auftrag</th><th>Anlass</th><th>Artikel</th><th>Kunde</th><th>Status</th><th>Kundenfreigabe</th></tr></thead>
+<tbody>{% for record in records %}<tr>
+<td><a href="{{ url_for('sampling.detail', sampling_id=record.id) }}">{{ record.order.order_no }}</a></td>
+<td>{{ reasons[record.reason] }}</td><td>{{ record.order.article or '–' }}</td><td>{{ record.snapshot.get('customer',{}).get('name') or '–' }}</td>
+<td>{{ 'Intern erfolgreich abgeschlossen' if record.state=='completed' and record.reason!='initial' else states[record.state] }}</td><td>{% for check in record.checks if check.key=='external' %}{{ check_statuses[check.status] }}{% endfor %}</td>
+</tr>{% else %}<tr><td colspan="6">Keine Musterungen vorhanden.</td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock %}
+

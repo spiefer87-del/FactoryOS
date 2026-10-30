@@ -64,6 +64,11 @@ def start_production(user_id, order_id, machine_id, comment=None):
 
     order = Order.query.get_or_404(order_id)
 
+    if order.sampling:
+        if order.sampling.state not in ("in_progress", "review"):
+            raise ValueError("Musterung muss für das Booking in Bearbeitung oder Prüfung sein.")
+        if order.sampling.machine_id != int(machine_id):
+            raise ValueError("Bitte im Musterungsauftrag zuerst die gewählte Maschine zuordnen.")
     close_all_active_bookings(machine_id)
 
     if (order.status or "").lower() in ("open", "offen"):
@@ -74,7 +79,7 @@ def start_production(user_id, order_id, machine_id, comment=None):
         order_id=order.id,
         machine_id=machine_id,
         type="START",
-        process="PROD",
+        process="MUSTER" if order.sampling else "PROD",
         tool_no=order.tool_no,
         comment=(comment or "").strip()[:255] or None,
         start_time=datetime.utcnow()
@@ -117,6 +122,9 @@ def resume_booking(booking_id, user_id):
 
     booking = TimeBooking.query.get_or_404(booking_id)
 
+    if booking.order and booking.order.sampling and booking.order.sampling.state not in ("in_progress", "review"):
+        raise ValueError("Diese Musterung ist nicht mehr für eine Buchung freigegeben.")
+
     booking.end_time = datetime.utcnow()
 
     order = Order.query.get(booking.order_id)
@@ -128,7 +136,7 @@ def resume_booking(booking_id, user_id):
             order_id=order.id,
             machine_id=booking.machine_id,
             type="START",
-            process="PROD",
+            process="MUSTER" if order.sampling else "PROD",
             tool_no=order.tool_no,
             start_time=datetime.utcnow()
         )

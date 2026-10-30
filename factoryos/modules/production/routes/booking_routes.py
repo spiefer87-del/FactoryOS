@@ -99,12 +99,16 @@ def _handle_start_request():
         )
         return _render_manual_start(order_id, machine_id, comment)
 
-    start_production(
-        user_id=current_user.id,
-        order_id=order.id,
-        machine_id=machine.id,
-        comment=comment,
-    )
+    try:
+        start_production(
+            user_id=current_user.id,
+            order_id=order.id,
+            machine_id=machine.id,
+            comment=comment,
+        )
+    except ValueError as exc:
+        flash(str(exc), "danger")
+        return _render_manual_start(order_id, machine_id, comment)
 
     flash(
         f"Auftrag {order.order_no} wurde auf Maschine {machine.machine_no} gestartet.",
@@ -151,9 +155,12 @@ def end_booking_route(booking_id):
 @login_required
 def resume_from_pause_or_downtime(booking_id):
 
-    resume_booking(
-        booking_id,
-        user_id=current_user.id
-    )
+    try:
+        resume_booking(
+            booking_id,
+            user_id=current_user.id
+        )
+    except ValueError as exc:
+        flash(str(exc), "danger")
 
     return redirect(url_for("production.booking_dashboard"))

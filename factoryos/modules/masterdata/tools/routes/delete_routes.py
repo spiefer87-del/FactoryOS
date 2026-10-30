@@ -1,4 +1,4 @@
-from flask import redirect, url_for
+from flask import redirect, url_for, flash
 from flask_login import login_required
 
 from . import bp
@@ -13,6 +13,10 @@ def delete(tool_id):
 
     tool = Tool.query.get_or_404(tool_id)
 
+    from factoryos.modules.sampling.models import SamplingOrder
+    if SamplingOrder.query.filter_by(tool_id=tool.id).first():
+        flash("Dieser Stammdatensatz wird von einem Musterungsauftrag verwendet und kann nicht gelöscht werden.", "warning")
+        return redirect(url_for("tools.detail", tool_id=tool.id))
     delete_tool(tool)
 
     return redirect(url_for("tools.list_tools"))

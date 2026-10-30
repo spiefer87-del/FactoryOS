@@ -38,7 +38,7 @@
                             data-running="{{ 'true' if active_order else 'false' }}"
                             data-running-machine="{{ active_order.machine.machine_no if active_order and active_order.machine else '' }}"
                             {% if selected_order_id == order.id %}selected{% endif %}>
-                        {{ order.order_no }} · {{ order.article or 'ohne Artikel' }}
+                        {{ 'Musterung · ' if order.sampling else '' }}{{ order.order_no }} · {{ order.article or 'ohne Artikel' }}
                         {% if active_order %} · läuft auf {{ active_order.machine.machine_no if active_order.machine else 'Maschine' }}{% endif %}
                     </option>
                     {% endfor %}

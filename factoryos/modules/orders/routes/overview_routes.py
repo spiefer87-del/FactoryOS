@@ -9,7 +9,7 @@ from factoryos.modules.orders.models import Order
 @login_required
 def overview():
 
-    orders = Order.query.order_by(Order.id.desc()).all()
+    orders = Order.query.filter(~Order.sampling.has()).order_by(Order.id.desc()).all()
 
     return render_template(
         "orders/overview.html",

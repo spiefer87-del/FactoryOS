@@ -1,0 +1,7 @@
+{% extends "layout/base.html" %}
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/masterdata_theme.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sampling.css') }}">
+{% endblock %}
+{% block content %}<div class="masterdata-theme sampling-page">{% block sampling_content %}{% endblock %}</div>{% endblock %}
+

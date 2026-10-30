@@ -1,0 +1,40 @@
+{% extends "sampling/base.html" %}
+{% macro select_reference(key, label, options, number, name) %}
+<div class="form-group"><label for="{{ key }}">{{ label }}</label><select class="sampling-search" id="{{ key }}" name="{{ key }}"><option value="">Keine Zuordnung</option>
+{% for obj in options %}<option value="{{ obj.id }}" {% if values.get(key,'')|string==obj.id|string %}selected{% endif %}>{{ obj[number] }} – {{ obj[name] or '' }}</option>{% endfor %}</select></div>
+{% endmacro %}
+{% block sampling_content %}
+<header class="page-header"><div><p class="sampling-eyebrow">Musterung</p><h2>{{ 'Auftrag bearbeiten' if record else 'Musterungsauftrag anlegen' }}</h2></div><a class="btn-secondary" href="{{ url_for('sampling.overview') }}">Zur Übersicht</a></header>
+<div class="sampling-notice">Genau ein Anlass pro Auftrag. Erstbemusterungen benötigen zusätzlich externe Kundenfreigabe, Prüfumfang, kavitätenbezogene Ergebnisse und eine Prüfbericht-/EMPB-Referenz. Die Angaben verändern keine Stammdaten.</div>
+<form method="post">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="version" value="{{ values.get('version','') }}">
+<section class="form-card"><h3>Auftragskopf und Zuordnungen</h3><div class="form-grid">
+<div class="form-group"><label for="order_no">Musterungs-Auftragsnummer *</label><input id="order_no" name="order_no" required maxlength="50" value="{{ values.get('order_no','') }}"></div>
+<div class="form-group"><label for="reason">Musterungsanlass *</label><select id="reason" name="reason" required {% if record %}disabled{% endif %}><option value="">Bitte auswählen</option>{% for key,label in reasons.items() %}<option value="{{ key }}" {% if key==values.get('reason') %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>{% if record %}<input type="hidden" name="reason" value="{{ record.reason }}">{% endif %}</div>
+<div class="form-group"><label for="target_qty">Anzahl der Muster *</label><input id="target_qty" type="number" min="1" step="1" name="target_qty" value="{{ values.get('target_qty',1) }}" required></div>
+<div class="form-group"><label for="state">Bearbeitungsstatus</label><select id="state" name="state">{% for key in ['draft','in_progress','review','rework'] %}<option value="{{ key }}" {% if key==values.get('state') %}selected{% endif %}>{{ states[key] }}</option>{% endfor %}</select></div>
+{{ select_reference('article_id','Artikel',articles,'article_no','article_name') }}
+{{ select_reference('customer_id','Kunde',customers,'customer_no','name') }}
+{{ select_reference('tool_id','Werkzeug',tools,'tool_no','name') }}
+{{ select_reference('material_id','Rohstoff',materials,'material_no','name') }}
+{{ select_reference('machine_id','Geplante / verwendete Maschine',machines,'machine_no','name') }}
+<div class="form-group"><label for="previous_id">Bezug zur vorherigen Musterung</label><select id="previous_id" class="sampling-search" name="previous_id" {% if record %}disabled{% endif %}><option value="">Kein Vorgänger</option>{% for old in previous_orders if not record or old.id!=record.id %}<option value="{{ old.id }}" {% if values.get('previous_id','')|string==old.id|string %}selected{% endif %}>{{ old.order.order_no }} – {{ reasons[old.reason] }}</option>{% endfor %}</select>{% if record %}<input type="hidden" name="previous_id" value="{{ record.previous_id or '' }}">{% endif %}</div>
+</div><p class="sampling-help">Artikel, Kunde, Werkzeug und Rohstoff bitte ausdrücklich auswählen. Die Werte werden auftragsbezogen festgehalten, nicht zurück in die Stammdaten geschrieben.</p></section>
+<section class="form-card"><h3>Vorgaben, Durchführung und Ergebnis</h3><div class="form-grid">
+{% for key,label in text_fields.items() %}<div class="form-group{% if key in ['instructions','changes_result','deviations','quality_note','actions','initial_scope','cavity_result'] %} full{% endif %}"><label for="{{ key }}">{{ label }}</label><textarea id="{{ key }}" name="{{ key }}" maxlength="10000" rows="2">{{ values.get(key,'') }}</textarea></div>{% endfor %}
+{% for key,label in date_fields.items() %}<div class="form-group"><label for="{{ key }}">{{ label }}</label><input type="date" id="{{ key }}" name="{{ key }}" value="{{ values.get(key,'') }}"></div>{% endfor %}
+{% for key,meta in number_fields.items() %}<div class="form-group"><label for="{{ key }}">{{ meta[0] }}</label><input type="number" min="0" step="{{ '1' if meta[1] else 'any' }}" id="{{ key }}" name="{{ key }}" value="{{ values.get(key) if values.get(key) is not none else '' }}"></div>{% endfor %}
+{% for key,label in yes_no_fields.items() %}<div class="form-group"><label for="{{ key }}">{{ label }}</label><select id="{{ key }}" name="{{ key }}">{% for value,text in [('','Noch offen'),('yes','Ja'),('no','Nein')] %}<option value="{{ value }}" {% if value==values.get(key,'') %}selected{% endif %}>{{ text }}</option>{% endfor %}</select></div>{% endfor %}
+</div></section>
+<section class="form-card"><h3>Prüfungen, Freigaben und Dokumentenlenkung</h3><p class="sampling-help">Erledigt, erteilt oder abgelehnt erfordert ein Datum. Ablehnung und „nicht erforderlich“ erfordern eine Begründung. Änderungen werden mit dem angemeldeten Benutzer protokolliert.</p>
+{% for key,label in check_labels.items() %}
+<div class="sampling-check"><h4>{{ label }}{% if key in initial_required %}<small>Bei Erstbemusterung erforderlich</small>{% endif %}</h4><div class="form-grid">
+<div class="form-group"><label for="check_{{ key }}">Status</label><select id="check_{{ key }}" name="check_{{ key }}">{% for status in (['open','granted','rejected','not_required'] if key in ['internal','external'] else ['open','done','rejected','not_required']) %}<option value="{{ status }}" {% if values.get('check_'+key,'open')==status %}selected{% endif %}>{{ check_statuses[status] }}</option>{% endfor %}</select></div>
+<div class="form-group"><label for="date_{{ key }}">Prüf- / Freigabedatum</label><input type="date" name="date_{{ key }}" id="date_{{ key }}" value="{{ values.get('date_'+key,'') }}"></div>
+<div class="form-group full"><label for="note_{{ key }}">Notiz / Begründung / Nachweisreferenz</label><textarea maxlength="5000" rows="2" name="note_{{ key }}" id="note_{{ key }}">{{ values.get('note_'+key,'') }}</textarea></div>
+</div></div>{% endfor %}</section>
+<div class="form-actions"><button class="btn-primary">Musterung speichern</button><a class="btn-secondary" href="{{ url_for('sampling.detail', sampling_id=record.id) if record else url_for('sampling.overview') }}">Abbrechen</a></div>
+</form>
+<script>document.addEventListener("DOMContentLoaded",function(){if(typeof TomSelect!=="undefined"){document.querySelectorAll(".sampling-search:not(:disabled)").forEach(function(el){new TomSelect(el,{create:false,maxItems:1,allowEmptyOption:true,plugins:["clear_button"]});});}});</script>
+{% endblock %}
+

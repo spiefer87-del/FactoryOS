@@ -39,6 +39,7 @@ HORIZONS = {
 
 PROCESS_META = {
     "PROD": ("Produktion", "production"),
+    "MUSTER": ("Musterung", "production"),
     "RUEST": ("Rüsten", "setup"),
     "ABRUEST": ("Abrüsten", "setup"),
     "STOERUNG": ("Störung", "downtime"),
@@ -70,7 +71,7 @@ def _format_duration(seconds):
 
 def _booking_label(booking, process_label):
     if booking.order:
-        return booking.order.order_no
+        return ("Musterung " if booking.process == "MUSTER" else "") + booking.order.order_no
     if booking.process == "STOERUNG" and booking.downtime_reason:
         return booking.downtime_reason.name
     return process_label

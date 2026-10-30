@@ -1,11 +1,13 @@
 from datetime import datetime
 from factoryos.extensions import db
+from factoryos.modules.sampling.models import SamplingOrder
 
 class Order(db.Model):
 
     __tablename__ = "orders"
 
     id = db.Column(db.Integer, primary_key=True)
+    sampling = db.relationship("SamplingOrder", back_populates="order", uselist=False)
 
     order_no = db.Column(db.String(50), unique=True, nullable=False, index=True)
 

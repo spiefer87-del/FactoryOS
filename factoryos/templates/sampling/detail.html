@@ -1,0 +1,47 @@
+{% extends "sampling/base.html" %}
+{% block sampling_content %}
+{% if active_bookings %}
+<div class="sampling-notice"><strong>Eine Maschinenbuchung läuft.</strong>
+<form method="post" action="{{ url_for('sampling.stop_booking', sampling_id=record.id) }}" onsubmit="return confirm('Laufende Musterungsbuchung jetzt beenden?');">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn-secondary">Musterungsbuchung beenden</button></form></div>
+{% endif %}
+<header class="page-header"><div><p class="sampling-eyebrow">Musterungsauftrag · {{ reasons[record.reason] }}</p><h2>{{ record.order.order_no }}</h2><p class="page-subtitle">{{ 'Intern erfolgreich abgeschlossen' if record.state=='completed' and record.reason!='initial' else states[record.state] }} · Erstellt {{ record.created_at.strftime('%d.%m.%Y') }}</p></div>
+<div class="page-actions">{% if record.state!='completed' %}<a class="btn-primary" href="{{ url_for('sampling.edit', sampling_id=record.id) }}">Bearbeiten</a>{% endif %}<a class="btn-secondary" href="{{ url_for('sampling.overview') }}">Übersicht</a><a class="btn-secondary" href="{{ url_for('sampling.create', previous_id=record.id, reason=record.reason) }}">Nachbemusterung anlegen</a></div></header>
+<section class="detail-card"><h3>Auftragsdaten</h3><div class="detail-grid">
+{% for key,label in [('article','Artikel'),('customer','Kunde'),('tool','Werkzeug'),('material','Rohstoff'),('machine','Maschine')] %}<div class="detail-item"><label>{{ label }} (Auftragsstand)</label><div>{{ record.snapshot.get(key,{}).get('number') or '–' }}<br>{{ record.snapshot.get(key,{}).get('name') or '' }}</div></div>{% endfor %}
+<div class="detail-item"><label>Musteranzahl</label><div>{{ record.order.target_qty }}</div></div>
+<div class="detail-item"><label>Zeichnung / Index</label><div>{{ record.snapshot.get('drawing_no') or '–' }} / {{ record.snapshot.get('drawing_revision') or '–' }}</div></div>
+{% if record.previous %}<div class="detail-item"><label>Vorherige Musterung</label><a href="{{ url_for('sampling.detail', sampling_id=record.previous.id) }}">{{ record.previous.order.order_no }}</a></div>{% endif %}
+<div class="detail-item"><label>Rüsten + Musterungsdauer</label><div>{{ (record.data.get('setup_minutes') or 0)+(record.data.get('sampling_minutes') or 0) }} Minuten{% if record.data.get('setup_minutes') is none or record.data.get('sampling_minutes') is none %} (unvollständige Zeitangabe){% endif %}</div></div>
+</div>
+{% if record.state in ['in_progress','review'] %}<div class="form-actions"><a class="btn-primary" href="{{ url_for('production.manual_start', order_id=record.order_id, machine_id=record.machine_id or '') }}">Im Maschinen Booking starten</a></div>{% endif %}
+</section>
+<section class="detail-card"><h3>Vorgaben und Ergebnisse</h3><div class="detail-grid">
+{% for key,label in text_fields.items() if record.data.get(key) %}<div class="detail-item"><label>{{ label }}</label><div class="sampling-text">{{ record.data[key] }}</div></div>{% endfor %}
+{% for key,label in date_fields.items() %}<div class="detail-item"><label>{{ label }}</label><div>{{ record.data.get(key) or '–' }}</div></div>{% endfor %}
+{% for key,meta in number_fields.items() %}<div class="detail-item"><label>{{ meta[0] }}</label><div>{{ record.data.get(key) if record.data.get(key) is not none else '–' }}</div></div>{% endfor %}
+{% for key,label in yes_no_fields.items() %}<div class="detail-item"><label>{{ label }}</label><div>{{ {'yes':'Ja','no':'Nein'}.get(record.data.get(key),'Offen') }}</div></div>{% endfor %}
+</div></section>
+<section class="detail-card"><h3>Prüfungen und Freigaben</h3><div class="fos-table-container"><table class="fos-table"><thead><tr><th>Prüfpunkt</th><th>Status</th><th>Datum</th><th>Bearbeitet von</th><th>Notiz</th></tr></thead><tbody>
+{% for check in record.checks %}<tr><td>{{ check_labels[check.key] }}</td><td>{{ check_statuses[check.status] }}</td><td>{{ check.evidence_date or '–' }}</td><td>{{ check.updated_by.username if check.updated_by else '–' }}</td><td class="sampling-text">{{ check.note or '–' }}</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% if record.state!='completed' %}
+<section class="detail-card"><h3>Abschlussprüfung</h3>
+{% if record.reason=='initial' %}<p class="sampling-notice">Erstbemusterung: Ein interner Abschluss allein reicht nicht. Externe Kundenfreigabe und die erweiterten Nachweise sind zwingend.</p>{% else %}<p>Der interne erfolgreiche Abschluss ist unabhängig von einer noch offenen Kundenfreigabe möglich. Der externe Freigabestatus bleibt separat sichtbar.</p>{% endif %}
+{% if errors %}<ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>{% else %}<p>Die Abschlussvoraussetzungen sind erfüllt.</p>{% endif %}
+<form method="post" action="{{ url_for('sampling.complete', sampling_id=record.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="version" value="{{ record.version }}"><button class="btn-primary" {% if errors %}disabled{% endif %}>Erfolgreich abschließen</button></form>
+</section>{% else %}<div class="sampling-notice">Erfolgreich abgeschlossen am {{ record.completed_at.strftime('%d.%m.%Y %H:%M') }} (UTC). Der Auftrag ist schreibgeschützt; weitere Versuche als Nachbemusterung anlegen.</div>{% endif %}
+<details class="sampling-history"><summary>Aktivitäten aufklappen</summary>{% include "components/changelog.html" %}</details>
+{% if record.state=='completed' and record.reason!='initial' %}
+<section class="detail-card"><h3>Externe Kundenfreigabe nachverfolgen</h3><p>Der interne Abschluss bleibt unverändert. Nur die Kundenentscheidung wird ergänzt.</p>
+{% for check in record.checks if check.key=='external' %}
+<form method="post" action="{{ url_for('sampling.external_followup', sampling_id=record.id) }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="version" value="{{ record.version }}">
+<div class="form-grid"><div class="form-group"><label for="external_status">Kundenfreigabe</label><select id="external_status" name="external_status">{% for key in ['open','granted','rejected','not_required'] %}<option value="{{ key }}" {% if key==check.status %}selected{% endif %}>{{ check_statuses[key] }}</option>{% endfor %}</select></div>
+<div class="form-group"><label for="external_date">Datum</label><input id="external_date" name="external_date" type="date" value="{{ check.evidence_date or '' }}"></div>
+<div class="form-group full"><label for="external_note">Notiz / Begründung</label><textarea id="external_note" name="external_note" maxlength="5000">{{ check.note or '' }}</textarea></div></div>
+<div class="form-actions"><button class="btn-primary">Kundenentscheidung speichern</button></div></form>
+{% endfor %}</section>
+{% endif %}
+{% endblock %}
+

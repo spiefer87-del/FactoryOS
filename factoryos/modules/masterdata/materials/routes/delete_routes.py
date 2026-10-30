@@ -17,6 +17,10 @@ def delete(material_id):
     if Article.query.filter_by(material_id=material.id).first():
         flash("Dieses Material ist Artikeln zugeordnet. Bitte zuerst die Rohstoffzuordnung entfernen.", "warning")
         return redirect(url_for("materials.detail", material_id=material.id))
+    from factoryos.modules.sampling.models import SamplingOrder
+    if SamplingOrder.query.filter_by(material_id=material.id).first():
+        flash("Dieser Stammdatensatz wird von einem Musterungsauftrag verwendet und kann nicht gelöscht werden.", "warning")
+        return redirect(url_for("materials.detail", material_id=material.id))
     delete_material(material)
     flash("Material wurde gelöscht; die Ablage wurde archiviert.", "success")
     return redirect(url_for("materials.list_materials"))

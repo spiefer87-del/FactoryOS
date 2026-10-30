@@ -23,6 +23,10 @@ def delete(machine_id):
         machine_id
     )
 
+    from factoryos.modules.sampling.models import SamplingOrder
+    if SamplingOrder.query.filter_by(machine_id=machine.id).first():
+        flash("Dieser Stammdatensatz wird von einem Musterungsauftrag verwendet und kann nicht gelöscht werden.", "warning")
+        return redirect(url_for("machines.detail", machine_id=machine.id))
     delete_machine(
         machine
     )

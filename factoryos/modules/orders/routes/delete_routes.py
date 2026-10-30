@@ -11,6 +11,8 @@ from factoryos.extensions import db
 def delete(order_id):
 
     order = Order.query.get_or_404(order_id)
+    if order.sampling:
+        return redirect(url_for("sampling.detail", sampling_id=order.sampling.id))
 
     db.session.delete(order)
     db.session.commit()

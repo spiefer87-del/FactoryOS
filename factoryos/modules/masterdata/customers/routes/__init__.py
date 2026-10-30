@@ -83,6 +83,10 @@ def edit(customer_id):
 @login_required
 def delete(customer_id):
     customer = Customer.query.get_or_404(customer_id)
+    from factoryos.modules.sampling.models import SamplingOrder
+    if SamplingOrder.query.filter_by(customer_id=customer.id).first():
+        flash("Dieser Kunde wird von einem Musterungsauftrag verwendet. Bitte bei Bedarf deaktivieren.", "warning")
+        return redirect(url_for("customers.detail", customer_id=customer.id))
     if customer.articles:
         flash("Der Kunde ist Artikeln zugeordnet. Bitte zuerst die Zuordnung entfernen oder den Kunden deaktivieren.", "warning")
         return redirect(url_for("customers.detail", customer_id=customer.id))
