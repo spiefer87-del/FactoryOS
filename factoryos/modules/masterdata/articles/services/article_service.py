@@ -40,13 +40,28 @@ def build_changes(old_obj, new_data):
 # 🆕 CREATE
 # =========================
 
+def customer_id_from_form(form):
+    from factoryos.modules.masterdata.customers.models import Customer
+    value = form.get("customer_id", "").strip()
+    if not value:
+        return None
+    try:
+        customer_id = int(value)
+    except ValueError:
+        raise ValueError("Ungültige Kundenzuordnung.")
+    if db.session.get(Customer, customer_id) is None:
+        raise ValueError("Der ausgewählte Kunde existiert nicht.")
+    return customer_id
+
+
 def create_article(form):
 
-    tool_ids = form.getlist("tool_ids")
+    tool_ids = form.getlist("tools") or form.getlist("tool_ids")
 
     article = Article(
         article_no=form.get("article_no"),
         article_name=form.get("article_name"),
+        customer_id=customer_id_from_form(form),
     
         drawing_no=form.get("drawing_no"),
         drawing_revision=form.get("drawing_revision"),
@@ -109,6 +124,7 @@ def update_article(article, form):
 
         "article_no": form.get("article_no"),
         "article_name": form.get("article_name"),
+        "customer_id": customer_id_from_form(form) if "customer_id" in form else article.customer_id,
     
         "drawing_no": form.get("drawing_no"),
         "drawing_revision": form.get("drawing_revision"),

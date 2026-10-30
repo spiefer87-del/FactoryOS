@@ -1,0 +1,13 @@
+{% extends "layout/base.html" %}
+{% block content %}
+<div class="page-header"><h2>Kundenübersicht</h2><div class="page-actions"><a class="btn-primary" href="{{ url_for('customers.create') }}">Kunde anlegen</a></div></div>
+<div class="fos-table-wrapper"><div class="fos-table-toolbar"><input class="fos-search" placeholder="Kunden suchen …" aria-label="Kunden suchen" data-table-search="customers-table"></div>
+<div class="fos-table-container"><table class="fos-table" id="customers-table">
+<thead><tr><th>Kundennummer</th><th>Name</th><th>Ansprechpartner</th><th>Ort</th><th>Status</th><th>Aktionen</th></tr></thead>
+<tbody>{% for customer in customers %}<tr>
+<td><a href="{{ url_for('customers.detail', customer_id=customer.id) }}">{{ customer.customer_no }}</a></td><td>{{ customer.name }}</td><td>{{ customer.contact or '–' }}</td><td>{{ customer.city or '–' }}</td><td>{{ 'Aktiv' if customer.active else 'Inaktiv' }}</td>
+<td><a class="btn-small btn-edit" href="{{ url_for('customers.edit', customer_id=customer.id) }}">Bearbeiten</a></td></tr>{% endfor %}</tbody></table></div>
+<div class="fos-pagination" data-table="customers-table"></div></div>
+{% if not customers %}<p class="empty-state">Noch keine Kunden angelegt.</p>{% endif %}
+{% endblock %}
+

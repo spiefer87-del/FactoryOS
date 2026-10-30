@@ -23,6 +23,7 @@ data-table-search="articles-table"
 <tr>
 <th>Artikelnummer</th>
 <th>Artikelname</th>
+<th>Kunde</th>
 <th>Werkzeuge</th>
 <th>Status</th>
 <th>Aktionen</th>
@@ -44,6 +45,7 @@ data-table-search="articles-table"
 <td>
 {{ article.article_name }}
 </td>
+<td>{% if article.customer %}<a href="{{ url_for('customers.detail', customer_id=article.customer.id) }}">{{ article.customer.customer_no }} – {{ article.customer.name }}</a>{% else %}–{% endif %}</td>
 
 <td>
 

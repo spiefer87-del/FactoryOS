@@ -1,4 +1,6 @@
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, flash
+from factoryos.extensions import db
+from factoryos.modules.masterdata.customers.models import Customer
 from flask_login import login_required
 
 from . import bp
@@ -15,7 +17,12 @@ def edit(article_id):
     article = Article.query.get_or_404(article_id)
 
     if request.method == "POST":
-        update_article(article, request.form)
+        try:
+            update_article(article, request.form)
+        except ValueError as exc:
+            db.session.rollback()
+            flash(str(exc), "danger")
+            return redirect(request.url)
         return redirect(url_for("articles.list"))
 
     tools = Tool.query.order_by(Tool.tool_no).all()
@@ -23,7 +30,8 @@ def edit(article_id):
     return render_template(
         "masterdata/articles/edit.html",
         article=article,
-        tools=tools
+        tools=tools,
+        customers=Customer.query.order_by(Customer.name).all()
     )
     
 

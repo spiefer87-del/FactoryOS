@@ -38,6 +38,9 @@
 
 
 <div class="detail-grid">
+<div class="detail-item"><label>Kunde</label><div class="detail-value">
+{% if article.customer %}<a href="{{ url_for('customers.detail', customer_id=article.customer.id) }}">{{ article.customer.customer_no }} – {{ article.customer.name }}</a>{% else %}Keine Kundenzuordnung{% endif %}
+</div></div>
 
 <div class="detail-item">
 <label>Artikelnummer</label>

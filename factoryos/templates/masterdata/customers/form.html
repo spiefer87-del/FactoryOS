@@ -1,0 +1,17 @@
+{% extends "layout/base.html" %}
+{% block content %}
+<div class="page-header"><h2>{{ 'Kunde bearbeiten' if customer else 'Kunde anlegen' }}</h2></div>
+<form method="post" class="form-card">
+<div class="form-grid">
+{% for key, label, limit in [('customer_no','Kundennummer',50),('name','Name / Firma',200),('contact','Ansprechpartner',150),('email','E-Mail',200),('phone','Telefon',80),('street','Straße / Hausnummer',200),('postal_code','Postleitzahl',30),('city','Ort',120),('country','Land',100)] %}
+<div class="form-group"><label for="{{ key }}">{{ label }}</label>
+<input id="{{ key }}" name="{{ key }}" maxlength="{{ limit }}" type="{{ 'email' if key == 'email' else 'text' }}" value="{{ values.get(key) or '' }}" {% if key in ['customer_no','name'] %}required{% endif %}></div>
+{% endfor %}
+<div class="form-group full"><label for="notes">Notizen</label><textarea id="notes" name="notes" maxlength="10000">{{ values.get('notes') or '' }}</textarea></div>
+<div class="form-group"><label><input type="checkbox" name="active" value="yes" {% if values.get('active') %}checked{% endif %}> Aktiv</label></div>
+</div>
+<div class="form-actions"><button class="btn-primary">Speichern</button>
+<a class="btn-secondary" href="{{ url_for('customers.overview') }}">Abbrechen</a></div>
+</form>
+{% endblock %}
+

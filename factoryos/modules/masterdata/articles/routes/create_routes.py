@@ -1,4 +1,6 @@
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, flash
+from factoryos.extensions import db
+from factoryos.modules.masterdata.customers.models import Customer
 from flask_login import login_required
 
 from . import bp
@@ -13,10 +15,16 @@ def create():
     tools = Tool.query.order_by(Tool.tool_no).all()
 
     if request.method == "POST":
-        create_article(request.form)
+        try:
+            create_article(request.form)
+        except ValueError as exc:
+            db.session.rollback()
+            flash(str(exc), "danger")
+            return redirect(request.url)
         return redirect(url_for("articles.list"))
 
     return render_template(
         "masterdata/articles/create.html",
-        tools=tools
+        tools=tools,
+        customers=Customer.query.order_by(Customer.name).all()
     )

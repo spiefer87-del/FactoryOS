@@ -1,0 +1,17 @@
+{% extends "layout/base.html" %}
+{% block content %}
+<div class="page-header"><h2>{{ customer.customer_no }} – {{ customer.name }}</h2>
+<a class="btn-primary" href="{{ url_for('customers.edit', customer_id=customer.id) }}">Bearbeiten</a></div>
+<div class="detail-card"><div class="detail-grid">
+{% for key, label in [('contact','Ansprechpartner'),('email','E-Mail'),('phone','Telefon'),('street','Straße'),('postal_code','Postleitzahl'),('city','Ort'),('country','Land'),('notes','Notizen')] %}
+<div class="detail-item"><label>{{ label }}</label><div class="detail-value">{{ customer[key] or '–' }}</div></div>
+{% endfor %}
+<div class="detail-item"><label>Status</label><div>{{ 'Aktiv' if customer.active else 'Inaktiv' }}</div></div>
+</div></div>
+<div class="detail-card"><h3>Zugeordnete Artikel</h3>
+{% for article in customer.articles %}<p><a href="{{ url_for('articles.detail', article_id=article.id) }}">{{ article.article_no }} – {{ article.article_name }}</a></p>
+{% else %}<p>Keine Artikel zugeordnet.</p>{% endfor %}</div>
+<div class="form-actions"><a class="btn-secondary" href="{{ url_for('customers.overview') }}">Zur Übersicht</a>
+<form method="post" action="{{ url_for('customers.delete', customer_id=customer.id) }}" onsubmit="return confirm('Kunden wirklich löschen?');"><button class="btn-small btn-delete">Löschen</button></form></div>
+{% endblock %}
+
