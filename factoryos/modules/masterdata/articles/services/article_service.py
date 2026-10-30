@@ -54,6 +54,20 @@ def customer_id_from_form(form):
     return customer_id
 
 
+def material_id_from_form(form):
+    from factoryos.modules.masterdata.materials.models import Material
+    value = form.get("material_id", "").strip()
+    if not value:
+        return None
+    try:
+        material_id = int(value)
+    except ValueError:
+        raise ValueError("Ungültige Rohstoffzuordnung.")
+    if db.session.get(Material, material_id) is None:
+        raise ValueError("Der ausgewählte Rohstoff existiert nicht.")
+    return material_id
+
+
 def create_article(form):
 
     tool_ids = form.getlist("tools") or form.getlist("tool_ids")
@@ -62,6 +76,7 @@ def create_article(form):
         article_no=form.get("article_no"),
         article_name=form.get("article_name"),
         customer_id=customer_id_from_form(form),
+        material_id=material_id_from_form(form),
     
         drawing_no=form.get("drawing_no"),
         drawing_revision=form.get("drawing_revision"),
@@ -125,6 +140,7 @@ def update_article(article, form):
         "article_no": form.get("article_no"),
         "article_name": form.get("article_name"),
         "customer_id": customer_id_from_form(form) if "customer_id" in form else article.customer_id,
+        "material_id": material_id_from_form(form) if "material_id" in form else article.material_id,
     
         "drawing_no": form.get("drawing_no"),
         "drawing_revision": form.get("drawing_revision"),

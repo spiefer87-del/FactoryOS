@@ -13,6 +13,10 @@ from . import bp
 @permission_required("materials.delete")
 def delete(material_id):
     material = get_material(material_id)
+    from factoryos.modules.masterdata.articles.models import Article
+    if Article.query.filter_by(material_id=material.id).first():
+        flash("Dieses Material ist Artikeln zugeordnet. Bitte zuerst die Rohstoffzuordnung entfernen.", "warning")
+        return redirect(url_for("materials.detail", material_id=material.id))
     delete_material(material)
     flash("Material wurde gelöscht; die Ablage wurde archiviert.", "success")
     return redirect(url_for("materials.list_materials"))

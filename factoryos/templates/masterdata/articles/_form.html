@@ -1,5 +1,14 @@
 <div class="form-grid">
     <div class="form-group">
+        <label for="material_id">Rohstoff (optional)</label>
+        <select id="material_id" name="material_id">
+            <option value="">Kein Rohstoff zugeordnet</option>
+            {% for material in materials %}
+            <option value="{{ material.id }}" {% if article and article.material_id == material.id %}selected{% endif %}>{{ material.material_no }} – {{ material.name }}{% if material.polymer_type %} · {{ material.polymer_type }}{% endif %}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
         <label for="customer_id">Kunde (optional)</label>
         <select id="customer_id" name="customer_id">
             <option value="">Keine Kundenzuordnung</option>
@@ -96,6 +105,15 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+    if (typeof TomSelect !== "undefined") {
+        ["customer_id", "material_id"].forEach(function(id) {
+            new TomSelect("#" + id, {
+                create: false, maxItems: 1, allowEmptyOption: true,
+                plugins: ["clear_button"],
+                placeholder: id === "customer_id" ? "Kundennummer oder Name suchen …" : "Rohstoff suchen …"
+            });
+        });
+    }
 
     const originalTools = {{ article.tools|map(attribute='id')|list|tojson if article else '[]' }};
 

@@ -1,164 +1,31 @@
 {% extends "layout/base.html" %}
-
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static', filename='css/article_masterdata.css') }}">{% endblock %}
 {% block content %}
-
-<div class="page-header">
-
-<h2>Artikel</h2>
-
-<div class="page-actions">
-
-<a class="btn-small btn-edit"
-   href="{{ url_for('articles.edit', article_id=article.id) }}">
-   ✏ Bearbeiten
-</a>
-
-<a class="btn-small btn-delete"
-   href="{{ url_for('articles.delete', article_id=article.id) }}">
-   🗑 Löschen
-</a>
-
+<div class="article-page">
+<header class="article-heading">
+<div><p class="article-eyebrow">Stammdaten / Artikel</p><h1>{{ article.article_no }}</h1><p>{{ article.article_name }}</p></div>
+<div class="article-actions"><span class="article-status">{{ 'Aktiv' if article.status == 'active' else 'Inaktiv' }}</span><a class="btn-primary" href="{{ url_for('articles.edit', article_id=article.id) }}">Bearbeiten</a><a class="btn-secondary" href="{{ url_for('articles.list') }}">Zur Übersicht</a></div>
+</header>
+<div class="article-layout">
+<section class="article-panel"><h2>Zuordnungen</h2>
+<div class="article-link-card"><span>Kunde</span>
+{% if article.customer %}<a href="{{ url_for('customers.detail', customer_id=article.customer.id) }}">{{ article.customer.name }}</a><small>{{ article.customer.customer_no }}</small>{% else %}<p class="article-muted">Noch kein Kunde zugeordnet</p>{% endif %}</div>
+<div class="article-link-card"><span>Rohstoff</span>
+{% if article.material %}<a href="{{ url_for('materials.detail', material_id=article.material.id) }}">{{ article.material.name }}</a><small>{{ article.material.material_no }}{% if article.material.polymer_type %} · {{ article.material.polymer_type }}{% endif %}</small>{% else %}<p class="article-muted">Noch kein Rohstoff zugeordnet</p>{% endif %}</div>
+</section>
+<section class="article-panel"><h2>Produktionsdaten</h2><div class="article-metrics">
+{% for label, value, unit in [('Zykluszeit',article.cycle_time_s,'s'),('Schussgewicht',article.shot_weight_g,'g'),('Verpackungseinheit',article.pack_unit,'Stück')] %}
+<div><span>{{ label }}</span><strong>{{ value if value is not none else '–' }}</strong><small>{{ unit }}</small></div>
+{% endfor %}</div>
+<dl class="article-facts"><div><dt>Zeichnungsnummer</dt><dd>{{ article.drawing_no or '–' }}</dd></div><div><dt>Revision</dt><dd>{{ article.drawing_revision or '–' }}</dd></div></dl>
+<h3>Beschreibung</h3><p class="article-description">{{ article.description or 'Keine Beschreibung hinterlegt.' }}</p>
+</section>
+<section class="article-panel article-wide"><h2>Werkzeuge <small>({{ article.tools|length }})</small></h2><div class="article-tool-links">
+{% for tool in article.tools %}<a href="{{ url_for('tools.detail', tool_id=tool.id) }}"><strong>{{ tool.tool_no }}</strong><span>{{ tool.name or '' }}</span></a>{% else %}<p class="article-muted">Keine Werkzeuge zugeordnet</p>{% endfor %}
+</div></section>
 </div>
-
-</div>
-
-
-<!-- ========================= -->
-<!-- 📄 BASISDATEN -->
-<!-- ========================= -->
-
-<div class="detail-card">
-
-<div class="detail-title">
-
-<h3>{{ article.article_no }}</h3>
-<span class="detail-subtitle">{{ article.article_name }}</span>
-
-</div>
-
-
-<div class="detail-grid">
-<div class="detail-item"><label>Kunde</label><div class="detail-value">
-{% if article.customer %}<a href="{{ url_for('customers.detail', customer_id=article.customer.id) }}">{{ article.customer.customer_no }} – {{ article.customer.name }}</a>{% else %}Keine Kundenzuordnung{% endif %}
-</div></div>
-
-<div class="detail-item">
-<label>Artikelnummer</label>
-<div class="detail-value">{{ article.article_no }}</div>
-</div>
-
-<div class="detail-item">
-<label>Zeichnungsnummer</label>
-
-<div class="detail-value">
-{{ article.drawing_no or "-" }}
-</div>
-</div>
-
-<div class="detail-item">
-<label>Zeichnungsrevision</label>
-
-<div class="detail-value">
-{{ article.drawing_revision or "-" }}
-</div>
-</div>
-
-<div class="detail-item">
-<label>Status</label>
-<div class="detail-value">
-<span class="status-badge status-{{ article.status }}">
-{{ article.status }}
-</span>
-</div>
-</div>
-
-<div class="detail-item full">
-<label>Beschreibung</label>
-<div class="detail-value">
-{{ article.description or "-" }}
-</div>
-</div>
-
-<div class="detail-item">
-<label>Schussgewicht (g)</label>
-<div class="detail-value">
-{{ article.shot_weight_g or "-" }}
-</div>
-</div>
-
-<div class="detail-item">
-<label>Zykluszeit (s)</label>
-<div class="detail-value">
-{{ article.cycle_time_s or "-" }}
-</div>
-</div>
-
-<div class="detail-item">
-<label>Verpackungseinheit</label>
-<div class="detail-value">
-{{ article.pack_unit or "-" }}
-</div>
-</div>
-
-</div>
-
-</div>
-
-
-<!-- ========================= -->
-<!-- 🔗 WERKZEUGE -->
-<!-- ========================= -->
-
-<div class="detail-card">
-
-<h3 style="margin-bottom:15px;">Zugeordnete Werkzeuge</h3>
-
-{% if article.tools %}
-
-<div class="tool-list">
-
-{% for tool in article.tools %}
-
-<a href="{{ url_for('tools.detail', tool_id=tool.id) }}"
-   class="tool-badge">
-
-{{ tool.tool_no }}
-
-</a>
-
-{% endfor %}
-
-</div>
-
-{% else %}
-
-<div class="empty-state">
-Keine Werkzeuge zugeordnet
-</div>
-
-{% endif %}
-
-</div>
-
-
-<!-- ========================= -->
-<!-- 🕒 CHANGE LOG -->
-<!-- ========================= -->
+<details class="article-activities"><summary>Aktivitäten <span>Verlauf anzeigen</span></summary>
 {% include "components/changelog.html" with context %}
-
-
-
-<!-- ========================= -->
-<!-- FOOTER -->
-<!-- ========================= -->
-
-<div class="detail-footer">
-
-<a class="btn-secondary"
-   href="{{ url_for('articles.list') }}">
-   ← Zurück zur Liste
-</a>
-
+</details>
 </div>
-
 {% endblock %}

@@ -1,6 +1,7 @@
 from flask import render_template, request, redirect, url_for, flash
 from factoryos.extensions import db
 from factoryos.modules.masterdata.customers.models import Customer
+from factoryos.modules.masterdata.materials.models import Material
 from flask_login import login_required
 
 from . import bp
@@ -31,7 +32,8 @@ def edit(article_id):
         "masterdata/articles/edit.html",
         article=article,
         tools=tools,
-        customers=Customer.query.order_by(Customer.name).all()
+        customers=Customer.query.order_by(Customer.name).all(),
+        materials=Material.query.order_by(Material.material_no).all()
     )
     
 

@@ -1,10 +1,11 @@
 {% extends "layout/base.html" %}
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static', filename='css/article_masterdata.css') }}">{% endblock %}
 
 {% block content %}
 
 <h2 style="margin-bottom:25px">Artikel anlegen</h2>
 
-<div class="form-card">
+<div class="form-card article-editor">
 
 <form method="POST">
 

@@ -1,4 +1,5 @@
 from factoryos.extensions import db
+from factoryos.modules.masterdata.materials.models import Material
 from factoryos.modules.masterdata.customers.models import Customer
 from factoryos.modules.masterdata.shared.models.article_tool import article_tools
 
@@ -15,6 +16,9 @@ class Article(db.Model):
 
     customer_id = db.Column(db.Integer, db.ForeignKey("customers.id"), nullable=True, index=True)
     customer = db.relationship("Customer", back_populates="articles")
+
+    material_id = db.Column(db.Integer, db.ForeignKey("materials.id"), nullable=True, index=True)
+    material = db.relationship("Material")
 
     description = db.Column(db.Text)
 
