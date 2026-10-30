@@ -35,6 +35,7 @@
     <div class="detail-grid">
         <div class="detail-item"><label>Hersteller</label><div>{{ material.manufacturer or '-' }}</div></div>
         <div class="detail-item"><label>Farbe</label><div>{{ material.color or '-' }}</div></div>
+        <div class="detail-item"><label>RAL / Wunschfarbton</label><div>{{ material.ral_color or '-' }}</div></div>
         <div class="detail-item"><label>Farbnummer</label><div>{{ material.color_no or '-' }}</div></div>
         <div class="detail-item"><label>Lieferform</label><div>{{ MATERIAL_DELIVERY_FORMS.get(material.delivery_form, material.delivery_form or '-') }}</div></div>
         <div class="detail-item"><label>Gefahrstoff</label><div>{{ 'Ja' if material.hazardous_material else 'Nein' }}</div></div>

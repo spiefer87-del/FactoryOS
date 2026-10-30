@@ -14,11 +14,11 @@ from . import bp
 def delete(material_id):
     material = get_material(material_id)
     from factoryos.modules.masterdata.articles.models import Article
-    if Article.query.filter_by(material_id=material.id).first():
+    if Article.query.filter((Article.material_id == material.id) | (Article.masterbatch_id == material.id)).first():
         flash("Dieses Material ist Artikeln zugeordnet. Bitte zuerst die Rohstoffzuordnung entfernen.", "warning")
         return redirect(url_for("materials.detail", material_id=material.id))
     from factoryos.modules.sampling.models import SamplingOrder
-    if SamplingOrder.query.filter_by(material_id=material.id).first():
+    if SamplingOrder.query.filter((SamplingOrder.material_id == material.id) | (SamplingOrder.data["masterbatch_id"].as_integer() == material.id)).first():
         flash("Dieser Stammdatensatz wird von einem Musterungsauftrag verwendet und kann nicht gelöscht werden.", "warning")
         return redirect(url_for("materials.detail", material_id=material.id))
     delete_material(material)

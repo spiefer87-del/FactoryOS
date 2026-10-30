@@ -45,15 +45,19 @@ def document_data(record):
         ("Kunden-Auftragsnummer", display(data.get("customer_order"))),
         ("Geplanter Termin", date_value(data.get("planned_date"))),
         ("Vorherige Musterung", record.previous.order.order_no if record.previous else "-"),
+        (TEXT_FIELDS["color"], display(data.get("color"))),
+        (TEXT_FIELDS["masterbatch"], display(data.get("masterbatch"))),
+        (NUMBER_FIELDS["masterbatch_percent"][0], display(data.get("masterbatch_percent"))),
+        (TEXT_FIELDS["ral_color"], display(data.get("ral_color"))),
     ]
     material = [("Rohstoff", ref("material")),
-                ("Farbe", display(data.get("color"))), ("Zusätze / Anteil", display(data.get("additives")))]
+                ("Zusätze / Anteil", display(data.get("additives")))]
     material += [(YES_NO_FIELDS[key], {"yes": "Ja", "no": "Nein"}.get(data.get(key), "Offen"))
                  for key in ("drawing_available", "customer_material", "dry_material")]
     execution = [("Durchgeführt von", display(data.get("operator"))),
                  ("Bemustert am", date_value(data.get("sampled_date"))),
                  ("Einrichter", display(data.get("setter")))]
-    execution += [(label, display(data.get(key))) for key, (label, _) in NUMBER_FIELDS.items()]
+    execution += [(label, display(data.get(key))) for key, (label, _) in NUMBER_FIELDS.items() if key != "masterbatch_percent"]
     setup, sampling = data.get("setup_minutes"), data.get("sampling_minutes")
     execution += [("Gesamtaufwand (Minuten)", display(setup + sampling) if setup is not None and sampling is not None else "Nicht vollständig erfasst"),
                   ("Datumstempel", {"yes": "Ja", "no": "Nein"}.get(data.get("date_stamp"), "Offen")),

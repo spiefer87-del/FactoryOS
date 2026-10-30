@@ -17,6 +17,7 @@ class Material(db.Model):
     manufacturer = db.Column(db.String(150))
     color = db.Column(db.String(100))
     color_no = db.Column(db.String(100))
+    ral_color = db.Column(db.String(100))
     delivery_form = db.Column(db.String(50))
     base_unit = db.Column(db.String(20), nullable=False, default="kg")
 

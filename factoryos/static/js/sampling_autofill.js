@@ -17,8 +17,29 @@ document.addEventListener("DOMContentLoaded", function () {
     const autoValues = new Map();
     let applying = false;
     let lastArticle = article.value;
+    const colorKeys = ["masterbatch_id", "color", "masterbatch_percent", "ral_color"];
+    const confirmColor = document.getElementById("color_confirmed");
+    const colorWarning = document.getElementById("sampling-color-warning");
+    function resetColorConfirmation() {
+        if (confirmColor) confirmColor.checked = false;
+    }
+    function updateColorWarning() {
+        if (!colorWarning || !confirmColor) return;
+        const attention = reason.value === "color_change";
+        colorWarning.hidden = !attention;
+        confirmColor.required = attention && colorKeys.some(id => document.getElementById(id)?.value !== "" && document.getElementById(id)?.value != null);
+        colorKeys.forEach(id => document.getElementById("group-" + id)?.classList.toggle("sampling-material-attention", attention));
+    }
+    colorKeys.forEach(function (id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        ["input", "change"].forEach(event => el.addEventListener(event, function () {
+            if (!applying) resetColorConfirmation();
+            updateColorWarning();
+        }));
+    });
 
-    ["customer_id", "tool_id", "material_id", "color"].forEach(function (id) {
+    ["customer_id", "tool_id", "material_id", ...colorKeys].forEach(function (id) {
         const el = document.getElementById(id);
         if (!el) return;
         ["change", "input"].forEach(function (event) {
@@ -42,6 +63,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function updateReferences() {
+        updateColorWarning();
         const a = catalog.articles[article.value];
         const t = catalog.tools[tool.value];
         const m = catalog.materials[material.value];
@@ -71,14 +93,24 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function materialSuggestions() {
+        const a = catalog.articles[article.value];
         const m = catalog.materials[material.value];
-        setSuggestion("color", reason.value === "color_change" ? "" : (m ? m.color : ""));
+        colorKeys.forEach(function (id) {
+            const batchId = document.getElementById("masterbatch_id")?.value;
+            const batch = catalog.materials[batchId];
+            let value = a?.[id];
+            if (id === "color") value = batchId ? (batch?.color || "") : (m?.color || "");
+            if (id === "ral_color") value = batch?.ral_color || "";
+            if (id === "masterbatch_percent" && batchId !== a?.masterbatch_id) value = "";
+            setSuggestion(id, reason.value === "color_change" ? "" : value);
+        });
         updateReferences();
     }
 
     article.addEventListener("change", function () {
         if (article.value === lastArticle) return;
         lastArticle = article.value;
+        resetColorConfirmation();
         confirmMaterial.checked = false;
         const a = catalog.articles[article.value];
         setSuggestion("customer_id", a ? a.customer_id : "");
@@ -90,11 +122,23 @@ document.addEventListener("DOMContentLoaded", function () {
         materialSuggestions();
     });
     material.addEventListener("change", function () {
+        resetColorConfirmation();
         confirmMaterial.checked = false;
         materialSuggestions();
     });
     tool.addEventListener("change", updateReferences);
+    const batch = document.getElementById("masterbatch_id");
+    if (batch) batch.addEventListener("change", function () {
+        resetColorConfirmation();
+        const b = catalog.materials[batch.value];
+        setSuggestion("color", b?.color || "");
+        setSuggestion("ral_color", b?.ral_color || "");
+        const a = catalog.articles[article.value];
+        setSuggestion("masterbatch_percent", batch.value === a?.masterbatch_id ? a.masterbatch_percent : "");
+        updateReferences();
+    });
     reason.addEventListener("change", function () {
+        resetColorConfirmation();
         confirmMaterial.checked = false;
         materialSuggestions();
     });

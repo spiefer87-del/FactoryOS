@@ -26,6 +26,7 @@ TEXT_FIELDS = (
     "manufacturer",
     "color",
     "color_no",
+    "ral_color",
     "delivery_form",
     "base_unit",
     "melt_flow_rate",
@@ -98,6 +99,9 @@ def material_data_from_input(data):
         raise ValueError("Die genaue Bezeichnung ist erforderlich.")
     if values["material_type"] not in MATERIAL_TYPES:
         raise ValueError("Die Materialart ist ungültig.")
+    for field in ("color", "color_no", "ral_color"):
+        if values.get(field) and len(values[field]) > 100:
+            raise ValueError("Farbe, Farbnummer und RAL dürfen maximal 100 Zeichen enthalten.")
     if values["material_status"] not in MATERIAL_STATUSES:
         raise ValueError("Der Materialstatus ist ungültig.")
     if values["base_unit"] not in MATERIAL_BASE_UNITS:
@@ -165,8 +169,25 @@ def create_material(data, user_id):
     return material
 
 
+def ensure_batch_category(material, new_type):
+    if new_type == "masterbatch" and material.material_type != "masterbatch":
+        from factoryos.modules.masterdata.articles.models import Article
+        from factoryos.modules.sampling.models import SamplingOrder
+        if (Article.query.filter_by(material_id=material.id).first() or
+                SamplingOrder.query.filter_by(material_id=material.id).first()):
+            raise ValueError("Als Hauptrohstoff verwendetes Material kann nicht in Masterbatch umgewandelt werden. Bitte einen separaten Masterbatch-Stamm anlegen.")
+    if material.material_type != "masterbatch" or new_type == "masterbatch":
+        return
+    from factoryos.modules.masterdata.articles.models import Article
+    from factoryos.modules.sampling.models import SamplingOrder
+    if (Article.query.filter_by(masterbatch_id=material.id).first() or
+            SamplingOrder.query.filter(SamplingOrder.data["masterbatch_id"].as_integer() == material.id).first()):
+        raise ValueError("Verwendetes Masterbatch kann nicht in eine andere Materialart umgewandelt werden.")
+
+
 def update_material(material, data):
     values = material_data_from_input(data)
+    ensure_batch_category(material, values["material_type"])
     changes = _build_changes(material, values)
     old_material_no = material.material_no
 

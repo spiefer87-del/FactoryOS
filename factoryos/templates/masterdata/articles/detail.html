@@ -7,6 +7,10 @@
 <div class="article-actions"><span class="article-status">{{ 'Aktiv' if article.status == 'active' else 'Inaktiv' }}</span><a class="btn-primary" href="{{ url_for('articles.edit', article_id=article.id) }}">Bearbeiten</a><a class="btn-secondary" href="{{ url_for('articles.list') }}">Zur Übersicht</a></div>
 </header>
 <div class="article-layout">
+<section class="article-panel article-wide"><h2>Farbe und Farbbatch</h2><dl class="article-facts">
+<div><dt>Farbbatch</dt><dd>{% if article.masterbatch %}<a href="{{ url_for('materials.detail', material_id=article.masterbatch_id) }}">{{ article.masterbatch.material_no }} – {{ article.masterbatch.name }}</a>{% else %}–{% endif %}</dd></div>
+<div><dt>Farbe</dt><dd>{{ article.masterbatch.color if article.masterbatch and article.masterbatch.color else '–' }}</dd></div><div><dt>RAL</dt><dd>{{ article.masterbatch.ral_color if article.masterbatch and article.masterbatch.ral_color else '–' }}</dd></div>
+<div><dt>Zugabe (% vom Hauptrohstoffgewicht)</dt><dd>{{ article.masterbatch_percent if article.masterbatch_percent is not none else '–' }}</dd></div></dl></section>
 <section class="article-panel"><h2>Zuordnungen</h2>
 <div class="article-link-card"><span>Kunde</span>
 {% if article.customer %}<a href="{{ url_for('customers.detail', customer_id=article.customer.id) }}">{{ article.customer.name }}</a><small>{{ article.customer.customer_no }}</small>{% else %}<p class="article-muted">Noch kein Kunde zugeordnet</p>{% endif %}</div>

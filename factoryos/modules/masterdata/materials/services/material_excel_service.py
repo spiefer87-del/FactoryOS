@@ -19,13 +19,13 @@ from factoryos.modules.masterdata.shared.constants import (
 )
 
 from ..models import Material
-from .material_service import material_data_from_input
+from .material_service import material_data_from_input, ensure_batch_category
 from .material_storage_service import create_material_folders
 
 
 EXPECTED_HEADERS = [
     "material_no", "external_material_no", "name", "description",
-    "material_type", "polymer_type", "manufacturer", "color", "color_no",
+    "material_type", "polymer_type", "manufacturer", "color", "color_no", "ral_color",
     "delivery_form", "base_unit", "density_g_cm3", "melt_flow_rate",
     "drying_temperature_c", "drying_time_h",
     "processing_temperature_min_c", "processing_temperature_max_c",
@@ -44,6 +44,7 @@ HEADER_LABELS = {
     "manufacturer": "Hersteller",
     "color": "Farbe",
     "color_no": "Farbnummer",
+    "ral_color": "Gewünschter Farbton / RAL",
     "delivery_form": "Lieferform",
     "base_unit": "Basiseinheit",
     "density_g_cm3": "Dichte (g/cm³)",
@@ -66,13 +67,14 @@ HEADER_LABELS = {
 HEADER_COMMENTS = {
     "material_no": "Pflichtfeld und eindeutiger Schlüssel. Beim Import werden bestehende Datensätze damit aktualisiert.",
     "name": "Pflichtfeld: genaue Werkstoffbezeichnung oder Handelsname.",
-    "material_type": "Pflichtfeld: plastic, operating oder auxiliary. Deutsche Bezeichnungen werden ebenfalls akzeptiert.",
+    "material_type": "Pflichtfeld: plastic, masterbatch, operating oder auxiliary. Deutsche Bezeichnungen werden ebenfalls akzeptiert.",
     "polymer_type": "Bei Kunststoffmaterial Pflicht. Zulässige Werte stehen in der Dropdown-Liste.",
     "hazardous_material": "Zulässig: Ja/Nein, true/false, 1/0 oder x.",
     "preferred_supplier_name": "Vorbereitung für das spätere Lieferantenmodul; aktuell als Klartext gespeichert.",
 }
 
 TYPE_ALIASES = {
+    "masterbatch": "masterbatch", "farbbatch": "masterbatch", "masterbatch / farbbatch": "masterbatch",
     "plastic": "plastic", "kunststoff": "plastic", "kunststoffmaterial": "plastic",
     "operating": "operating", "betriebsstoff": "operating", "betriebsstoffe": "operating",
     "auxiliary": "auxiliary", "hilfsstoff": "auxiliary", "hilfsstoffe": "auxiliary",
@@ -181,7 +183,10 @@ def import_materials_from_excel(file, user_id):
                 if is_new:
                     material = Material(created_by_id=user_id)
                     db.session.add(material)
-                    db.session.flush()
+                else:
+                    ensure_batch_category(material, values["material_type"])
+                    if "ral_color" not in headers:
+                        values["ral_color"] = material.ral_color
 
                 changes = {
                     field: {"old": getattr(material, field, None), "new": value}

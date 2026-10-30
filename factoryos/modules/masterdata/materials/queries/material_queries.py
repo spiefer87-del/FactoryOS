@@ -24,6 +24,8 @@ def get_materials(search="", material_type="", status=""):
             Material.name.ilike(term),
             Material.manufacturer.ilike(term),
             Material.color.ilike(term),
+            Material.color_no.ilike(term),
+            Material.ral_color.ilike(term),
             Material.storage_location.ilike(term),
             Material.preferred_supplier_name.ilike(term),
             Material.description.ilike(term),

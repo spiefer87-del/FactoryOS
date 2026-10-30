@@ -48,6 +48,7 @@ MACHINE_STATUS_COLORS = {
 # =====================================================
 
 MATERIAL_TYPES = {
+    "masterbatch": "Masterbatch / Farbbatch",
     "plastic": "Kunststoffmaterial",
     "operating": "Betriebsstoff",
     "auxiliary": "Hilfsstoff",

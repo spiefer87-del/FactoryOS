@@ -5,11 +5,12 @@
 <div class="page-header">
     <div>
         <h2>Materialien</h2>
-        <div class="page-subtitle">Kunststoffmaterialien, Betriebs- und Hilfsstoffe verwalten</div>
+        <div class="page-subtitle">Kunststoffmaterialien, Masterbatch, Betriebs- und Hilfsstoffe verwalten</div>
     </div>
 </div>
 
 <div class="dashboard-grid">
+    <a href="{{ url_for('materials.list_materials', material_type='masterbatch') }}" class="dashboard-card"><div class="card-icon">🎨</div><div class="card-title">Masterbatch / Farbbatch</div><div class="card-desc">Farben, Farbnummern und RAL zentral pflegen</div></a>
     <a href="{{ url_for('materials.list_materials') }}" class="dashboard-card">
         <div class="card-icon">🧱</div>
         <div class="card-title">Materialübersicht</div>

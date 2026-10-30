@@ -12,7 +12,7 @@ from factoryos.modules.masterdata.tools.models import Tool
 from factoryos.models.machine import Machine
 from factoryos.modules.production.models import TimeBooking
 from .models import SamplingOrder, SamplingCheck
-from .autofill_service import reference_snapshot, material_confirmed
+from .autofill_service import reference_snapshot, material_confirmed, color_signature, color_confirmed
 from .definitions import (REASONS, CHECKS, INITIAL_REQUIRED, TEXT_FIELDS,
                           NUMBER_FIELDS, DATE_FIELDS, YES_NO_FIELDS)
 
@@ -21,7 +21,8 @@ def choices():
     return dict(articles=Article.query.order_by(Article.article_no).all(),
                 customers=Customer.query.order_by(Customer.customer_no).all(),
                 tools=Tool.query.order_by(Tool.tool_no).all(),
-                materials=Material.query.order_by(Material.material_no).all(),
+                materials=Material.query.filter(Material.material_type != "masterbatch").order_by(Material.material_no).all(),
+                masterbatches=Material.query.filter_by(material_type="masterbatch").order_by(Material.material_no).all(),
                 machines=Machine.query.order_by(Machine.machine_no).all(),
                 previous_orders=SamplingOrder.query.order_by(SamplingOrder.id.desc()).all())
 
@@ -58,6 +59,9 @@ def parse_data(form):
         except ValueError:
             raise ValueError("Ungültiger Zahlenwert: " + label)
         data[key] = int(number) if integer else number
+    percent = data.get("masterbatch_percent")
+    if percent is not None and percent > 100:
+        raise ValueError("Die Farbbatch-Zugabe muss zwischen 0 und 100 % liegen.")
     for key, label in DATE_FIELDS.items():
         value = form.get(key, "")
         try:
@@ -99,11 +103,36 @@ def save_sampling(form, user_id, sampling=None):
     tool = reference(form, "tool_id", Tool)
     customer = reference(form, "customer_id", Customer)
     material = reference(form, "material_id", Material)
+    if material and material.material_type == "masterbatch":
+        raise ValueError("Masterbatch bitte separat als Farbbatch auswählen.")
     machine = reference(form, "machine_id", Machine)
     previous = reference(form, "previous_id", SamplingOrder)
     if sampling and previous and previous.id != sampling.previous_id:
         raise ValueError("Die ursprüngliche Musterung kann nach Anlage nicht geändert werden.")
     data = parse_data(form)
+    batch = reference(form, "masterbatch_id", Material)
+    if batch and batch.material_type != "masterbatch":
+        raise ValueError("Farbbatch muss aus der Kategorie Masterbatch stammen.")
+    data["masterbatch_id"] = batch.id if batch else None
+    if batch:
+        old_data = sampling.data if sampling else {}
+        same_batch = old_data.get("masterbatch_id") == batch.id
+        data["masterbatch"] = old_data.get("masterbatch") if same_batch else " / ".join([batch.material_no, batch.name])
+    elif form.get("masterbatch_id") is not None:
+        data["masterbatch"] = ""
+    else:
+        data["masterbatch"] = (sampling.data or {}).get("masterbatch", "") if sampling else ""
+    if data.get("masterbatch_percent") not in (None, 0) and not batch:
+        raise ValueError("Bitte ein Farbbatch aus den Materialstammdaten auswählen.")
+    if reason == "color_change":
+        has_color = any(data.get(key) not in (None, "") for key in ("color", "ral_color", "masterbatch", "masterbatch_percent"))
+        if has_color and form.get("color_confirmed") != "yes":
+            raise ValueError("Farbänderung: Bitte Farbton, Farbbatch und Dosierung bewusst prüfen und bestätigen.")
+        if has_color:
+            data["color_confirmation"] = {
+                "values": color_signature(data, article.id if article else None, material.id if material else None),
+                "by_user_id": user_id, "at_utc": datetime.utcnow().isoformat(),
+            }
     if reason == "material_change":
         if material and form.get("material_confirmed") != "yes":
             raise ValueError("Werkstoffänderung: Bitte den ausgewählten Rohstoff bewusst prüfen und bestätigen.")
@@ -195,6 +224,8 @@ def save_sampling(form, user_id, sampling=None):
 
 def completion_errors(sampling):
     errors = []
+    if sampling.reason == "color_change" and not color_confirmed(sampling):
+        errors.append("Farbänderung: Gewünschten Farbton oder RAL angeben und Farbangaben bewusst bestätigen.")
     if sampling.reason == "material_change" and not material_confirmed(sampling):
         errors.append("Werkstoffänderung: Versuchsmaterial muss bewusst bestätigt werden.")
     if sampling.state != "review":

@@ -17,6 +17,14 @@
 {{ select_reference('customer_id','Kunde',customers,'customer_no','name') }}
 {{ select_reference('tool_id','Werkzeug',tools,'tool_no','name') }}
 {{ select_reference('material_id','Rohstoff',materials,'material_no','name') }}
+{{ select_reference('masterbatch_id','Farbbatch / Masterbatch (Materialstamm)',masterbatches,'material_no','name') }}
+{% for key in ['color','ral_color'] %}
+<div class="form-group" id="group-{{ key }}"><label for="{{ key }}">{{ text_fields[key] }}</label><input id="{{ key }}" name="{{ key }}" maxlength="10000" value="{{ values.get(key,'') }}" {% if key=='ral_color' %}placeholder="z. B. RAL 7035 oder Sonderfarbton"{% endif %}></div>
+{% endfor %}
+<div class="form-group" id="group-masterbatch_percent"><label for="masterbatch_percent">{{ number_fields['masterbatch_percent'][0] }}</label><input type="number" min="0" max="100" step="any" id="masterbatch_percent" name="masterbatch_percent" value="{{ values.get('masterbatch_percent') if values.get('masterbatch_percent') is not none else '' }}"><small>Bezugsbasis: Hauptrohstoffgewicht. Beispiel: 2 % = 2 kg Farbbatch je 100 kg Hauptrohstoff. Keine automatische Dosierung.</small></div>
+<div class="form-group full" id="sampling-color-warning" {% if values.get('reason')!='color_change' %}hidden{% endif %}>
+<div class="sampling-material-warning"><strong>Farbänderung: Farbangaben für den Versuch prüfen</strong><p>Bestehende Farbangaben sind nur Referenz. Gewünschten Farbton / RAL, Farbbatch und Zugabe bewusst festlegen. Die Bestätigung ist keine Qualitätsfreigabe.</p>
+<label><input type="checkbox" id="color_confirmed" name="color_confirmed" value="yes" {% if values.get('color_confirmed')=='yes' %}checked{% endif %}> Ich habe Farbton, Farbbatch und Dosierung für diesen Versuch geprüft.</label></div></div>
 {{ select_reference('machine_id','Geplante / verwendete Maschine',machines,'machine_no','name') }}
 <div class="form-group"><label for="previous_id">Bezug zur vorherigen Musterung</label><select id="previous_id" class="sampling-search" name="previous_id" {% if record %}disabled{% endif %}><option value="">Kein Vorgänger</option>{% for old in previous_orders if not record or old.id!=record.id %}<option value="{{ old.id }}" {% if values.get('previous_id','')|string==old.id|string %}selected{% endif %}>{{ old.order.order_no }} – {{ reasons[old.reason] }}</option>{% endfor %}</select>{% if record %}<input type="hidden" name="previous_id" value="{{ record.previous_id or '' }}">{% endif %}</div>
 </div>
@@ -30,9 +38,9 @@
 <p class="sampling-help">Stammdaten bleiben unverändert. Messwerte, Prüfungen und Freigaben werden nicht automatisch als durchgeführt eingetragen.</p>
 </section>
 <section class="form-card"><h3>Vorgaben, Durchführung und Ergebnis</h3><div class="form-grid">
-{% for key,label in text_fields.items() %}<div class="form-group{% if key in ['instructions','changes_result','deviations','quality_note','actions','initial_scope','cavity_result'] %} full{% endif %}"><label for="{{ key }}">{{ label }}</label><textarea id="{{ key }}" name="{{ key }}" maxlength="10000" rows="2">{{ values.get(key,'') }}</textarea></div>{% endfor %}
+{% for key,label in text_fields.items() if key not in ['color','masterbatch','ral_color'] %}<div class="form-group{% if key in ['instructions','changes_result','deviations','quality_note','actions','initial_scope','cavity_result'] %} full{% endif %}"><label for="{{ key }}">{{ label }}</label><textarea id="{{ key }}" name="{{ key }}" maxlength="10000" rows="2">{{ values.get(key,'') }}</textarea></div>{% endfor %}
 {% for key,label in date_fields.items() %}<div class="form-group"><label for="{{ key }}">{{ label }}</label><input type="date" id="{{ key }}" name="{{ key }}" value="{{ values.get(key,'') }}"></div>{% endfor %}
-{% for key,meta in number_fields.items() %}<div class="form-group"><label for="{{ key }}">{{ meta[0] }}</label><input type="number" min="0" step="{{ '1' if meta[1] else 'any' }}" id="{{ key }}" name="{{ key }}" value="{{ values.get(key) if values.get(key) is not none else '' }}"></div>{% endfor %}
+{% for key,meta in number_fields.items() if key!='masterbatch_percent' %}<div class="form-group"><label for="{{ key }}">{{ meta[0] }}</label><input type="number" min="0" step="{{ '1' if meta[1] else 'any' }}" id="{{ key }}" name="{{ key }}" value="{{ values.get(key) if values.get(key) is not none else '' }}"></div>{% endfor %}
 {% for key,label in yes_no_fields.items() %}<div class="form-group"><label for="{{ key }}">{{ label }}</label><select id="{{ key }}" name="{{ key }}">{% for value,text in [('','Noch offen'),('yes','Ja'),('no','Nein')] %}<option value="{{ value }}" {% if value==values.get(key,'') %}selected{% endif %}>{{ text }}</option>{% endfor %}</select></div>{% endfor %}
 </div></section>
 <section class="form-card"><h3>Prüfungen, Freigaben und Dokumentenlenkung</h3><p class="sampling-help">Erledigt, erteilt oder abgelehnt erfordert ein Datum. Ablehnung und „nicht erforderlich“ erfordern eine Begründung. Änderungen werden mit dem angemeldeten Benutzer protokolliert.</p>

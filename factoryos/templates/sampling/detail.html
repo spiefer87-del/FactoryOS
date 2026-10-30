@@ -16,6 +16,9 @@
 <header class="page-header"><div><p class="sampling-eyebrow">Musterungsauftrag · {{ reasons[record.reason] }}</p><h2>{{ record.order.order_no }}</h2><p class="page-subtitle">{{ 'Intern erfolgreich abgeschlossen' if record.state=='completed' and record.reason!='initial' else states[record.state] }} · Erstellt {{ record.created_at.strftime('%d.%m.%Y') }}</p></div>
 <div class="page-actions">{% if record.state!='completed' %}<a class="btn-primary" href="{{ url_for('sampling.edit', sampling_id=record.id) }}">Bearbeiten</a>{% endif %}<a class="btn-secondary" href="{{ url_for('sampling.overview') }}">Übersicht</a><a class="btn-secondary" href="{{ url_for('sampling.create', previous_id=record.id, reason=record.reason) }}">Nachbemusterung anlegen</a></div></header>
 <section class="detail-card"><h3>Auftragsdaten</h3><div class="detail-grid">
+{% for key in ['color','masterbatch','ral_color'] %}<div class="detail-item{% if record.reason=='color_change' %} sampling-material-attention{% endif %}"><label>{{ text_fields[key] }}</label><div class="sampling-text">{{ record.data.get(key) or '–' }}</div></div>{% endfor %}
+<div class="detail-item{% if record.reason=='color_change' %} sampling-material-attention{% endif %}"><label>{{ number_fields['masterbatch_percent'][0] }}</label><div>{{ record.data.get('masterbatch_percent') if record.data.get('masterbatch_percent') is not none else '–' }}</div></div>
+{% if record.reason=='color_change' %}<p class="sampling-material-warning">Farbänderung: {{ 'Farbangaben bewusst bestätigt (keine Qualitätsfreigabe).' if record.data.get('color_confirmation') else 'Farbangaben noch bewusst prüfen und bestätigen.' }}</p>{% endif %}
 {% for key,label in [('article','Artikel'),('customer','Kunde'),('tool','Werkzeug'),('material','Rohstoff'),('machine','Maschine')] %}<div class="detail-item"><label>{{ label }} (Auftragsstand)</label><div>{{ record.snapshot.get(key,{}).get('number') or '–' }}<br>{{ record.snapshot.get(key,{}).get('name') or '' }}</div></div>{% endfor %}
 <div class="detail-item"><label>Musteranzahl</label><div>{{ record.order.target_qty }}</div></div>
 <div class="detail-item"><label>Zeichnung / Index</label><div>{{ record.snapshot.get('drawing_no') or '–' }} / {{ record.snapshot.get('drawing_revision') or '–' }}</div></div>
@@ -25,9 +28,9 @@
 {% if record.state in ['in_progress','review'] %}<div class="form-actions"><a class="btn-primary" href="{{ url_for('production.manual_start', order_id=record.order_id, machine_id=record.machine_id or '') }}">Im Maschinen Booking starten</a></div>{% endif %}
 </section>
 <section class="detail-card"><h3>Vorgaben und Ergebnisse</h3><div class="detail-grid">
-{% for key,label in text_fields.items() if record.data.get(key) %}<div class="detail-item"><label>{{ label }}</label><div class="sampling-text">{{ record.data[key] }}</div></div>{% endfor %}
+{% for key,label in text_fields.items() if record.data.get(key) and key not in ['color','masterbatch','ral_color'] %}<div class="detail-item"><label>{{ label }}</label><div class="sampling-text">{{ record.data[key] }}</div></div>{% endfor %}
 {% for key,label in date_fields.items() %}<div class="detail-item"><label>{{ label }}</label><div>{{ record.data.get(key) or '–' }}</div></div>{% endfor %}
-{% for key,meta in number_fields.items() %}<div class="detail-item"><label>{{ meta[0] }}</label><div>{{ record.data.get(key) if record.data.get(key) is not none else '–' }}</div></div>{% endfor %}
+{% for key,meta in number_fields.items() if key!='masterbatch_percent' %}<div class="detail-item"><label>{{ meta[0] }}</label><div>{{ record.data.get(key) if record.data.get(key) is not none else '–' }}</div></div>{% endfor %}
 {% for key,label in yes_no_fields.items() %}<div class="detail-item"><label>{{ label }}</label><div>{{ {'yes':'Ja','no':'Nein'}.get(record.data.get(key),'Offen') }}</div></div>{% endfor %}
 </div></section>
 <section class="detail-card"><h3>Prüfungen und Freigaben</h3><div class="fos-table-container"><table class="fos-table"><thead><tr><th>Prüfpunkt</th><th>Status</th><th>Datum</th><th>Bearbeitet von</th><th>Notiz</th></tr></thead><tbody>

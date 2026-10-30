@@ -1,4 +1,5 @@
 from factoryos.extensions import db
+import math
 from ..models import Article
 from factoryos.modules.masterdata.tools.models import Tool
 
@@ -19,6 +20,29 @@ def to_int(value):
     if value in ("", None):
         return None
     return int(value)
+
+
+def color_data(form, article=None):
+    from factoryos.modules.masterdata.materials.models import Material
+    raw_id = form.get("masterbatch_id", str(getattr(article, "masterbatch_id", "") or "")).strip()
+    try:
+        batch = db.session.get(Material, int(raw_id)) if raw_id else None
+    except ValueError:
+        raise ValueError("Ungültiges Farbbatch.")
+    if raw_id and (not batch or batch.material_type != "masterbatch"):
+        raise ValueError("Bitte ein Material der Kategorie Masterbatch auswählen.")
+    result = {"masterbatch_id": batch.id if batch else None}
+    raw = form.get("masterbatch_percent", getattr(article, "masterbatch_percent", None))
+    try:
+        percent = None if raw is None or str(raw).strip() == "" else float(str(raw).replace(",", "."))
+        if percent is not None and (not math.isfinite(percent) or not 0 <= percent <= 100):
+            raise ValueError()
+    except (ValueError, TypeError):
+        raise ValueError("Die Farbbatch-Zugabe muss zwischen 0 und 100 % liegen.")
+    if percent is not None and percent > 0 and not batch:
+        raise ValueError("Bitte das Farbbatch zur angegebenen Zugabe benennen.")
+    result["masterbatch_percent"] = percent
+    return result
 
 
 def build_changes(old_obj, new_data):
@@ -63,8 +87,11 @@ def material_id_from_form(form):
         material_id = int(value)
     except ValueError:
         raise ValueError("Ungültige Rohstoffzuordnung.")
-    if db.session.get(Material, material_id) is None:
+    material = db.session.get(Material, material_id)
+    if material is None:
         raise ValueError("Der ausgewählte Rohstoff existiert nicht.")
+    if material.material_type == "masterbatch":
+        raise ValueError("Masterbatch bitte separat als Farbbatch zuordnen, nicht als Hauptrohstoff.")
     return material_id
 
 
@@ -87,6 +114,7 @@ def create_article(form):
         shot_weight_g=to_float(form.get("shot_weight_g")),
         cycle_time_s=to_float(form.get("cycle_time_s")),
         pack_unit=to_int(form.get("pack_unit")),
+        **color_data(form),
     )
 
     # 🔗 Tools verknüpfen
@@ -151,6 +179,7 @@ def update_article(article, form):
         "shot_weight_g": to_float(form.get("shot_weight_g")),
         "cycle_time_s": to_float(form.get("cycle_time_s")),
         "pack_unit": to_int(form.get("pack_unit")),
+        **color_data(form, article),
     }
 
     # 🔍 Feldänderungen erkennen

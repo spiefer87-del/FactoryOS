@@ -1,9 +1,11 @@
 <div class="form-grid">
+    <div class="form-group"><label for="masterbatch_id">Farbbatch (Materialstamm, optional)</label><select id="masterbatch_id" name="masterbatch_id"><option value="">Kein Farbbatch</option>{% for batch in materials if batch.material_type=='masterbatch' %}<option value="{{ batch.id }}" {% if article and article.masterbatch_id==batch.id %}selected{% endif %}>{{ batch.material_no }} – {{ batch.name }} · {{ batch.color or '' }} · {{ batch.ral_color or '' }}</option>{% endfor %}</select><small>Farbe und RAL werden zentral am Masterbatch gepflegt.</small></div>
+    <div class="form-group"><label for="masterbatch_percent">Farbbatch-Zugabe (%) (optional)</label><input type="number" id="masterbatch_percent" name="masterbatch_percent" min="0" max="100" step="any" value="{{ article.masterbatch_percent if article and article.masterbatch_percent is not none else '' }}"><small>Bezogen auf das Hauptrohstoffgewicht: 2 % = 2 kg Farbbatch je 100 kg Hauptrohstoff.</small></div>
     <div class="form-group">
         <label for="material_id">Rohstoff (optional)</label>
         <select id="material_id" name="material_id">
             <option value="">Kein Rohstoff zugeordnet</option>
-            {% for material in materials %}
+            {% for material in materials if material.material_type!='masterbatch' %}
             <option value="{{ material.id }}" {% if article and article.material_id == material.id %}selected{% endif %}>{{ material.material_no }} – {{ material.name }}{% if material.polymer_type %} · {{ material.polymer_type }}{% endif %}</option>
             {% endfor %}
         </select>
@@ -106,7 +108,7 @@
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     if (typeof TomSelect !== "undefined") {
-        ["customer_id", "material_id"].forEach(function(id) {
+        ["customer_id", "material_id", "masterbatch_id"].forEach(function(id) {
             new TomSelect("#" + id, {
                 create: false, maxItems: 1, allowEmptyOption: true,
                 plugins: ["clear_button"],

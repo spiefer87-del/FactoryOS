@@ -32,7 +32,9 @@ INITIAL_REQUIRED = ("dimensions", "function", "empb", "samples_sent", "drawing")
 TEXT_FIELDS = {
     "other_reason": "Sonstiger Anlass / Erläuterung",
     "customer_order": "Kunden-Auftragsnummer",
-    "color": "Farbe",
+    "color": "Farbe / Farbtonbezeichnung",
+    "masterbatch": "Farbbatch / Masterbatch (Bezeichnung / Nummer)",
+    "ral_color": "Gewünschter Farbton / RAL",
     "additives": "Zusätze / Anteil",
     "instructions": "Bemerkung / Vorgaben",
     "changes_result": "Änderungen und Ergebnis",
@@ -48,6 +50,7 @@ TEXT_FIELDS = {
     "initial_evidence": "Prüfbericht- / EMPB-Referenz (Erstbemusterung)",
 }
 NUMBER_FIELDS = {
+    "masterbatch_percent": ("Farbbatch-Zugabe (% vom Hauptrohstoffgewicht)", False),
     "setup_minutes": ("Rüstzeit (Minuten)", False),
     "sampling_minutes": ("Musterungsdauer (Minuten)", False),
     "counter": ("Zählerstand", True),
