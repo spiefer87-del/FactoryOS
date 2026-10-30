@@ -12,6 +12,7 @@ from factoryos.modules.masterdata.tools.models import Tool
 from factoryos.models.machine import Machine
 from factoryos.modules.production.models import TimeBooking
 from .models import SamplingOrder, SamplingCheck
+from .autofill_service import reference_snapshot, material_confirmed
 from .definitions import (REASONS, CHECKS, INITIAL_REQUIRED, TEXT_FIELDS,
                           NUMBER_FIELDS, DATE_FIELDS, YES_NO_FIELDS)
 
@@ -103,6 +104,14 @@ def save_sampling(form, user_id, sampling=None):
     if sampling and previous and previous.id != sampling.previous_id:
         raise ValueError("Die ursprüngliche Musterung kann nach Anlage nicht geändert werden.")
     data = parse_data(form)
+    if reason == "material_change":
+        if material and form.get("material_confirmed") != "yes":
+            raise ValueError("Werkstoffänderung: Bitte den ausgewählten Rohstoff bewusst prüfen und bestätigen.")
+        if material:
+            data["material_confirmation"] = {
+                "material_id": material.id, "article_id": article.id if article else None,
+                "by_user_id": user_id, "at_utc": datetime.utcnow().isoformat(),
+            }
     if reason == "other" and not data["other_reason"]:
         raise ValueError("Bitte den sonstigen Anlass erläutern.")
     active = False
@@ -124,6 +133,11 @@ def save_sampling(form, user_id, sampling=None):
     before = {"state": sampling.state, "data": sampling.data, "snapshot": sampling.snapshot}
     before["checks"] = {c.key: {"status": c.status, "note": c.note, "date": str(c.evidence_date or "")} for c in sampling.checks}
     snapshot = dict(sampling.snapshot or {})
+    if (creating or "reference" not in snapshot or
+            sampling.article_id != (article.id if article else None) or
+            sampling.tool_id != (tool.id if tool else None) or
+            sampling.material_id != (material.id if material else None)):
+        snapshot["reference"] = reference_snapshot(article, tool, material)
     for attr, obj, number_field, name_field in (
         ("article", article, "article_no", "article_name"), ("customer", customer, "customer_no", "name"),
         ("tool", tool, "tool_no", "name"), ("material", material, "material_no", "name"),
@@ -181,6 +195,8 @@ def save_sampling(form, user_id, sampling=None):
 
 def completion_errors(sampling):
     errors = []
+    if sampling.reason == "material_change" and not material_confirmed(sampling):
+        errors.append("Werkstoffänderung: Versuchsmaterial muss bewusst bestätigt werden.")
     if sampling.state != "review":
         errors.append("Vor dem Abschluss den Status auf In Prüfung setzen.")
     data = sampling.data or {}

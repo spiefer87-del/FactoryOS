@@ -1,5 +1,9 @@
 {% extends "sampling/base.html" %}
 {% block sampling_content %}
+{% if record.reason=='material_change' %}
+<div class="sampling-material-warning"><strong>Werkstoffänderung: Rohstoff ist ein auftragsbezogenes Versuchsmaterial.</strong>
+<p>{{ 'Versuchsmaterial wurde bewusst bestätigt.' if record.data.get('material_confirmation') else 'Rohstoffbestätigung noch offen. Bitte im Formular prüfen.' }}</p></div>
+{% endif %}
 <div class="page-actions sampling-export-actions">
 <a class="btn-secondary" href="{{ url_for('sampling.export_pdf', sampling_id=record.id) }}">PDF herunterladen</a>
 <a class="btn-secondary" href="{{ url_for('sampling.print_order', sampling_id=record.id) }}" target="_blank" rel="noopener">Druckansicht öffnen</a>
@@ -36,6 +40,9 @@
 <form method="post" action="{{ url_for('sampling.complete', sampling_id=record.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="version" value="{{ record.version }}"><button class="btn-primary" {% if errors %}disabled{% endif %}>Erfolgreich abschließen</button></form>
 </section>{% else %}<div class="sampling-notice">Erfolgreich abgeschlossen am {{ record.completed_at.strftime('%d.%m.%Y %H:%M') }} (UTC). Der Auftrag ist schreibgeschützt; weitere Versuche als Nachbemusterung anlegen.</div>{% endif %}
 <details class="sampling-history"><summary>Aktivitäten aufklappen</summary>{% include "components/changelog.html" %}</details>
+{% if record.snapshot.get('reference') %}
+<details class="sampling-reference"><summary>Gespeicherte Stammdaten-Referenzwerte</summary><dl>{% for label,value in record.snapshot['reference'].items() %}<div><dt>{{ label }}</dt><dd>{{ value if value is not none else '–' }}</dd></div>{% endfor %}</dl></details>
+{% endif %}
 {% if record.state=='completed' and record.reason!='initial' %}
 <section class="detail-card"><h3>Externe Kundenfreigabe nachverfolgen</h3><p>Der interne Abschluss bleibt unverändert. Nur die Kundenentscheidung wird ergänzt.</p>
 {% for check in record.checks if check.key=='external' %}

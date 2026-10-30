@@ -1,6 +1,6 @@
 {% extends "sampling/base.html" %}
 {% macro select_reference(key, label, options, number, name) %}
-<div class="form-group"><label for="{{ key }}">{{ label }}</label><select class="sampling-search" id="{{ key }}" name="{{ key }}"><option value="">Keine Zuordnung</option>
+<div class="form-group" id="group-{{ key }}"><label for="{{ key }}">{{ label }}</label><select class="sampling-search" id="{{ key }}" name="{{ key }}"><option value="">Keine Zuordnung</option>
 {% for obj in options %}<option value="{{ obj.id }}" {% if values.get(key,'')|string==obj.id|string %}selected{% endif %}>{{ obj[number] }} – {{ obj[name] or '' }}</option>{% endfor %}</select></div>
 {% endmacro %}
 {% block sampling_content %}
@@ -19,7 +19,16 @@
 {{ select_reference('material_id','Rohstoff',materials,'material_no','name') }}
 {{ select_reference('machine_id','Geplante / verwendete Maschine',machines,'machine_no','name') }}
 <div class="form-group"><label for="previous_id">Bezug zur vorherigen Musterung</label><select id="previous_id" class="sampling-search" name="previous_id" {% if record %}disabled{% endif %}><option value="">Kein Vorgänger</option>{% for old in previous_orders if not record or old.id!=record.id %}<option value="{{ old.id }}" {% if values.get('previous_id','')|string==old.id|string %}selected{% endif %}>{{ old.order.order_no }} – {{ reasons[old.reason] }}</option>{% endfor %}</select>{% if record %}<input type="hidden" name="previous_id" value="{{ record.previous_id or '' }}">{% endif %}</div>
-</div><p class="sampling-help">Artikel, Kunde, Werkzeug und Rohstoff bitte ausdrücklich auswählen. Die Werte werden auftragsbezogen festgehalten, nicht zurück in die Stammdaten geschrieben.</p></section>
+</div>
+<p class="sampling-help" id="sampling-autofill-message" role="status">Bei Artikelwechsel werden verfügbare Kunden- und Rohstoffzuordnungen sowie ein eindeutig zugeordnetes Werkzeug vorgeschlagen. Bereits eingegebene Werte bleiben erhalten.</p>
+<div id="sampling-material-warning" class="sampling-material-warning" {% if values.get('reason')!='material_change' %}hidden{% endif %}>
+<strong>Werkstoffänderung: Versuchsmaterial prüfen</strong>
+<p>Der Artikelrohstoff ist nur eine Referenz. Wähle den Rohstoff für diese Musterung bewusst aus. Artikelrohstoff: <span id="sampling-stock-material">siehe Stammdaten</span></p>
+<label><input type="checkbox" id="material_confirmed" name="material_confirmed" value="yes" {% if values.get('material_confirmed')=='yes' %}checked{% endif %}> Ich habe den Rohstoff für diesen Versuch geprüft und bewusst ausgewählt.</label>
+</div>
+<details class="sampling-reference"><summary>Stammdaten-Referenzwerte (keine gemessenen Ist-Werte)</summary><dl id="sampling-reference-values"></dl></details>
+<p class="sampling-help">Stammdaten bleiben unverändert. Messwerte, Prüfungen und Freigaben werden nicht automatisch als durchgeführt eingetragen.</p>
+</section>
 <section class="form-card"><h3>Vorgaben, Durchführung und Ergebnis</h3><div class="form-grid">
 {% for key,label in text_fields.items() %}<div class="form-group{% if key in ['instructions','changes_result','deviations','quality_note','actions','initial_scope','cavity_result'] %} full{% endif %}"><label for="{{ key }}">{{ label }}</label><textarea id="{{ key }}" name="{{ key }}" maxlength="10000" rows="2">{{ values.get(key,'') }}</textarea></div>{% endfor %}
 {% for key,label in date_fields.items() %}<div class="form-group"><label for="{{ key }}">{{ label }}</label><input type="date" id="{{ key }}" name="{{ key }}" value="{{ values.get(key,'') }}"></div>{% endfor %}
@@ -36,5 +45,7 @@
 <div class="form-actions"><button class="btn-primary">Musterung speichern</button><a class="btn-secondary" href="{{ url_for('sampling.detail', sampling_id=record.id) if record else url_for('sampling.overview') }}">Abbrechen</a></div>
 </form>
 <script>document.addEventListener("DOMContentLoaded",function(){if(typeof TomSelect!=="undefined"){document.querySelectorAll(".sampling-search:not(:disabled)").forEach(function(el){new TomSelect(el,{create:false,maxItems:1,allowEmptyOption:true,plugins:["clear_button"]});});}});</script>
+<script id="sampling-autofill-data" type="application/json">{{ autofill_payload|tojson }}</script>
+<script src="{{ url_for('static', filename='js/sampling_autofill.js') }}"></script>
 {% endblock %}
 

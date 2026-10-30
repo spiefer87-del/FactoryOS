@@ -13,6 +13,7 @@ from factoryos.modules.production.models import TimeBooking
 from factoryos.modules.production.services.machine_service import start_machine_free
 from ..definitions import *
 from ..service import choices, save_sampling, completion_errors, complete_sampling
+from ..autofill_service import autofill_catalog, material_confirmed
 
 bp = Blueprint("sampling", __name__, url_prefix="/orders/sampling")
 
@@ -118,6 +119,7 @@ def render_form(sampling, submitted=None):
     values = {}
     if sampling:
         values.update(sampling.data or {})
+        values["material_confirmed"] = "yes" if material_confirmed(sampling) else ""
         values.update(order_no=sampling.order.order_no, target_qty=sampling.order.target_qty,
                       reason=sampling.reason, state=sampling.state, version=sampling.version)
         for key in ("article_id", "customer_id", "tool_id", "material_id", "machine_id", "previous_id"):
@@ -131,7 +133,12 @@ def render_form(sampling, submitted=None):
                       previous_id=request.args.get("previous_id", ""))
     if submitted:
         values.update(submitted)
+        values["material_confirmed"] = submitted.get("material_confirmed", "")
     return render_template("sampling/form.html", record=sampling, values=values,
+                           autofill_payload={"catalog": autofill_catalog(),
+                               "saved": (sampling.snapshot or {}).get("reference") if sampling else None,
+                               "ids": {key: str(getattr(sampling, key) or "") if sampling else ""
+                                       for key in ("article_id", "tool_id", "material_id")}},
                            **choices(), **context())
 
 
