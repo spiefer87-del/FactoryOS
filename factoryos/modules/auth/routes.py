@@ -24,11 +24,11 @@ def login():
     if request.method == "POST":
 
         username = request.form.get("username", "").strip()
-        password = request.form.get("password", "").strip()
+        password = request.form.get("password", "")
 
         user = User.query.filter_by(username=username, active=True).first()
 
-        if not user or not user.check_password(password):
+        if not user or len(password) > 1024 or not user.check_password(password):
 
             flash("Login fehlgeschlagen.", "danger")
             return redirect(url_for("auth.login"))

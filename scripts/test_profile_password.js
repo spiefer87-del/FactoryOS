@@ -1,0 +1,13 @@
+const fs=require("fs"),vm=require("vm"),assert=require("assert"),path=require("path");
+const fields=Object.fromEntries(["current_password","new_password","confirm_password"].map(id=>[id,{type:"password",value:"SYNTHETIC-INPUT"}]));
+const buttons=Object.keys(fields).map(id=>({dataset:{passwordToggle:id,passwordLabel:id},hidden:true,attrs:{},listeners:{},addEventListener(type,fn){this.listeners[type]=fn;},setAttribute(k,v){this.attrs[k]=v;}}));
+const listeners={},windowListeners={},form={addEventListener(type,fn){listeners["form:"+type]=fn;}};
+const document={hidden:false,querySelectorAll:()=>buttons,getElementById:id=>id==="personal-password-form"?form:fields[id],addEventListener(type,fn){if(type==="DOMContentLoaded")fn();else listeners[type]=fn;}};
+vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../factoryos/static/js/profile_password.js"),"utf8"),{document,window:{addEventListener(type,fn){windowListeners[type]=fn;}}});
+buttons.forEach(b=>{assert.strictEqual(b.hidden,false);b.listeners.click();assert.strictEqual(fields[b.dataset.passwordToggle].type,"text");assert.strictEqual(b.attrs["aria-pressed"],"true");assert(b.attrs["aria-label"].endsWith("verbergen"));});
+buttons[0].listeners.click();assert.strictEqual(fields.current_password.type,"password");
+document.hidden=true;listeners.visibilitychange();Object.values(fields).forEach(f=>assert.strictEqual(f.type,"password"));
+buttons[1].listeners.click();listeners["form:submit"]();assert.strictEqual(fields.new_password.type,"password");
+buttons[2].listeners.click();windowListeners.pagehide();assert.strictEqual(fields.confirm_password.type,"password");
+Object.values(fields).forEach(f=>assert.strictEqual(f.value,"SYNTHETIC-INPUT"));
+console.log("PASS: reveal/conceal three fields, accessible labels/pressed state, auto-hide on tab switch/pagehide/submit, no value mutation/storage/network.");

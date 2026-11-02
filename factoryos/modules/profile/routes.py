@@ -1,6 +1,6 @@
 import secrets
 from flask import Blueprint, render_template, request, session, jsonify, flash, redirect, url_for
-from flask_login import current_user, login_required
+from flask_login import current_user, login_required, logout_user
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import StaleDataError
 from factoryos.extensions import db
@@ -66,6 +66,31 @@ def settings():
         flash("Deine Einstellungen wurden im Benutzerkonto gespeichert.", "success")
         return redirect(url_for("profile.settings"))
     return render_template("profile/settings.html")
+
+
+@bp.route("/password", methods=["POST"])
+@login_required
+def change_password():
+    if not current_user.active:
+        return "Benutzer ist deaktiviert.", 403
+    if (not csrf_valid(request.form.get("csrf_token")) or
+            request.form.get("account_id") != str(current_user.id)):
+        return "Anmeldung oder Formular geändert. Bitte Profil neu laden.", 400
+    from .password_service import change_own_password
+    try:
+        change_own_password(current_user._get_current_object(),
+                            request.form.get("current_password", ""),
+                            request.form.get("new_password", ""),
+                            request.form.get("confirm_password", ""))
+    except ValueError as exc:
+        db.session.rollback()
+        flash(str(exc), "danger")
+        return redirect(url_for("profile.settings", _anchor="password-settings"))
+    logout_user()
+    session.clear()
+    session["_remember"] = "clear"
+    flash("Passwort geändert. Bitte mit deinem neuen Passwort anmelden.", "success")
+    return redirect(url_for("auth.login"))
 
 
 @bp.route("/preferences/<section>", methods=["GET", "PATCH"])
