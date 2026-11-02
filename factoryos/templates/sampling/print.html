@@ -10,8 +10,11 @@
 <span>Papier: A4, Hochformat</span>
 </nav>
 <main class="print-document">
-<header><p class="eyebrow">FactoryOS / Musterung</p><h1>Musterungsauftrag</h1><p class="order-number">{{ document.number }}</p><p class="reason">{{ document.reason }}</p>
+<header><p class="eyebrow">FactoryOS / Musterung</p><h1>Musterungsauftrag</h1><p class="order-number">{{ document.number }}</p>
 <p class="status">{{ 'BEARBEITUNGSSTAND - ' if document.preliminary else '' }}{{ document.status }}</p>
+<section class="purpose"><p class="eyebrow">Warum wird gemustert?</p><h2>{{ document.reason }}</h2></section>
+<dl class="facts key-facts">{% for label,value in document.key_facts %}<div><dt>{{ label }}</dt><dd>{{ value }}</dd></div>{% endfor %}</dl>
+{% if document.reason_note %}<h3>Konkreter Grund / Erläuterung</h3><p class="free-text">{{ document.reason_note }}</p>{% endif %}
 <p class="metadata">Auftragsstand: Version {{ document.version }} / Ausgabe: {{ document.generated }}</p><p class="notice">{{ document.notice }}</p></header>
 {% for group in document.groups %}
 <section><h2>{{ group.title }}</h2>

@@ -65,8 +65,7 @@ def document_data(record):
     groups = [
         {"title": "01  Auftrag und Zuordnungen", "rows": basics, "texts": []},
         {"title": "02  Material und Vorgaben", "rows": material,
-         "texts": [(TEXT_FIELDS[key], display(data.get(key))) for key in ("other_reason", "instructions")
-                   if key != "other_reason" or data.get(key)]},
+         "texts": [(TEXT_FIELDS[key], display(data.get(key))) for key in ("instructions",)]},
         {"title": "03  Durchführung und Ergebnis", "rows": execution,
          "texts": [(TEXT_FIELDS[key], display(data.get(key))) for key in
                    ("changes_result", "deviations", "packaging_proposal", "delivery_note")]},
@@ -86,6 +85,8 @@ def document_data(record):
                        "note": check.note if check and check.note else ""})
     completed = record.completed_at.strftime("%d.%m.%Y %H:%M") + " UTC" if record.completed_at else "-"
     return dict(number=record.order.order_no, reason=REASONS.get(record.reason, record.reason),
+                reason_note=data.get("other_reason") or "",
+                key_facts=[("Werkzeug", ref("tool")), ("Artikel", ref("article"))],
                 status=status, version=record.version, generated=datetime.utcnow().strftime("%d.%m.%Y %H:%M UTC"),
                 groups=groups, checks=checks,
                 closing=[("Abschlussstatus", status), ("Abgeschlossen am", completed),

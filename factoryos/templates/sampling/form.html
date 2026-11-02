@@ -1,6 +1,6 @@
 {% extends "sampling/base.html" %}
 {% macro select_reference(key, label, options, number, name) %}
-<div class="form-group" id="group-{{ key }}"><label for="{{ key }}">{{ label }}</label><select class="sampling-search" id="{{ key }}" name="{{ key }}"><option value="">Keine Zuordnung</option>
+<div class="form-group{% if key in ['tool_id','article_id'] %} sampling-key-field{% endif %}" id="group-{{ key }}"><label for="{{ key }}">{{ label }}</label><select class="sampling-search" id="{{ key }}" name="{{ key }}"><option value="">Keine Zuordnung</option>
 {% for obj in options %}<option value="{{ obj.id }}" {% if values.get(key,'')|string==obj.id|string %}selected{% endif %}>{{ obj[number] }} – {{ obj[name] or '' }}</option>{% endfor %}</select></div>
 {% endmacro %}
 {% block sampling_content %}
@@ -8,9 +8,13 @@
 <div class="sampling-notice">Genau ein Anlass pro Auftrag. Erstbemusterungen benötigen zusätzlich externe Kundenfreigabe, Prüfumfang, kavitätenbezogene Ergebnisse und eine Prüfbericht-/EMPB-Referenz. Die Angaben verändern keine Stammdaten.</div>
 <form method="post">
 <input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="version" value="{{ values.get('version','') }}">
-<section class="form-card"><h3>Auftragskopf und Zuordnungen</h3><div class="form-grid">
-<div class="form-group"><label for="order_no">Musterungs-Auftragsnummer *</label><input id="order_no" name="order_no" required maxlength="50" value="{{ values.get('order_no','') }}"></div>
+<section class="form-card sampling-purpose" aria-labelledby="sampling-purpose-title">
+<p class="sampling-eyebrow">01 · Warum wird gemustert?</p><h3 id="sampling-purpose-title">Musterungsanlass und Ziel</h3>
 <div class="form-group"><label for="reason">Musterungsanlass *</label><select id="reason" name="reason" required {% if record %}disabled{% endif %}><option value="">Bitte auswählen</option>{% for key,label in reasons.items() %}<option value="{{ key }}" {% if key==values.get('reason') %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>{% if record %}<input type="hidden" name="reason" value="{{ record.reason }}">{% endif %}</div>
+<div class="form-group"><label for="other_reason">Konkreter Grund / Erläuterung</label><textarea id="other_reason" name="other_reason" maxlength="10000" rows="3" placeholder="Was wurde geändert oder repariert? Was soll mit dieser Musterung geprüft werden?">{{ values.get('other_reason','') }}</textarea><small>Bei „Sonstiges“ erforderlich, bei allen anderen Anlässen optional. Genau ein Anlass pro Auftrag.</small></div>
+</section>
+<section class="form-card"><p class="sampling-eyebrow">02 · Was wird gemustert?</p><h3>Auftragskopf und Zuordnungen</h3><div class="form-grid">
+<div class="form-group"><label for="order_no">Musterungs-Auftragsnummer *</label><input id="order_no" name="order_no" required maxlength="50" value="{{ values.get('order_no','') }}"></div>
 <div class="form-group"><label for="target_qty">Anzahl der Muster *</label><input id="target_qty" type="number" min="1" step="1" name="target_qty" value="{{ values.get('target_qty',1) }}" required></div>
 <div class="form-group"><label for="state">Bearbeitungsstatus</label><select id="state" name="state">{% for key in ['draft','in_progress','review','rework'] %}<option value="{{ key }}" {% if key==values.get('state') %}selected{% endif %}>{{ states[key] }}</option>{% endfor %}</select></div>
 {{ select_reference('article_id','Artikel',articles,'article_no','article_name') }}
@@ -38,7 +42,7 @@
 <p class="sampling-help">Stammdaten bleiben unverändert. Messwerte, Prüfungen und Freigaben werden nicht automatisch als durchgeführt eingetragen.</p>
 </section>
 <section class="form-card"><h3>Vorgaben, Durchführung und Ergebnis</h3><div class="form-grid">
-{% for key,label in text_fields.items() if key not in ['color','masterbatch','ral_color'] %}<div class="form-group{% if key in ['instructions','changes_result','deviations','quality_note','actions','initial_scope','cavity_result'] %} full{% endif %}"><label for="{{ key }}">{{ label }}</label><textarea id="{{ key }}" name="{{ key }}" maxlength="10000" rows="2">{{ values.get(key,'') }}</textarea></div>{% endfor %}
+{% for key,label in text_fields.items() if key not in ['color','masterbatch','ral_color','other_reason'] %}<div class="form-group{% if key in ['instructions','changes_result','deviations','quality_note','actions','initial_scope','cavity_result'] %} full{% endif %}"><label for="{{ key }}">{{ label }}</label><textarea id="{{ key }}" name="{{ key }}" maxlength="10000" rows="2">{{ values.get(key,'') }}</textarea></div>{% endfor %}
 {% for key,label in date_fields.items() %}<div class="form-group"><label for="{{ key }}">{{ label }}</label><input type="date" id="{{ key }}" name="{{ key }}" value="{{ values.get(key,'') }}"></div>{% endfor %}
 {% for key,meta in number_fields.items() if key!='masterbatch_percent' %}<div class="form-group"><label for="{{ key }}">{{ meta[0] }}</label><input type="number" min="0" step="{{ '1' if meta[1] else 'any' }}" id="{{ key }}" name="{{ key }}" value="{{ values.get(key) if values.get(key) is not none else '' }}"></div>{% endfor %}
 {% for key,label in yes_no_fields.items() %}<div class="form-group"><label for="{{ key }}">{{ label }}</label><select id="{{ key }}" name="{{ key }}">{% for value,text in [('','Noch offen'),('yes','Ja'),('no','Nein')] %}<option value="{{ value }}" {% if value==values.get(key,'') %}selected{% endif %}>{{ text }}</option>{% endfor %}</select></div>{% endfor %}

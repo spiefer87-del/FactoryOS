@@ -32,6 +32,8 @@ def build_pdf(record):
         "section": ParagraphStyle("section", fontName="Sampling-Bold", fontSize=11, leading=15, textColor=blue, spaceBefore=15, spaceAfter=9, keepWithNext=True),
         "sub": ParagraphStyle("sub", fontName="Sampling-Bold", fontSize=8, leading=11, textColor=ink, spaceBefore=6, spaceAfter=4),
         "small": ParagraphStyle("small", fontName="Sampling", fontSize=7, leading=10, textColor=muted),
+        "focus": ParagraphStyle("focus", fontName="Sampling-Bold", fontSize=12, leading=16, textColor=ink, splitLongWords=True),
+        "reason": ParagraphStyle("reason", fontName="Sampling-Bold", fontSize=14, leading=19, textColor=ink, splitLongWords=True),
     }
 
     def p(value, style="body"):
@@ -43,11 +45,33 @@ def build_pdf(record):
     story = [
         p("FACTORYOS / MUSTERUNG", "small"), Spacer(1, 4 * mm),
         p("Musterungsauftrag", "title"),
-        p(data["number"]), p(data["reason"], "sub"),
+        p(data["number"], "focus"),
         p(("BEARBEITUNGSSTAND - " if data["preliminary"] else "") + data["status"]),
         p(f"Auftragsstand: Version {data['version']}  /  Ausgabe: {data['generated']}", "small"),
-        Spacer(1, 2 * mm), p(data["notice"], "small"),
     ]
+    reason_banner = Table([[[p("WARUM WIRD GEMUSTERT?", "label"), p(data["reason"], "reason")]]],
+                          colWidths=[width], hAlign="LEFT")
+    reason_banner.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#eff6ff")),
+        ("LINEBEFORE", (0, 0), (0, -1), 3, blue),
+        ("LEFTPADDING", (0, 0), (-1, -1), 12), ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+        ("TOPPADDING", (0, 0), (-1, -1), 10), ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+    ]))
+    story.extend([Spacer(1, 2 * mm), reason_banner])
+    focus = Table([[[p(label, "label"), p(value, "focus")] for label, value in data["key_facts"]]],
+                  colWidths=[width / 2] * 2, hAlign="LEFT", splitInRow=1)
+    focus.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f5f7fa")),
+        ("LINEABOVE", (0, 0), (-1, 0), 1.5, blue),
+        ("LEFTPADDING", (0, 0), (-1, -1), 9), ("RIGHTPADDING", (0, 0), (-1, -1), 9),
+        ("TOPPADDING", (0, 0), (-1, -1), 9), ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
+    ]))
+    story.extend([Spacer(1, 3 * mm), focus])
+    if data["reason_note"]:
+        # Tool/article remain on top even when the explanation spans several pages.
+        story.extend([p("Konkreter Grund / Erläuterung", "sub"), p(data["reason_note"])])
+    story.extend([Spacer(1, 2 * mm), p(data["notice"], "small")])
 
     def pairs(rows):
         cells = []
@@ -105,7 +129,7 @@ def build_pdf(record):
         canvas.line(16 * mm, 281 * mm, 194 * mm, 281 * mm)
         canvas.setFont("Sampling", 7)
         canvas.setFillColor(muted)
-        canvas.drawString(16 * mm, 285 * mm, "FactoryOS / Musterungsauftrag")
+        canvas.drawString(16 * mm, 285 * mm, "FactoryOS / Musterung / " + data["reason"])
         # Keep arbitrary, possibly long order numbers inside the header.
         canvas.drawRightString(194 * mm, 285 * mm, f"ID {record.id} / Version {data['version']}")
         canvas.line(16 * mm, 15 * mm, 194 * mm, 15 * mm)
