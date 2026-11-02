@@ -123,7 +123,10 @@ with app.app_context():
         assert booking.process == "MUSTER"
         assert any("Maschinenbuchung" in err for err in completion_errors(repair))
     assert client.post(f"/orders/sampling/{repair.id}/stop-booking",
-                       data=dict(csrf_token=token)).status_code == 302
+                       data=dict(csrf_token=token)).status_code == 303
+    # Legacy stop now navigates to the touch panel; only a central command mutates.
+    assert booking.end_time is None
+    end_booking(booking.id,user.id,"STOP")
     assert not completion_errors(repair)
     completed = client.post(f"/orders/sampling/{repair.id}/complete",
                             data=dict(csrf_token=token, version=str(repair.version)))

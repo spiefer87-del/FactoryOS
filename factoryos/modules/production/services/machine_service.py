@@ -1,150 +1,29 @@
-from datetime import datetime
-
-from factoryos.extensions import db
-from factoryos.modules.production.models import TimeBooking
-
-
-# --------------------------------------------------
-# Alle aktiven Buchungen schließen
-# --------------------------------------------------
-
-def close_all_active_bookings(machine_id):
-
-    bookings = (
-        TimeBooking.query
-        .filter_by(machine_id=machine_id)
-        .filter(TimeBooking.end_time.is_(None))
-        .all()
-    )
-
-    now = datetime.utcnow()
-
-    for b in bookings:
-        b.end_time = now
-
-    db.session.flush()
-
-    return bookings
-
-
-# --------------------------------------------------
-# Maschine auf FREI setzen
-# --------------------------------------------------
-
-def start_machine_free(machine_id, user_id):
-
-    free = TimeBooking(
-        user_id=user_id,
-        machine_id=machine_id,
-        order_id=None,
-        type="START",
-        process="FREI",
-        tool_no=None,
-        start_time=datetime.utcnow()
-    )
-
-    db.session.add(free)
-
-    db.session.flush()
-
-    return free
-
-
-# --------------------------------------------------
-# Setup starten (RUEST / ABRUEST)
-# --------------------------------------------------
-
-def start_setup(machine_id, user_id, tool_no, order_id=None, mode="RUEST", comment=None):
-
-    close_all_active_bookings(machine_id)
-
-    booking = TimeBooking(
-        user_id=user_id,
-        machine_id=machine_id,
-        order_id=order_id,
-        type="START",
-        process=mode,
-        tool_no=tool_no,
-        comment=comment,
-        start_time=datetime.utcnow()
-    )
-
-    db.session.add(booking)
-
-    db.session.flush()
-
-    return booking
-
-
-# --------------------------------------------------
-# Maschinen Event starten
-# --------------------------------------------------
-
-def start_machine_event(machine_id, user_id, event, comment=None):
-
-    close_all_active_bookings(machine_id)
-
-    booking = TimeBooking(
-        user_id=user_id,
-        machine_id=machine_id,
-        order_id=None,
-        type="START",
-        process=event,
-        tool_no=None,
-        comment=comment,
-        start_time=datetime.utcnow()
-    )
-
-    db.session.add(booking)
-
-    db.session.flush()
-
-    return booking
-
-
-# --------------------------------------------------
-# Maschinenstatus abrufen
-# --------------------------------------------------
+"""Compatibility adapters; no independent machine-state writer remains."""
+from uuid import uuid4
+from .machine_control_service import execute,snapshot,current_booking
 
 def get_active_machine_state(machine_id):
+    booking=current_booking(machine_id)
+    return {"status":booking.process if booking else "FREI","booking":booking}
 
-    booking = (
-        TimeBooking.query
-        .filter_by(machine_id=machine_id)
-        .filter(TimeBooking.end_time.is_(None))
-        .order_by(TimeBooking.start_time.desc())
-        .first()
-    )
+def _command(machine_id,user_id,action,**kwargs):
+    return execute(machine_id,user_id,action,str(uuid4()),snapshot(machine_id)["revision"],**kwargs)[0]
 
-    if not booking:
-        return {
-            "status": "FREI",
-            "booking": None
-        }
+def start_setup(machine_id,user_id,tool_no,order_id=None,mode="RUEST",comment=None):
+    if mode not in ("RUEST","ABRUEST"): raise ValueError("Unbekannter Rüstmodus.")
+    return _command(machine_id,user_id,"setup" if mode=="RUEST" else "unsetup",
+                    order_id=order_id,tool_no=tool_no,comment=comment)
 
-    return {
-        "status": booking.process,
-        "booking": booking
-    }
+def start_machine_event(machine_id,user_id,event,comment=None):
+    if event not in ("WARTUNG","SONSTIG"): raise ValueError("Unbekannter Maschinenvorgang.")
+    return _command(machine_id,user_id,"maintenance" if event=="WARTUNG" else "other",comment=comment)
 
-def start_machine_downtime(machine_id, user_id, reason_id=None, comment=None, prev_order_id=None, tool_no=None):
+def start_machine_downtime(machine_id,user_id,reason_id=None,comment=None,prev_order_id=None,tool_no=None):
+    # Context always comes from server state, never caller-supplied previous orders.
+    return _command(machine_id,user_id,"fault",reason_id=reason_id,comment=comment)
 
-    close_all_active_bookings(machine_id)
+def close_all_active_bookings(machine_id):
+    raise ValueError("Stille Ablösung aktiver Maschinenbuchungen ist gesperrt. Zentrale Maschinenbedienung verwenden.")
 
-    booking = TimeBooking(
-        user_id=user_id,
-        machine_id=machine_id,
-        order_id=None,
-        prev_order_id=prev_order_id,
-        type="START",
-        process="STOERUNG",
-        tool_no=tool_no,
-        downtime_reason_id=reason_id,
-        comment=comment,
-        start_time=datetime.utcnow()
-    )
-
-    db.session.add(booking)
-    db.session.flush()
-
-    return booking
+def start_machine_free(machine_id,user_id):
+    raise ValueError("Frei-Buchungen werden ausschließlich durch einen geprüften Maschinenbefehl angelegt.")

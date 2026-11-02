@@ -74,6 +74,8 @@ def correction_plan(booking, new_start, reason, now=None):
 
 def apply_correction(booking, new_start, reason, expected_revision):
     old_start, old_end = booking.start_time, booking.end_time
+    from .machine_control_service import acquire_control_lock
+    acquire_control_lock()
     # Acquire the write lock before rechecking all dependent records.
     statement = TimeBooking.query.filter_by(id=booking.id,start_time=old_start,end_time=old_end)
     if statement.update({TimeBooking.start_time:old_start},synchronize_session=False)!=1:

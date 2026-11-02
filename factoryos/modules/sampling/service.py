@@ -79,6 +79,9 @@ def parse_data(form):
 
 def save_sampling(form, user_id, sampling=None):
     creating = sampling is None
+    if sampling:
+        from factoryos.modules.production.services.machine_control_service import acquire_control_lock
+        acquire_control_lock()
     if sampling and sampling.state == "completed":
         raise ValueError("Abgeschlossene Musterungen sind schreibgeschützt. Eine Nachbemusterung anlegen.")
     if sampling and str(sampling.version) != form.get("version"):
@@ -264,6 +267,11 @@ def completion_errors(sampling):
 
 
 def complete_sampling(sampling, user_id):
+    expected_version=sampling.version
+    from factoryos.modules.production.services.machine_control_service import acquire_control_lock
+    acquire_control_lock()
+    if sampling.version!=expected_version:
+        raise ValueError("Musterung wurde inzwischen geändert. Bitte neu laden.")
     if sampling.state == "completed":
         raise ValueError("Diese Musterung ist bereits abgeschlossen.")
     errors = completion_errors(sampling)

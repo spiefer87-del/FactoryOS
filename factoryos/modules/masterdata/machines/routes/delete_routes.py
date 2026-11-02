@@ -24,7 +24,18 @@ def delete(machine_id):
     )
 
     from factoryos.modules.sampling.models import SamplingOrder
+    from factoryos.modules.production.models import TimeBooking,MachineControlState,MachineControlCommand
+    from factoryos.modules.production.services.machine_control_service import acquire_control_lock
+    from factoryos.extensions import db
+    acquire_control_lock()
+    if (TimeBooking.query.filter_by(machine_id=machine.id).first() or
+        MachineControlState.query.filter_by(machine_id=machine.id).first() or
+        MachineControlCommand.query.filter_by(machine_id=machine.id).first()):
+        db.session.rollback()
+        flash("Maschine besitzt Buchungen oder ein Bedienprotokoll. Bitte deaktivieren statt löschen.","warning")
+        return redirect(url_for("machines.detail",machine_id=machine.id))
     if SamplingOrder.query.filter_by(machine_id=machine.id).first():
+        db.session.rollback()
         flash("Dieser Stammdatensatz wird von einem Musterungsauftrag verwendet und kann nicht gelöscht werden.", "warning")
         return redirect(url_for("machines.detail", machine_id=machine.id))
     delete_machine(

@@ -47,6 +47,8 @@ PROCESS_META = {
     "STOERUNG": ("Störung", "downtime"),
     "PAUSE": ("Pause", "pause"),
     "FREI": ("Frei", "free"),
+    "WARTUNG": ("Wartung", "other"),
+    "SONSTIG": ("Sonstiger Vorgang", "other"),
 }
 
 

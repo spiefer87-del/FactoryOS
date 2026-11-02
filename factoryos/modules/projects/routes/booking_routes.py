@@ -55,6 +55,13 @@ def projects_start(order_id):
 def projects_stop(booking_id):
 
     b = TimeBooking.query.get_or_404(booking_id)
+    if b.machine_id is not None:
+        # The historical route accepted arbitrary own booking IDs. Never let it
+        # bypass the machine state machine, even when the caller owns the row.
+        return redirect(url_for("production.machine_control",machine_id=b.machine_id),code=303)
+    if b.process != "PROJEKT" or not b.order or not b.order.is_project:
+        from flask import abort
+        abort(400,"Keine Projektzeitbuchung.")
 
     if b.user_id != current_user.id:
         flash("Keine Berechtigung.", "danger")

@@ -2,6 +2,8 @@
 
 {% block styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/booking_timeline.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/machine_control.css') }}">
+<script src="{{ url_for('static',filename='js/machine_control.js') }}" defer></script>
 {% endblock %}
 
 {% block content %}
@@ -122,8 +124,7 @@
                 {% for lane in lanes %}
                 <div class="timeline-row">
                     <div class="timeline-machine-cell">
-                        <strong>{{ lane.machine.machine_no }}</strong>
-                        <span>{{ lane.machine.name or 'Ohne Bezeichnung' }}</span>
+                        <button type="button" class="machine-control-open" data-machine-control-url="{{ url_for('production.machine_control',machine_id=lane.machine.id,embedded='1') }}" aria-haspopup="dialog"><strong>{{ lane.machine.machine_no }}</strong><span>{{ lane.machine.name or 'Ohne Bezeichnung' }}</span><span>Maschine bedienen ›</span></button>
                         {% if lane.machine.machine_status != 'aktiv' %}
                         <small>{{ lane.machine.machine_status }}</small>
                         {% endif %}
@@ -192,8 +193,7 @@
             <article class="machine-status-card status-{{ lane.active_class }}">
                 <div class="machine-status-header">
                     <div>
-                        <strong>{{ lane.machine.machine_no }}</strong>
-                        <span>{{ lane.machine.name or 'Ohne Bezeichnung' }}</span>
+                        <button type="button" class="machine-control-open" data-machine-control-url="{{ url_for('production.machine_control',machine_id=lane.machine.id,embedded='1') }}" aria-haspopup="dialog"><strong>{{ lane.machine.machine_no }}</strong><span>{{ lane.machine.name or 'Ohne Bezeichnung' }}</span><span>Bedienung öffnen ›</span></button>
                     </div>
                     <span class="machine-status-badge">{{ lane.active_process_label }}</span>
                 </div>
@@ -273,4 +273,8 @@
         Nester sowie Rüst- und Prüfzeiten sind nicht vorweggenommen; bei Musterungen ist dies nur die reine Zykluslaufzeit.
     </div>
 </div>
+<dialog id="machine-control-dialog" class="machine-control-dialog" aria-label="Maschine bedienen">
+  <header><strong>Maschinenbedienung</strong><a data-control-fullscreen href="#" target="_blank" rel="noopener">Touchscreen-Seite ↗</a><button type="button" data-control-close aria-label="Bedienung schließen">Schließen ✕</button></header>
+  <iframe title="Touch-Bedienfeld der Maschine" src="about:blank"></iframe>
+</dialog>
 {% endblock %}

@@ -1,146 +1,38 @@
-from datetime import datetime
-
+from uuid import uuid4
 from sqlalchemy import func
-from sqlalchemy.orm import joinedload
-
 from factoryos.extensions import db
 from factoryos.models.machine import Machine
 from factoryos.modules.production.models import TimeBooking
 from factoryos.modules.orders.models import Order
-from factoryos.modules.production.services.machine_service import (
-    close_all_active_bookings,
-    start_machine_free
-)
+from .machine_control_service import execute,snapshot,current_booking,TERMINAL
 
-
-FINISHED_ORDER_STATUSES = ("fertig", "gesperrt", "finished", "locked")
-
+FINISHED_ORDER_STATUSES=tuple(TERMINAL)
 
 def get_manual_start_data():
-    machines = (
-        Machine.query
-        .filter(Machine.machine_status == "aktiv")
-        .order_by(Machine.machine_no.asc(), Machine.name.asc())
-        .all()
-    )
+    machines=Machine.query.filter_by(machine_status="aktiv").order_by(Machine.machine_no,Machine.name).all()
+    orders=Order.query.filter(~func.lower(func.coalesce(Order.status,"")).in_(FINISHED_ORDER_STATUSES)).order_by(Order.order_no).all()
+    active=TimeBooking.query.filter_by(end_time=None).order_by(TimeBooking.start_time.desc()).all()
+    by_machine={};by_order={}
+    for b in active:
+        if b.machine_id:by_machine.setdefault(b.machine_id,b)
+        if b.order_id:by_order.setdefault(b.order_id,b)
+    return dict(machines=machines,orders=orders,active_by_machine=by_machine,active_by_order=by_order)
 
-    orders = (
-        Order.query
-        .filter(
-            ~func.lower(func.coalesce(Order.status, "")).in_(FINISHED_ORDER_STATUSES)
-        )
-        .order_by(Order.order_no.asc())
-        .all()
-    )
+def start_production(user_id,order_id,machine_id,comment=None):
+    execute(int(machine_id),user_id,"start",str(uuid4()),snapshot(int(machine_id))["revision"],
+            order_id=order_id,comment=comment)
+    return current_booking(int(machine_id))
 
-    active_bookings = (
-        TimeBooking.query
-        .options(
-            joinedload(TimeBooking.order),
-            joinedload(TimeBooking.machine),
-        )
-        .filter(TimeBooking.end_time.is_(None))
-        .order_by(TimeBooking.start_time.desc())
-        .all()
-    )
+def end_booking(booking_id,user_id,action):
+    booking=db.session.get(TimeBooking,booking_id)
+    if not booking or not booking.machine_id or booking.end_time is not None:
+        raise ValueError("Maschinenbuchung ist nicht mehr aktiv.")
+    if action not in ("PAUSE","STOP"):raise ValueError("Unbekannter Stoppbefehl.")
+    return execute(booking.machine_id,user_id,"pause" if action=="PAUSE" else "stop",str(uuid4()),
+        snapshot(booking.machine_id)["revision"],comment="Vorgang manuell beendet" if action=="STOP" else "")
 
-    active_by_machine = {}
-    active_by_order = {}
-    for booking in active_bookings:
-        if booking.machine_id and booking.machine_id not in active_by_machine:
-            active_by_machine[booking.machine_id] = booking
-        if booking.order_id and booking.order_id not in active_by_order:
-            active_by_order[booking.order_id] = booking
-
-    return {
-        "machines": machines,
-        "orders": orders,
-        "active_by_machine": active_by_machine,
-        "active_by_order": active_by_order,
-    }
-
-
-def start_production(user_id, order_id, machine_id, comment=None):
-
-    order = Order.query.get_or_404(order_id)
-
-    if order.sampling:
-        if order.sampling.state not in ("in_progress", "review"):
-            raise ValueError("Musterung muss für das Booking in Bearbeitung oder Prüfung sein.")
-        if order.sampling.machine_id != int(machine_id):
-            raise ValueError("Bitte im Musterungsauftrag zuerst die gewählte Maschine zuordnen.")
-    close_all_active_bookings(machine_id)
-
-    if (order.status or "").lower() in ("open", "offen"):
-        order.status = "in_arbeit"
-
-    b = TimeBooking(
-        user_id=user_id,
-        order_id=order.id,
-        machine_id=machine_id,
-        type="START",
-        process="MUSTER" if order.sampling else "PROD",
-        tool_no=order.tool_no,
-        comment=(comment or "").strip()[:255] or None,
-        start_time=datetime.utcnow()
-    )
-
-    db.session.add(b)
-    db.session.commit()
-
-    return b
-
-
-def end_booking(booking_id, user_id, action):
-
-    booking = TimeBooking.query.get_or_404(booking_id)
-
-    booking.end_time = datetime.utcnow()
-
-    if action == "PAUSE":
-
-        pause = TimeBooking(
-            user_id=user_id,
-            order_id=booking.order_id,
-            machine_id=booking.machine_id,
-            type="PAUSE",
-            process="PAUSE",
-            tool_no=booking.tool_no,
-            start_time=datetime.utcnow()
-        )
-
-        db.session.add(pause)
-
-    else:
-
-        start_machine_free(booking.machine_id, user_id)
-
-    db.session.commit()
-
-
-def resume_booking(booking_id, user_id):
-
-    booking = TimeBooking.query.get_or_404(booking_id)
-
-    if booking.order and booking.order.sampling and booking.order.sampling.state not in ("in_progress", "review"):
-        raise ValueError("Diese Musterung ist nicht mehr für eine Buchung freigegeben.")
-
-    booking.end_time = datetime.utcnow()
-
-    order = Order.query.get(booking.order_id)
-
-    if order:
-
-        new_start = TimeBooking(
-            user_id=user_id,
-            order_id=order.id,
-            machine_id=booking.machine_id,
-            type="START",
-            process="MUSTER" if order.sampling else "PROD",
-            tool_no=order.tool_no,
-            start_time=datetime.utcnow()
-        )
-
-        db.session.add(new_start)
-
-    db.session.commit()
+def resume_booking(booking_id,user_id):
+    booking=db.session.get(TimeBooking,booking_id)
+    if not booking or not booking.machine_id or booking.end_time is not None or booking.process!="PAUSE":
+        raise ValueError("Nur eine aktive Pause kann fortgesetzt werden. Störung zuerst ausdrücklich entstören.")
+    return execute(booking.machine_id,user_id,"resume",str(uuid4()),snapshot(booking.machine_id)["revision"])

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ machine.machine_no }} · Maschinenbedienung · FactoryOS</title>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/machine_control.css') }}">
+<script src="{{ url_for('static',filename='js/machine_control.js') }}" defer></script></head>
+<body class="machine-control-page" data-revision="{{ state.revision }}" data-state-url="{{ url_for('production.machine_control_state',machine_id=machine.id) }}" data-changed="{{ '1' if request.args.get('changed')=='1' else '0' }}">
+<main class="control-panel">
+<header class="control-heading"><div><p>FactoryOS · {{ current_user.username }} · Manuelle Maschinenbedienung</p><h1>{{ machine.machine_no }}</h1><p>{{ machine.name or 'Maschine' }}</p></div>
+<div>{% if not embedded %}<a class="control-link" href="{{ url_for('production.booking_dashboard') }}">Zur Timeline</a>{% endif %}
+<a class="control-link" href="{{ url_for('production.machine_control',machine_id=machine.id,embedded='1' if embedded else None) }}">Neu laden</a></div></header>
+<p class="control-note"><strong>Manueller Betrieb · kein Controller verbunden.</strong> Diese Bedienung bucht Zustände und Zeiten in FactoryOS. Kein elektrischer Maschinenstart, kein Not-Halt und keine Sicherheitsfreigabe.</p>
+{% for category,message in get_flashed_messages(with_categories=true) %}<p role="status" class="control-message">{{ message }}</p>{% endfor %}
+{% if error %}<p role="alert" class="control-error">{{ error }} Bitte Angaben prüfen und den Befehl erneut bewusst auslösen.</p>{% endif %}
+<p role="alert" class="control-error" id="control-stale" hidden>Der Maschinenstand wurde inzwischen geändert. Bitte neu laden, bevor du einen weiteren Befehl auslöst.</p>
+<section class="control-current process-{{ process|lower }}"><span>Aktueller Zustand · Version {{ state.version }}</span>
+<h2>{{ labels.get(process,process) }}</h2>
+{% if active %}<p>Seit {{ local_label(active.start_time) }} · {{ active.user.username if active.user else 'Unbekannt' }}</p>
+{% if active.order %}<p><strong>Auftrag {{ active.order.order_no }}</strong> · {{ active.order.article or '' }}</p>{% endif %}
+{% if active.tool_no %}<p>Werkzeug <strong>{{ active.tool_no }}</strong></p>{% endif %}
+{% if active.downtime_reason %}<p>Störgrund: {{ active.downtime_reason.name }}</p>{% endif %}
+{% if active.comment %}<p>{{ active.comment }}</p>{% endif %}
+{% else %}<p>Noch keine Zustandsbuchung vorhanden. Kein bestätigter physischer Maschinenzustand.</p>{% endif %}
+{% if state.resume_process %}<p class="control-note">Unterbrochener Vorgang: {{ labels.get(state.resume_process,state.resume_process) }}{% if state.resume_order_id %} · Auftragsbezug gespeichert{% endif %}. Entstören allein setzt ihn nicht fort.</p>{% endif %}
+{% if machine.machine_status!='aktiv' %}<p class="control-error">Maschine ist in den Stammdaten nicht aktiv. Neue Vorgänge und Fortsetzen sind gesperrt.</p>{% endif %}
+</section>
+{% if conflict %}<p class="control-error" role="alert">Mehrere aktive Altbuchungen gefunden. Bedienung ist gesperrt; bitte Administration zur fachlichen Klärung informieren. Es wird nichts automatisch geschlossen.</p>
+<ul>{% for item in state.active %}<li>Buchung #{{ item.id }} · {{ labels.get(item.process,item.process) }} · {{ item.start }} UTC</li>{% endfor %}</ul>{% endif %}
+<form method="post" id="control-command-form">
+<input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}"><input type="hidden" name="command_id" value="{{ command_id }}"><input type="hidden" name="revision" value="{{ state.revision }}">
+{% if process=='FREI' %}<section class="control-fields"><h2>Auftrag und Werkzeug zuordnen</h2>
+<label>Auftrag suchen<input type="search" id="control-order-search" placeholder="Auftragsnummer, Artikel …" autocomplete="off"></label>
+<label>Auftrag (für Produktionsstart erforderlich)<select name="order_id" id="control-order"><option value="">Bitte auswählen</option>
+{% for order in orders %}<option value="{{ order.id }}" data-tool="{{ order.tool_no or '' }}" {% if selected_order|string==order.id|string %}selected{% endif %}>{{ order.order_no }} · {{ order.article or '' }} · {{ order.article_name or '' }}{% if order.sampling %} · Musterung{% endif %}</option>{% endfor %}</select></label>
+<label>Werkzeug (für Rüsten erforderlich)<select name="tool_no" id="control-tool"><option value="">Aus Auftrag übernehmen</option>
+{% for tool in tools %}<option value="{{ tool.tool_no }}" {% if selected_tool==tool.tool_no %}selected{% endif %}>{{ tool.tool_no }} · {{ tool.name or '' }}</option>{% endfor %}</select></label>
+<p class="control-note">Rüsten beenden gibt die Maschine frei. Produktion wird anschließend mit eigenem Startbefehl gestartet. Kein automatischer Auftragswechsel.</p></section>{% endif %}
+{% if 'fault' in actions %}<label>Störgrund (alternativ Beschreibung)<select name="reason_id"><option value="">Über Beschreibung erfassen</option>{% for reason in reasons %}<option value="{{ reason.id }}" {% if selected_reason|string==reason.id|string %}selected{% endif %}>{{ reason.name }}</option>{% endfor %}</select></label>{% endif %}
+<label>Beschreibung / Begründung<textarea name="comment" maxlength="255" rows="2" placeholder="Was wurde gemacht oder was ist gestört?">{{ comment }}</textarea></label>
+<p class="control-note">Bei Entstören, Stoppen, Wartung und Sonstiges mindestens 5 Zeichen; bei Störung einen Grund auswählen oder beschreiben.</p>
+<div class="control-buttons" aria-label="Maschinenbefehle">
+{% for action in actions %}<button type="submit" name="action" value="{{ action }}" data-label="{{ action_labels[action] }}" class="command-button command-{{ action }}" {% if conflict or not permitted[action] or (machine.machine_status!='aktiv' and action in ['start','setup','unsetup','maintenance','other','resume']) %}disabled{% endif %}>{{ action_labels[action] }}{% if not permitted[action] %}<small>Keine Berechtigung</small>{% endif %}</button>{% endfor %}
+</div></form>
+<details class="control-history"><summary>Maschinenverlauf und Befehlsprotokoll (letzte 30)</summary>
+{% for item in history %}<article><strong>{{ action_labels.get(item.action,item.action) }}</strong><p>{{ local_label(item.created_at) }} · {{ item.user.username if item.user else 'Unbekannt' }} · App</p>
+<p>{{ labels.get(item.before_state.active[0].process,item.before_state.active[0].process) if item.before_state.active else 'Ohne Buchung' }} → {{ labels.get(item.after_state.active[0].process,item.after_state.active[0].process) if item.after_state.active else 'Ohne Buchung' }}</p>
+{% if item.comment %}<p>{{ item.comment }}</p>{% endif %}<small>Befehls-ID {{ item.command_id }}</small></article>{% else %}<p>Noch keine Befehle mit der neuen Bedienung ausgeführt. Frühere Buchungen bleiben in der Timeline erhalten.</p>{% endfor %}</details>
+</main></body></html>

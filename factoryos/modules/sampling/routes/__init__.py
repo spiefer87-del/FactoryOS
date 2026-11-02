@@ -12,7 +12,6 @@ from ..models import SamplingOrder
 from factoryos.modules.production.models import TimeBooking
 from factoryos.core.auth import has_permission
 from factoryos.modules.production.services.order_statistics import order_statistics,local_label,duration
-from factoryos.modules.production.services.machine_service import start_machine_free
 from ..definitions import *
 from ..service import choices, save_sampling, completion_errors, complete_sampling
 from ..autofill_service import autofill_catalog, material_confirmed, color_confirmed
@@ -64,19 +63,12 @@ def stop_booking(sampling_id):
         abort(400, "Bereits abgeschlossen.")
     bookings = TimeBooking.query.filter_by(order_id=record.order_id, end_time=None).all()
     machine_ids = {b.machine_id for b in bookings if b.machine_id is not None}
-    for booking in bookings:
-        booking.end_time = datetime.utcnow()
-    db.session.flush()
-    for machine_id in machine_ids:
-        if not TimeBooking.query.filter_by(machine_id=machine_id, end_time=None).first():
-            start_machine_free(machine_id, current_user.id)
+    if len(bookings)==1 and len(machine_ids)==1:
+        flash("Bitte Vorgang in der Maschinenbedienung bewusst beenden. Danach Prüfergebnisse ergänzen.","info")
+        return redirect(url_for("production.machine_control",machine_id=next(iter(machine_ids))),code=303)
     if bookings:
-        record.state = "review"
-        log_change("sampling", record.id, "update", category="orders",
-                   entity_name=record.order.order_no,
-                   changes={"booking": {"old": "aktiv", "new": "beendet"}})
-    db.session.commit()
-    flash("Musterungsbuchung beendet. Durchführung und Prüfergebnisse bitte ergänzen.", "success")
+        flash("Mehrere aktive Buchungen: bitte zuerst in der Maschinen-Timeline prüfen.","danger")
+        return redirect(url_for("production.booking_dashboard"),code=303)
     return redirect(url_for("sampling.detail", sampling_id=record.id))
 
 

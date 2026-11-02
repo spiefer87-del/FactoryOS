@@ -64,6 +64,39 @@ class QuantityReport(db.Model):
     machine = db.relationship("Machine", backref="qty_reports")
 
 
+class MachineControlLock(db.Model):
+    """Serializes commands across machines, including order reservations."""
+    __tablename__ = "machine_control_lock"
+    id = db.Column(db.Integer, primary_key=True)
+    version = db.Column(db.Integer, nullable=False, default=0)
+
+
+class MachineControlState(db.Model):
+    __tablename__ = "machine_control_states"
+    machine_id = db.Column(db.Integer, db.ForeignKey("machines.id"), primary_key=True)
+    version = db.Column(db.Integer, nullable=False, default=0)
+    resume_process = db.Column(db.String(20))
+    resume_order_id = db.Column(db.Integer, db.ForeignKey("orders.id"))
+    resume_tool_no = db.Column(db.String(50))
+
+
+class MachineControlCommand(db.Model):
+    """Append-only command receipt; no delete/edit route is exposed."""
+    __tablename__ = "machine_control_commands"
+    id = db.Column(db.Integer, primary_key=True)
+    command_id = db.Column(db.String(36), nullable=False, unique=True)
+    machine_id = db.Column(db.Integer, db.ForeignKey("machines.id"), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    source = db.Column(db.String(20), nullable=False, default="app")
+    action = db.Column(db.String(30), nullable=False)
+    payload_hash = db.Column(db.String(64), nullable=False)
+    comment = db.Column(db.String(255))
+    before_state = db.Column(db.JSON, nullable=False)
+    after_state = db.Column(db.JSON, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    user = db.relationship("User")
+
+
 class ProductionCalendarSettings(db.Model):
     """Weekly production window used by machine-booking forecasts."""
 
