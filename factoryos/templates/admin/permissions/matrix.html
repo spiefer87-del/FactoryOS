@@ -1,4 +1,5 @@
 {% extends "layout/base.html" %}
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static', filename='css/permission_labels.css') }}">{% endblock %}
 
 {% block content %}
 
@@ -22,7 +23,7 @@
 <form method="post" id="permissionMatrixForm">
 <input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}">
 <input type="hidden" name="permissions_revision" value="{{ permissions_revision }}">
-<p>Die Systemrolle admin besitzt geschützten Vollzugriff. Neue Fachrechte sind bei anderen Rollen zunächst nicht vergeben und müssen bewusst aktiviert werden.</p>
+<p>Die Systemadministration besitzt geschützten Vollzugriff. Bei anderen Rollen wählst du die benötigten Rechte einzeln aus. „Ansehen“ und „Bearbeiten“ sind getrennte Rechte – zum Arbeiten über eine Übersicht wird in der Regel auch das Leserecht benötigt.</p>
 
     <div class="permission-card-layout">
 
@@ -39,11 +40,11 @@
                     <div>
 
                         <strong>
-                            {{ role.name }}
+                            {{ role_label(role) }}
                         </strong>
 
                         <span class="permission-role-count" data-role-count="{{ role.id }}">
-                            {{ role.permissions|length }} Rechte aktiv
+                            {{ permission_count if role.name|trim|lower=='admin' else role.permissions|length }} Rechte aktiv
                         </span>
 
                     </div>
@@ -64,7 +65,7 @@
                             <div class="permission-module-header">
 
                                 <h4>
-                                    {{ module|replace("_", " ")|capitalize }}
+                                    {{ group_label(module) }}
                                 </h4>
 
                                 <label class="permission-module-check">
@@ -77,7 +78,7 @@
                                     >
 
                                     <span>
-                                        alle
+                                        Alle auswählen
                                     </span>
 
                                 </label>
@@ -89,10 +90,7 @@
 
                                 {% for permission in permissions %}
 
-                                    {% set parts = permission.name.split(".") %}
-                                    {% set permission_key = parts[1:]|join(".") if parts|length > 1 else permission.name %}
-
-                                    <label class="permission-toggle">
+                                    <div class="permission-entry"><label class="permission-toggle">
 
                                         <input
                                             type="checkbox"
@@ -110,16 +108,17 @@
                                         <span class="permission-toggle-content">
 
                                             <strong>
-                                                {{ permission_key|replace("_", " ")|capitalize }}
+                                                {{ permission_labels[permission.name].title }}
                                             </strong>
 
                                             <small>
-                                                {{ permission.description or permission.name }}
+                                                {{ permission_labels[permission.name].description }}
                                             </small>
 
                                         </span>
 
                                     </label>
+                                    <details class="permission-technical"><summary>Technische Kennung</summary><code>{{ permission.name }}</code></details></div>
 
                                 {% endfor %}
 

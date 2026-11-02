@@ -9,6 +9,7 @@ from factoryos.core.services.change_log_service import log_change
 from factoryos.modules.admin.roles.models import Role
 from factoryos.modules.admin.permissions.models import Permission
 from . import bp
+from ..labels import group_label, role_label, permission_text, permission_sort_key
 
 
 def revision(roles):
@@ -49,5 +50,9 @@ def permission_matrix():
         flash("Rechte aktualisiert. Systemadministratoren behalten den geschützten Vollzugriff.", "success")
         return redirect(url_for("admin_permissions.permission_matrix"))
     return render_template("admin/permissions/matrix.html", roles=roles,
-                           permission_groups=dict(sorted(permission_groups.items())),
+                           permission_groups={key: sorted(items, key=permission_sort_key)
+                                              for key, items in sorted(permission_groups.items(), key=lambda entry: (group_label(entry[0]).casefold(), entry[0]))},
+                           group_label=group_label, role_label=role_label,
+                           permission_labels={p.name: permission_text(p) for p in permissions},
+                           permission_count=len(permissions),
                            permissions_revision=current_revision)
