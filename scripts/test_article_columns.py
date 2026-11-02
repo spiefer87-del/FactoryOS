@@ -19,8 +19,13 @@ class TableParser(HTMLParser):
         self.current=[]
         self.links=[]
         self.toggles=[]
+        self.scroll_region=None
+        self.scroll_hint=False
     def handle_starttag(self,tag,attrs):
         attrs=dict(attrs)
+        if "article-table-scroll" in attrs.get("class","").split():
+            self.scroll_region=attrs
+        if attrs.get("id")=="article-table-scroll-hint": self.scroll_hint=True
         if tag=="table" and attrs.get("id")=="articles-table": self.inside=True
         if tag=="input" and "data-article-column-toggle" in attrs: self.toggles.append(attrs)
         if not self.inside: return
@@ -53,4 +58,10 @@ with app.app_context():
         if "/customers/" in link.get("href","") or "/materials/" in link.get("href",""):
             assert "article-link-chip" in link["class"]
     assert "&lt;QS&gt;" in html
+    assert parser.scroll_hint and parser.scroll_region
+    assert parser.scroll_region["tabindex"]=="0" and parser.scroll_region["role"]=="region"
+    assert parser.scroll_region["aria-describedby"]=="article-table-scroll-hint"
+    assert "js/article_table_scroll.js" in html
+    assert client.get("/static/js/article_table_scroll.js").status_code==200
+    assert client.get("/static/css/article_overview.css").status_code==200
 print("PASS: eight stable table headers/cells, column controls, reset, required identity, chip links, existing history and escaping.")
