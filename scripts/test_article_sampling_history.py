@@ -73,7 +73,7 @@ with app.app_context():
     assert html.index("HISTORY-completed") < html.index("HISTORY-draft")
     assert [(r.id, r.version, dict(r.data)) for r in records] == before
     listing = client.get("/masterdata/articles/list").get_data(as_text=True)
-    assert "<th>Musterung</th>" in listing and "4 offene Musterungen" in listing
+    assert 'data-article-column="sampling">Musterung</th>' in listing and "4 offene Musterungen" in listing
     assert "Keine offene Musterung" in listing and "data-article-history-popup" in listing
     detail = client.get(f"/masterdata/articles/{article.id}").get_data(as_text=True)
     assert url in detail and "Musterungs- / Artikelhistorie öffnen" in detail

@@ -1,123 +1,51 @@
 {% extends "layout/base.html" %}
-{% block styles %}<link rel="stylesheet" href="{{ url_for('static', filename='css/article_sampling_history.css') }}">{% endblock %}
-
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/article_sampling_history.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/article_overview.css') }}">
+{% endblock %}
 {% block content %}
-
-<h2>Artikelübersicht</h2>
-
+<div class="article-overview">
+<header class="article-overview-heading"><div><p>Stammdaten / Artikel</p><h2>Artikelübersicht</h2></div><span>Ansicht individuell anpassen</span></header>
 <div class="fos-table-wrapper">
-
-<div class="fos-table-toolbar">
-<input
-type="text"
-class="fos-search"
-placeholder="Suchen..."
-data-table-search="articles-table"
->
-</div>
-
-<div class="fos-table-container">
-
-<table class="fos-table" id="articles-table">
-
-<thead>
-<tr>
-<th>Artikelnummer</th>
-<th>Artikelname</th>
-<th>Kunde</th>
-<th>Rohstoff</th>
-<th>Werkzeuge</th>
-<th>Status</th>
-<th>Musterung</th>
-<th>Aktionen</th>
-</tr>
-</thead>
-
-<tbody>
-
-{% for article in articles %}
-
-<tr>
-
-<td>
-<a href="{{ url_for('articles.detail', article_id=article.id) }}">
-{{ article.article_no }}
-</a>
-</td>
-
-<td>
-{{ article.article_name }}
-</td>
-<td>{% if article.customer %}<a href="{{ url_for('customers.detail', customer_id=article.customer.id) }}">{{ article.customer.customer_no }} – {{ article.customer.name }}</a>{% else %}–{% endif %}</td>
-<td>{{ article.material.material_no ~ " – " ~ article.material.name if article.material else "–" }}</td>
-
-<td>
-
-{% if article.tools %}
-
-    <div class="tool-list">
-
-    {% for tool in article.tools[:3] %}
-        <a class="tool-badge"
-           href="{{ url_for('tools.detail', tool_id=tool.id) }}">
-            {{ tool.tool_no }}
-        </a>
-    {% endfor %}
-
-    {% if article.tools|length > 3 %}
-        <span class="tool-more">
-            +{{ article.tools|length - 3 }}
-        </span>
-    {% endif %}
-
-    </div>
-
-{% else %}
-
-    <span class="empty-state">-</span>
-
-{% endif %}
-
-</td>
-
-<td>
-<span class="status-badge status-{{ article.status }}">
-{{ article.status }}
-</span>
-</td>
-
-<td>
-
-{% set sampling = sampling_summaries[article.id] %}
-<a class="article-sampling-badge{{ ' is-clear' if not sampling.open_count else '' }}" href="{{ url_for('articles.history', article_id=article.id) }}" data-article-history-popup target="_blank" rel="noopener" title="{% for state,count in sampling.by_state.items() %}{{ sampling_states.get(state,state) }}: {{ count }}; {% endfor %}Historie in separatem Fenster öffnen">
-{{ sampling.open_count ~ ' offene Musterung' ~ ('en' if sampling.open_count != 1 else '') if sampling.open_count else 'Keine offene Musterung' }}</a>
-<small class="article-sampling-count">{{ sampling.total }} im Verlauf</small>
-</td><td>
-<a class="btn-small btn-edit"
-   href="{{ url_for('articles.edit', article_id=article.id) }}">
-   Bearbeiten
-</a>
-
-<a class="btn-small btn-delete"
-   href="{{ url_for('articles.delete', article_id=article.id) }}">
-   Löschen
-</a>
-
-</td>
-
-</tr>
-
+<div class="fos-table-toolbar article-overview-toolbar">
+<label class="article-search-label" for="article-search">Artikel suchen<input id="article-search" type="search" class="fos-search" placeholder="Artikel, Kunde, Werkzeug …" data-table-search="articles-table"></label>
+<details class="article-column-picker" id="article-column-picker">
+<summary>Spalten auswählen <span id="article-visible-count"></span></summary>
+<div class="article-column-options">
+<p>Auswahl für diesen Benutzer in diesem Browser speichern.</p>
+{% for key,label in [('article_no','Artikelnummer'),('article_name','Artikelname'),('customer','Kunde'),('material','Rohstoff'),('tools','Werkzeuge'),('status','Status'),('sampling','Musterung'),('actions','Aktionen')] %}
+<label><input type="checkbox" data-article-column-toggle="{{ key }}" checked {% if key=='article_no' %}disabled{% endif %}> {{ label }}{% if key=='article_no' %}<small>immer sichtbar</small>{% endif %}</label>
 {% endfor %}
-
-</tbody>
-
-</table>
-
+<button type="button" id="article-columns-reset">Alle Spalten anzeigen</button>
+</div></details>
 </div>
-
+<p class="article-view-status" id="article-view-status" role="status" aria-live="polite"></p>
+<div class="fos-table-container">
+<table class="fos-table" id="articles-table" data-column-user="{{ current_user.id }}">
+<thead><tr>
+{% for key,label in [('article_no','Artikelnummer'),('article_name','Artikelname'),('customer','Kunde'),('material','Rohstoff'),('tools','Werkzeuge'),('status','Status'),('sampling','Musterung'),('actions','Aktionen')] %}<th data-article-column="{{ key }}">{{ label }}</th>{% endfor %}
+</tr></thead><tbody>
+{% for article in articles %}
+<tr>
+<td data-article-column="article_no"><a class="article-link-chip article-number-chip" href="{{ url_for('articles.detail', article_id=article.id) }}">{{ article.article_no }}</a></td>
+<td data-article-column="article_name">{{ article.article_name }}</td>
+<td data-article-column="customer">{% if article.customer %}<a class="article-link-chip" href="{{ url_for('customers.detail', customer_id=article.customer.id) }}">{{ article.customer.customer_no }} – {{ article.customer.name }}</a>{% else %}<span class="article-cell-empty">–</span>{% endif %}</td>
+<td data-article-column="material">{% if article.material %}<a class="article-link-chip article-material-chip" href="{{ url_for('materials.detail', material_id=article.material.id) }}">{{ article.material.material_no }} – {{ article.material.name }}</a>{% else %}<span class="article-cell-empty">–</span>{% endif %}</td>
+<td data-article-column="tools">
+{% if article.tools %}<div class="tool-list">{% for tool in article.tools[:3] %}<a class="tool-badge article-link-chip" href="{{ url_for('tools.detail', tool_id=tool.id) }}">{{ tool.tool_no }}</a>{% endfor %}{% if article.tools|length>3 %}<span class="tool-more">+{{ article.tools|length-3 }}</span>{% endif %}</div>{% else %}<span class="article-cell-empty">–</span>{% endif %}
+</td>
+<td data-article-column="status"><span class="status-badge status-{{ article.status }}">{{ article.status }}</span></td>
+<td data-article-column="sampling">
+{% set sampling=sampling_summaries[article.id] %}
+<a class="article-sampling-badge{{ ' is-clear' if not sampling.open_count else '' }}" href="{{ url_for('articles.history', article_id=article.id) }}" data-article-history-popup target="_blank" rel="noopener" title="{% for state,count in sampling.by_state.items() %}{{ sampling_states.get(state,state) }}: {{ count }}; {% endfor %}Historie in separatem Fenster öffnen">{{ sampling.open_count ~ ' offene Musterung' ~ ('en' if sampling.open_count!=1 else '') if sampling.open_count else 'Keine offene Musterung' }}</a>
+<small class="article-sampling-count">{{ sampling.total }} im Verlauf</small>
+</td>
+<td data-article-column="actions"><div class="article-row-actions"><a class="btn-small btn-edit" href="{{ url_for('articles.edit', article_id=article.id) }}">Bearbeiten</a><a class="btn-small btn-delete" href="{{ url_for('articles.delete', article_id=article.id) }}">Löschen</a></div></td>
+</tr>
+{% endfor %}
+</tbody></table></div>
 <div class="fos-pagination" data-table="articles-table"></div>
-
-</div>
-
+</div></div>
+<script src="{{ url_for('static', filename='js/article_columns.js') }}"></script>
 <script src="{{ url_for('static', filename='js/article_sampling_history.js') }}"></script>
 {% endblock %}
