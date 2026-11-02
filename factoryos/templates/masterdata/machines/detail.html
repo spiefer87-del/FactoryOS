@@ -1,5 +1,10 @@
 {% extends "layout/base.html" %}
 
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/machine_navigation.css') }}">
+{% endblock %}
+
 {% block content %}
 
 {% set injection = machine.injection_molding_data %}
@@ -17,6 +22,35 @@
     </div>
 
     <div class="page-actions">
+
+        <nav class="machine-navigation" aria-label="Zwischen Maschinen blättern">
+            {% if navigation.previous %}
+                <a class="btn-small btn-secondary machine-navigation-button"
+                   href="{{ url_for('machines.detail', machine_id=navigation.previous.id) }}"
+                   rel="prev" title="{{ navigation.previous.machine_no }} · {{ navigation.previous.name or 'Maschine' }}">
+                    <span aria-hidden="true">←</span> Vorherige Maschine
+                </a>
+            {% else %}
+                <button class="btn-small btn-secondary machine-navigation-button" type="button" disabled>
+                    <span aria-hidden="true">←</span> Vorherige Maschine
+                </button>
+            {% endif %}
+            <span class="machine-navigation-position">Maschine {{ navigation.position }} von {{ navigation.total }}</span>
+            {% if navigation.next %}
+                <a class="btn-small btn-secondary machine-navigation-button"
+                   href="{{ url_for('machines.detail', machine_id=navigation.next.id) }}"
+                   rel="next" title="{{ navigation.next.machine_no }} · {{ navigation.next.name or 'Maschine' }}">
+                    Nächste Maschine <span aria-hidden="true">→</span>
+                </a>
+            {% else %}
+                <button class="btn-small btn-secondary machine-navigation-button" type="button" disabled>
+                    Nächste Maschine <span aria-hidden="true">→</span>
+                </button>
+            {% endif %}
+            <a class="btn-small btn-secondary machine-navigation-overview" href="{{ url_for('machines.list_machines') }}">
+                Zur Übersicht
+            </a>
+        </nav>
 
         {% if can_edit_machine|default(false) %}
 

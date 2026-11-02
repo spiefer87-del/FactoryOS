@@ -23,7 +23,7 @@ from factoryos.modules.masterdata.shared.constants import (
     MACHINE_STATUS_COLORS
 )
 
-from ..queries.machine_queries import get_machine
+from ..queries.machine_queries import get_machine, get_machine_navigation
 
 from . import bp
 
@@ -62,6 +62,7 @@ def detail(machine_id):
     return render_template(
         "masterdata/machines/detail.html",
         machine=machine,
+        navigation=get_machine_navigation(machine),
         logs=logs,
 
         MACHINE_TYPES=MACHINE_TYPES,

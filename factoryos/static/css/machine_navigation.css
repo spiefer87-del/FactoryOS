@@ -1,0 +1,36 @@
+/* Scoped to the machine detail header; uses the shared masterdata buttons. */
+.machine-navigation {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+.machine-navigation .machine-navigation-button,
+.machine-navigation .machine-navigation-overview {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    text-decoration: none;
+}
+.machine-navigation .machine-navigation-button:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+    box-shadow: none;
+    pointer-events: none;
+}
+.machine-navigation-position {
+    color: #64748b;
+    font-size: .78rem;
+    white-space: nowrap;
+    padding: 0 4px;
+}
+.machine-navigation a:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+}
+@media (max-width: 700px) {
+    .machine-navigation { width: 100%; }
+    .machine-navigation-position { order: -1; flex-basis: 100%; padding: 0; }
+    .machine-navigation .machine-navigation-button { flex: 1 1 auto; }
+}

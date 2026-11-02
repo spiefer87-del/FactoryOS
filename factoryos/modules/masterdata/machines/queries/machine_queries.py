@@ -1,4 +1,4 @@
-from sqlalchemy import or_
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import joinedload
 
 from factoryos.modules.masterdata.machines.models import (
@@ -18,6 +18,28 @@ def get_machine(machine_id):
         .filter(Machine.id == machine_id)
         .first_or_404()
     )
+
+
+def get_machine_navigation(machine):
+    """Neighbours in the same ascending machine-number order as the overview."""
+    before = or_(
+        Machine.machine_no < machine.machine_no,
+        and_(Machine.machine_no == machine.machine_no, Machine.id < machine.id)
+    )
+    after = or_(
+        Machine.machine_no > machine.machine_no,
+        and_(Machine.machine_no == machine.machine_no, Machine.id > machine.id)
+    )
+    previous = (Machine.query.filter(before)
+                .order_by(Machine.machine_no.desc(), Machine.id.desc()).first())
+    following = (Machine.query.filter(after)
+                 .order_by(Machine.machine_no.asc(), Machine.id.asc()).first())
+    return {
+        "previous": previous,
+        "next": following,
+        "position": Machine.query.filter(before).count() + 1,
+        "total": Machine.query.count(),
+    }
 
 
 def get_machines(
