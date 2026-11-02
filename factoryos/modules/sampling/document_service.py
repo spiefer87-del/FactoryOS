@@ -45,12 +45,12 @@ def document_data(record):
         ("Kunden-Auftragsnummer", display(data.get("customer_order"))),
         ("Geplanter Termin", date_value(data.get("planned_date"))),
         ("Vorherige Musterung", record.previous.order.order_no if record.previous else "-"),
-        (TEXT_FIELDS["color"], display(data.get("color"))),
-        (TEXT_FIELDS["masterbatch"], display(data.get("masterbatch"))),
-        (NUMBER_FIELDS["masterbatch_percent"][0], display(data.get("masterbatch_percent"))),
-        (TEXT_FIELDS["ral_color"], display(data.get("ral_color"))),
     ]
     material = [("Rohstoff", ref("material")),
+                (TEXT_FIELDS["masterbatch"], display(data.get("masterbatch"))),
+                (NUMBER_FIELDS["masterbatch_percent"][0], display(data.get("masterbatch_percent"))),
+                (TEXT_FIELDS["color"], display(data.get("color"))),
+                (TEXT_FIELDS["ral_color"], display(data.get("ral_color"))),
                 ("Zusätze / Anteil", display(data.get("additives")))]
     material += [(YES_NO_FIELDS[key], {"yes": "Ja", "no": "Nein"}.get(data.get(key), "Offen"))
                  for key in ("drawing_available", "customer_material", "dry_material")]

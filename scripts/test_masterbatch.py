@@ -83,7 +83,13 @@ with app.app_context(), app.test_request_context():
     saved = save_sampling(formdata(saved_form), uid, saved)
     assert saved.data["masterbatch"] == "B-01 / Farbkonzentrat"
     assert saved.data["color"] == "Lichtgrau"
-    rows = dict(document_data(saved)["groups"][0]["rows"])
+    document = document_data(saved)
+    rows = dict(document["groups"][1]["rows"])
+    basics = dict(document["groups"][0]["rows"])
+    for label in ("Farbe / Farbtonbezeichnung", "Gewünschter Farbton / RAL",
+                  "Farbbatch / Masterbatch (Bezeichnung / Nummer)",
+                  "Farbbatch-Zugabe (% vom Hauptrohstoffgewicht)"):
+        assert label in rows and label not in basics
     assert rows["Gewünschter Farbton / RAL"] == "RAL 7035"
     assert rows["Farbbatch-Zugabe (% vom Hauptrohstoffgewicht)"] == "2,5"
     output = ROOT.parent / "masterbatch_qa"
@@ -97,7 +103,9 @@ with app.app_context(), app.test_request_context():
     assert html.count('name="masterbatch_id"') == 1
     assert html.count('name="masterbatch_percent"') == 1
     assert 'id="color_confirmed"' in html
-    assert "RAL 7035" in client.get(f"/orders/sampling/{saved.id}/print").get_data(as_text=True)
+    print_html = client.get(f"/orders/sampling/{saved.id}/print").get_data(as_text=True)
+    assert "RAL 7035" in print_html
+    assert print_html.index("02  Material und Vorgaben") < print_html.index("RAL 7035") < print_html.index("03  Durchführung und Ergebnis")
     assert "Farbbatch" in client.get(f"/masterdata/articles/edit/{article.id}").get_data(as_text=True)
     assert "Geänderte Stammdatenfarbe" in client.get(f"/masterdata/articles/{article.id}").get_data(as_text=True)
     # Editable records keep old confirmations only while all relevant values match.
