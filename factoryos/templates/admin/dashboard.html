@@ -6,7 +6,7 @@
 
 <div class="dashboard-grid">
 
-<a href="{{ url_for('admin_users.list_users') }}" class="dashboard-card">
+{% if can_access('admin_users.list_users') %}<a href="{{ url_for('admin_users.list_users') }}" class="dashboard-card">
 
 <div class="card-icon">👥</div>
 
@@ -18,10 +18,10 @@ Benutzer
 Benutzer verwalten
 </div>
 
-</a>
+</a>{% endif %}
 
 
-<a href="{{ url_for('admin_roles.list_roles') }}" class="dashboard-card">
+{% if can_access('admin_roles.list_roles') %}<a href="{{ url_for('admin_roles.list_roles') }}" class="dashboard-card">
 
 <div class="card-icon">🔐</div>
 
@@ -33,10 +33,10 @@ Rollen
 Rechte verwalten
 </div>
 
-</a>
+</a>{% endif %}
 
 
-<a href="{{ url_for('admin_permissions.permission_matrix') }}" class="dashboard-card">
+{% if can_access('admin_permissions.permission_matrix') %}<a href="{{ url_for('admin_permissions.permission_matrix') }}" class="dashboard-card">
 
 <div class="card-icon">🛡</div>
 
@@ -48,7 +48,7 @@ Rechteverwaltung
 Rollenrechte verwalten
 </div>
 
-</a>
+</a>{% endif %}
 
 </div>
 

@@ -5,6 +5,7 @@
 <h2>Neue Rolle erstellen</h2>
 
 <form method="post">
+<input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}">
 
 <div class="form-group">
 <label>Name</label>

@@ -5,6 +5,7 @@
 <h2>Rolle bearbeiten</h2>
 
 <form method="post">
+<input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}">
 
 <div class="form-group">
 <label>Name</label>
@@ -40,6 +41,7 @@ Speichern
 action="{{ url_for('admin_roles.delete_role_route', role_id=role.id) }}"
 
 onsubmit="return confirm('Rolle wirklich löschen?');">
+<input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}">
 
 <button class="btn-danger">
 Rolle löschen

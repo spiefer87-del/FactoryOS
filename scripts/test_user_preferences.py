@@ -11,6 +11,8 @@ fixture=runpy.run_path(str(ROOT/"scripts/test_sampling_orders.py"))
 app=fixture["app"]
 from factoryos.extensions import db
 from factoryos.models.user import User
+from factoryos.modules.admin.roles.models import Role
+from factoryos.modules.admin.permissions.models import Permission
 from factoryos.modules.profile.models import UserPreference
 from factoryos.modules.profile.service import DEFAULTS
 from scripts.upgrade_user_preferences import run_upgrade
@@ -35,10 +37,11 @@ with app.app_context():
     assert not inspect(db.engine).has_table("user_preferences")
     run_upgrade();run_upgrade()
     assert User.query.count()==existing_users
-    alice=User(username="alice-prefs",active=True);alice.set_password("test-password")
+    reader=Role(name="preferences-reader",active=True,permissions=[Permission(name="tools.view")])
+    alice=User(username="alice-prefs",active=True,role=reader);alice.set_password("test-password")
     bob=User(username="bob-prefs",active=True);bob.set_password("test-password")
     db.session.add_all([alice,bob]);db.session.commit()
-    aid,bid=alice.id,bob.id
+    aid,bid,arid=alice.id,bob.id,alice.role_id
     client=app.test_client()
     assert client.get("/profile/").status_code==302
     assert client.get("/profile/preferences/articles.columns").status_code==401
@@ -97,7 +100,7 @@ with app.app_context():
     assert 'no-store' in fresh.get("/profile/").headers['Cache-Control']
     assert fresh.post("/profile/",data={"action":"appearance"}).status_code==400
     # Appearance cannot change identity, role or permissions.
-    assert db.session.get(User,aid).username=="alice-prefs" and db.session.get(User,aid).role_id is None
+    assert db.session.get(User,aid).username=="alice-prefs" and db.session.get(User,aid).role_id==arid
     # Relationship cascade leaves no orphaned personal settings.
     disposable=User(username="prefs-delete",password_hash="test",active=True)
     db.session.add(disposable);db.session.flush();did=disposable.id

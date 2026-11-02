@@ -18,6 +18,8 @@ def create_app():
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
     app.config.from_object(Config)
+    if not app.config.get("SECRET_KEY"):
+        raise RuntimeError("Privater Sitzungsschlüssel fehlt. scripts/configure_session_secret.py ausführen oder FACTORYOS_SECRET_KEY konfigurieren.")
 
     app.jinja_env.globals["storage_url"] = storage_url
 
@@ -36,6 +38,8 @@ def create_app():
 
     # Module automatisch laden
     load_blueprints(app)
+    from .core.access_control import install_access_control
+    install_access_control(app)
 
     for rule in app.url_map.iter_rules():
         print(rule.endpoint, rule.rule)

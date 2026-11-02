@@ -1,0 +1,2 @@
+{% extends "layout/base.html" %}
+{% block content %}<section class="form-card"><h2>Aktion bestätigen</h2><p>Diese Änderung wird erst nach deiner ausdrücklichen Bestätigung ausgeführt.</p><p><strong>Aufruf:</strong> {{ action_url }}</p><form method="post" action="{{ action_url }}"><input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}"><button type="submit" class="btn-primary">Änderung jetzt ausführen</button><a class="btn-secondary" href="{{ url_for('core.home') }}">Abbrechen</a></form></section>{% endblock %}

@@ -20,6 +20,9 @@
 
 
 <form method="post" id="permissionMatrixForm">
+<input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}">
+<input type="hidden" name="permissions_revision" value="{{ permissions_revision }}">
+<p>Die Systemrolle admin besitzt geschützten Vollzugriff. Neue Fachrechte sind bei anderen Rollen zunächst nicht vergeben und müssen bewusst aktiviert werden.</p>
 
     <div class="permission-card-layout">
 
@@ -28,7 +31,7 @@
             <details
                 class="permission-role-card"
                 {% if loop.first %}open{% endif %}
-                data-role-card="{{ role.id }}"
+                data-role-card="{{ role.id }}" id="role-{{ role.id }}"
             >
 
                 <summary>
@@ -68,7 +71,7 @@
 
                                     <input
                                         type="checkbox"
-                                        class="permission-module-toggle"
+                                        class="permission-module-toggle" {% if role.name|trim|lower=='admin' %}disabled{% endif %}
                                         data-role-id="{{ role.id }}"
                                         data-module="{{ module }}"
                                     >
@@ -97,9 +100,9 @@
                                             value="{{ permission.id }}"
                                             data-role-id="{{ role.id }}"
                                             data-module="{{ module }}"
-                                            data-permission-id="{{ permission.id }}"
+                                            data-permission-id="{{ permission.id }}" {% if role.name|trim|lower=='admin' %}disabled{% endif %}
 
-                                            {% if permission in role.permissions %}
+                                            {% if role.name|trim|lower == 'admin' or permission in role.permissions %}
                                                 checked
                                             {% endif %}
                                         >

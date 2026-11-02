@@ -1,4 +1,5 @@
 import os
+from .core.session_secret import load_session_secret
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
@@ -9,7 +10,7 @@ UPLOAD_IDENTIFICATION = os.path.join(BASE_DIR, "static/qm_identification")
 
 class Config:
 
-    SECRET_KEY = "factoryos-secret-key"
+    SECRET_KEY = load_session_secret()
 
     SQLALCHEMY_DATABASE_URI = "sqlite:///factoryos.db"
 

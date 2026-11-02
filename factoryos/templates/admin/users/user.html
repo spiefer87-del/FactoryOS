@@ -6,10 +6,10 @@
 
 <h2>Benutzerverwaltung</h2>
 
-<a href="{{ url_for('admin_users.create_user') }}"
+{% if can_access('admin_users.create_user') %}<a href="{{ url_for('admin_users.create_user') }}"
 class="btn-primary">
 Neuer Benutzer
-</a>
+</a>{% endif %}
 
 </div>
 
@@ -52,12 +52,12 @@ Neuer Benutzer
 
 <td>
 
-<a href="{{ url_for('admin_users.edit_user', user_id=user.id) }}"
+{% if can_access('admin_users.edit_user') and can_manage_user(user) %}<a href="{{ url_for('admin_users.edit_user', user_id=user.id) }}"
 class="btn-small btn-edit">
 
 Bearbeiten
 
-</a>
+</a>{% endif %}
 
 </td>
 

@@ -6,35 +6,35 @@
 
 <div class="dashboard-grid">
 
-<a href="{{ url_for('production.dashboard') }}" class="dashboard-card">
+{% if can_access('production.dashboard') %}<a href="{{ url_for('production.dashboard') }}" class="dashboard-card">
     <div class="card-icon">🏭</div>
     <div class="card-title">Produktion</div>
-</a>
+</a>{% endif %}
 
-<a href="{{ url_for('orders.dashboard') }}" class="dashboard-card">
+{% if can_access('orders.dashboard') %}<a href="{{ url_for('orders.dashboard') }}" class="dashboard-card">
     <div class="card-icon">📋</div>
     <div class="card-title">Aufträge</div>
-</a>
+</a>{% endif %}
 
-<a href="{{ url_for('quality.dashboard') }}" class="dashboard-card">
+{% if can_access('quality.dashboard') %}<a href="{{ url_for('quality.dashboard') }}" class="dashboard-card">
     <div class="card-icon">📏</div>
     <div class="card-title">Qualität</div>
-</a>
+</a>{% endif %}
 
-<a href="{{ url_for('projects.dashboard') }}" class="dashboard-card">
+{% if can_access('projects.dashboard') %}<a href="{{ url_for('projects.dashboard') }}" class="dashboard-card">
     <div class="card-icon">📐</div>
     <div class="card-title">Projekte</div>
-</a>
+</a>{% endif %}
 
-<a href="{{ url_for('masterdata.dashboard') }}" class="dashboard-card">
+{% if can_access('masterdata.dashboard') %}<a href="{{ url_for('masterdata.dashboard') }}" class="dashboard-card">
     <div class="card-icon">🗂</div>
     <div class="card-title">Stammdaten</div>
-</a>
+</a>{% endif %}
 
-<a href="{{ url_for('admin.dashboard') }}" class="dashboard-card">
+{% if can_access('admin.dashboard') %}<a href="{{ url_for('admin.dashboard') }}" class="dashboard-card">
     <div class="card-icon">⚙️</div>
     <div class="card-title">Administration</div>
-</a>
+</a>{% endif %}
 
 </div>
 

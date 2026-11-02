@@ -6,7 +6,7 @@ from factoryos.extensions import db
 from factoryos.modules.masterdata.articles.models import Article
 from factoryos.modules.masterdata.tools.models import Tool
 
-from factoryos.core.auth import role_required
+from factoryos.core.auth import permission_required
 
 from ..models import (
     QualityInspectionPlan,
@@ -34,7 +34,7 @@ def quality_inspection_plan():
 
 @bp.route("/create", methods=["GET", "POST"])
 @login_required
-@role_required("qm", "admin")
+@permission_required("quality.inspect")
 def quality_create():
 
     articles = Article.query.order_by(Article.article_no).all()

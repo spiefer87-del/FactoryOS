@@ -1,6 +1,9 @@
 """Isolated workflow regression tests. Never opens the production database."""
 import sys
 import types
+import os
+import secrets
+os.environ.setdefault("FACTORYOS_SECRET_KEY", secrets.token_hex(48))
 from pathlib import Path
 from io import StringIO
 from contextlib import redirect_stdout
@@ -35,9 +38,16 @@ app.config.update(TESTING=True)
 def clear_test_user():
     g.pop("_login_user", None)
 
+# This fixture keeps an app context open across requests; reset Flask-Login's
+# test-only cached proxy before the central before_request access check runs.
+app.before_request_funcs[None].remove(clear_test_user)
+app.before_request_funcs[None].insert(0, clear_test_user)
+
 with app.app_context():
     db.create_all()
-    user = User(username="test", password_hash="test", active=True)
+    from factoryos.modules.admin.roles.models import Role
+    workflow_admin = Role(name="admin", active=True)
+    user = User(username="test", password_hash="test", active=True, role=workflow_admin)
     article = Article(article_no="A001", article_name="Deckel")
     tool = Tool(tool_no="W001", name="Werkzeug")
     material = Material(material_no="R001", name="ABS")
@@ -92,7 +102,12 @@ with app.app_context():
     assert client.get("/orders/sampling/").status_code == 200
     assert client.get("/orders/overview").status_code == 200
     assert client.get(f"/orders/{repair.order_id}").location.endswith(f"/orders/sampling/{repair.id}")
-    assert client.get(f"/orders/delete/{repair.order_id}").status_code == 302
+    def confirmed_post(path):
+        assert client.get(path).status_code == 200
+        with client.session_transaction() as session:
+            access_token = session["access_csrf"]
+        return client.post(path, data={"access_csrf": access_token})
+    assert confirmed_post(f"/orders/delete/{repair.order_id}").status_code == 302
     assert db.session.get(Order, repair.order_id)
 
     # Immutable reason and stale version guarded before changes are committed.
@@ -156,9 +171,9 @@ with app.app_context():
     db.session.commit()
     assert repair.snapshot["article"]["name"] == "Deckel"
     # Used master data cannot be removed by ordinary delete routes.
-    assert client.get(f"/masterdata/articles/delete/{article.id}").status_code == 302
+    assert confirmed_post(f"/masterdata/articles/delete/{article.id}").status_code == 302
     assert db.session.get(Article, article.id) is not None
-    assert client.get(f"/masterdata/tools/delete/{tool.id}").status_code == 302
+    assert confirmed_post(f"/masterdata/tools/delete/{tool.id}").status_code == 302
     assert db.session.get(Tool, tool.id) is not None
     assert client.post(f"/masterdata/customers/{customer.id}/delete").status_code == 302
     assert db.session.get(Customer, customer.id) is not None
