@@ -1,5 +1,3 @@
-from io import BytesIO
-
 from flask import (
     render_template,
     request,
@@ -14,16 +12,14 @@ from flask_login import (
     current_user
 )
 
-from openpyxl import Workbook
-from openpyxl.styles import Font
+from ..services.machine_excel_schema import machine_workbook
 
 from factoryos.core.auth import permission_required
 
 from . import bp
 
 from ..services.machine_import_service import (
-    import_machines_from_excel,
-    EXPECTED_HEADERS
+    import_machines_from_excel
 )
 
 
@@ -101,58 +97,7 @@ def import_machines():
 @permission_required("machines.excel_import")
 def download_import_template():
 
-    workbook = Workbook()
-
-    worksheet = workbook.active
-    worksheet.title = "Maschinen"
-
-    worksheet.append(
-        EXPECTED_HEADERS
-    )
-
-    for cell in worksheet[1]:
-        cell.font = Font(bold=True)
-
-    worksheet.append([
-        "SGM-001",
-        "EXT-SGM-001",
-        "Spritzgießmaschine 1",
-        "Produktionsmaschine Halle 1",
-        "injection_molding",
-        "ARBURG",
-        "Allrounder",
-        "SN-123456",
-        2020,
-        "SELOGICA",
-        "Linearroboter",
-        25000,
-        "01.06.2026",
-        "01.12.2026",
-        "Halle 1",
-        "aktiv",
-        1300,
-        570,
-        570,
-        250,
-        600,
-        500,
-        180,
-        2500,
-        40,
-        220,
-        2500,
-        5,
-        15.5,
-        4
-    ])
-
-    for column in worksheet.columns:
-        letter = column[0].column_letter
-        worksheet.column_dimensions[letter].width = 22
-
-    output = BytesIO()
-    workbook.save(output)
-    output.seek(0)
+    output = machine_workbook()
 
     return send_file(
         output,

@@ -1,4 +1,6 @@
 from datetime import datetime, date
+import math
+from .machine_excel_schema import KEYS, HEADER_KEYS, normalize
 
 from openpyxl import load_workbook
 
@@ -14,38 +16,7 @@ from factoryos.core.services.change_log_service import (
 )
 
 
-EXPECTED_HEADERS = [
-    "machine_no",
-    "external_machine_no",
-    "name",
-    "description",
-    "machine_type",
-    "manufacturer",
-    "model",
-    "serial_no",
-    "build_year",
-    "controller_type",
-    "automation_type",
-    "operating_hours",
-    "last_service_at",
-    "next_service_at",
-    "location",
-    "machine_status",
-    "clamping_force_kn",
-    "tie_bar_width_mm",
-    "tie_bar_height_mm",
-    "min_mold_height_mm",
-    "max_mold_height_mm",
-    "opening_stroke_mm",
-    "ejector_stroke_mm",
-    "max_tool_weight_kg",
-    "screw_diameter_mm",
-    "max_shot_weight_g",
-    "max_injection_pressure_bar",
-    "heating_zones",
-    "nozzle_radius_mm",
-    "nozzle_diameter_mm",
-]
+EXPECTED_HEADERS = KEYS
 
 
 MACHINE_TYPE_MAPPING = {
@@ -80,16 +51,7 @@ MACHINE_STATUS_MAPPING = {
 
 
 def _normalize(value):
-    if value is None:
-        return ""
-    return (
-        str(value)
-        .replace("\xa0", " ")
-        .replace("\n", " ")
-        .replace("\r", " ")
-        .strip()
-        .lower()
-    )
+    return normalize(value)
 
 
 def _text(value):
@@ -100,25 +62,21 @@ def _text(value):
 
 
 def _integer(value):
-    if value in (None, ""):
+    number = _float(value)
+    if number is None:
         return None
-    if isinstance(value, (int, float)):
-        return int(value)
-    value = str(value).strip()
-    if not value:
-        return None
-    return int(float(value.replace(",", ".")))
+    if not number.is_integer():
+        raise ValueError(f"Ganzzahl erwartet: {value}")
+    return int(number)
 
 
 def _float(value):
-    if value in (None, ""):
+    if value is None or (isinstance(value, str) and not value.strip()):
         return None
-    if isinstance(value, (int, float)):
-        return float(value)
-    value = str(value).strip()
-    if not value:
-        return None
-    return float(value.replace(",", "."))
+    number = float(str(value).strip().replace(",", "."))
+    if not math.isfinite(number) or number < 0:
+        raise ValueError(f"Nichtnegative, endliche Zahl erwartet: {value}")
+    return number
 
 
 def _datetime(value):
@@ -129,7 +87,7 @@ def _datetime(value):
     if isinstance(value, date):
         return datetime.combine(value, datetime.min.time())
     value = str(value).strip()
-    for fmt in ["%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y"]:
+    for fmt in ["%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%d.%m.%Y %H:%M:%S", "%d.%m.%Y %H:%M", "%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y"]:
         try:
             return datetime.strptime(value, fmt)
         except ValueError:
@@ -178,14 +136,29 @@ def _build_changes(instance, values, prefix=""):
 
 
 def import_machines_from_excel(file, user_id):
-    workbook = load_workbook(file, data_only=True)
-    worksheet = workbook.active
-
-    header_row = next(worksheet.iter_rows(min_row=1, max_row=1, values_only=True))
-    headers = [_normalize(header) if header else "" for header in header_row]
-
-    if "machine_no" not in headers:
-        raise ValueError("Die Spalte 'machine_no' fehlt.")
+    workbook = load_workbook(file, data_only=False)
+    sheets = sorted(workbook.worksheets, key=lambda ws: (ws.title != "Maschinen", ws.title == "Importformat"))
+    worksheet = None
+    for candidate in sheets:
+        raw = next(candidate.iter_rows(min_row=1, max_row=1, values_only=True), ())
+        mapped = [HEADER_KEYS.get(normalize(value), "") for value in raw]
+        if "machine_no" in mapped:
+            worksheet, headers = candidate, mapped
+            break
+    if worksheet is None:
+        raise ValueError("Die Spalte 'Maschinennummer' fehlt. Bitte Export oder aktuelle Vorlage verwenden.")
+    recognized = [key for key in headers if key]
+    if len(recognized) != len(set(recognized)):
+        raise ValueError("Doppelte Spaltenüberschriften: Bitte jede Datenspalte nur einmal verwenden.")
+    for cells in worksheet.iter_rows(min_row=2):
+        if any(cell.data_type == "f" for cell, key in zip(cells, headers) if key):
+            raise ValueError(f"Excel-Formel in Zeile {cells[0].row}: Bitte feste Werte verwenden.")
+    seen, duplicates = set(), set()
+    for row in worksheet.iter_rows(min_row=2, values_only=True):
+        number = _text(_row_dict(headers, row).get("machine_no"))
+        if number in seen and number:
+            duplicates.add(number)
+        seen.add(number)
 
     created = 0
     updated = 0
@@ -202,7 +175,12 @@ def import_machines_from_excel(file, user_id):
             errors.append({"row": row_index, "machine_no": "-", "reason": "Maschinennummer fehlt"})
             continue
 
-        raw_type = data.get("machine_type")
+        if machine_no in duplicates:
+            errors.append({"row": row_index, "machine_no": machine_no, "reason": "Doppelte Maschinennummer in der Datei"})
+            continue
+
+        existing = Machine.query.filter_by(machine_no=machine_no).first()
+        raw_type = data.get("machine_type", existing.machine_type if existing else None)
         machine_type = _machine_type(raw_type)
         if not machine_type:
             errors.append({
@@ -212,7 +190,7 @@ def import_machines_from_excel(file, user_id):
             })
             continue
 
-        raw_status = data.get("machine_status")
+        raw_status = data.get("machine_status", existing.machine_status if existing else None)
         machine_status = _machine_status(raw_status)
         if not machine_status:
             errors.append({
@@ -250,6 +228,11 @@ def import_machines_from_excel(file, user_id):
                     "machine_status": machine_status,
                 }
 
+                machine_values = {key: value for key, value in machine_values.items() if key in data}
+                for field, value in {"machine_no": machine_no, **machine_values}.items():
+                    limit = getattr(Machine.__table__.columns[field].type, "length", None)
+                    if limit and isinstance(value, str) and len(value) > limit:
+                        raise ValueError(f"Feld '{field}': maximal {limit} Zeichen erlaubt.")
                 changes = _build_changes(machine, machine_values)
                 for field, value in machine_values.items():
                     setattr(machine, field, value)
@@ -272,6 +255,7 @@ def import_machines_from_excel(file, user_id):
                         "nozzle_diameter_mm": _float(data.get("nozzle_diameter_mm")),
                     }
 
+                    injection_values = {key: value for key, value in injection_values.items() if key in data}
                     injection = machine.injection_molding_data
                     if injection is None:
                         injection = InjectionMoldingData(machine=machine)
@@ -296,6 +280,7 @@ def import_machines_from_excel(file, user_id):
                         changes={"machine_no": {"old": None, "new": machine.machine_no}},
                         category="masterdata"
                     )
+                    db.session.flush()
                     created += 1
                 else:
                     if changes:
@@ -307,6 +292,7 @@ def import_machines_from_excel(file, user_id):
                             changes=changes,
                             category="masterdata"
                         )
+                    db.session.flush()
                     updated += 1
 
         except Exception as error:
