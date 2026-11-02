@@ -18,6 +18,7 @@ class User(UserMixin, db.Model):
     role = db.relationship("Role", back_populates="users")
 
     active = db.Column(db.Boolean, default=True)
+    preferences = db.relationship("UserPreference", cascade="all, delete-orphan")
 
 
     def set_password(self, password):

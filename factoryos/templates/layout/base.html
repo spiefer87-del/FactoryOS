@@ -25,9 +25,14 @@ href="/static/css/qm_builder.css">
 {% endif %}
     
 
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user_preferences.css') }}">
+{% if ui_preferences_boot %}
+<script id="factoryos-preferences-data" type="application/json">{{ ui_preferences_boot|tojson }}</script>
+<script src="{{ url_for('static', filename='js/user_preferences.js') }}"></script>
+{% endif %}
 </head>
 
-<body>
+<body{% if ui_preferences_boot %} data-ui-density="{{ ui_preferences_boot.sections.appearance['values'].density }}" data-ui-accent="{{ ui_preferences_boot.sections.appearance['values'].accent }}"{% endif %}>
 
 {% include "layout/navbar.html" %}
 

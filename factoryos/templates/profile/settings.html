@@ -1,0 +1,15 @@
+{% extends "layout/base.html" %}
+{% block content %}
+<div class="personal-settings"><header><p class="personal-eyebrow">Persönlicher Bereich</p><h1>Mein Profil</h1><p>{{ current_user.username }} · {{ current_user.role.name if current_user.role else 'Keine Rolle zugeordnet' }}</p></header>
+<section><h2>Darstellung</h2><p>Nur für dein Benutzerkonto. Wird nach dem Anmelden auch auf anderen Geräten wiederhergestellt. Bereits geöffnete Seiten bitte neu laden.</p>
+<form method="post"><input type="hidden" name="csrf_token" value="{{ ui_preferences_boot.csrf }}"><input type="hidden" name="version" value="{{ ui_preferences_boot.sections.appearance.version }}"><input type="hidden" name="action" value="appearance">
+<div class="personal-settings-grid"><label for="personal-density">Tabellendichte<select id="personal-density" name="density">{% for key,label in [('comfortable','Komfortabel'),('compact','Kompakt')] %}<option value="{{ key }}" {% if ui_preferences_boot.sections.appearance['values'].density==key %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+<label for="personal-accent">Akzentfarbe<select id="personal-accent" name="accent">{% for key,label in [('blue','Blau'),('teal','Petrol / Grün'),('violet','Violett')] %}<option value="{{ key }}" {% if ui_preferences_boot.sections.appearance['values'].accent==key %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label></div>
+<p class="personal-help">Akzentfarbe für primäre Aktionen und Verknüpfungen; fachliche Warn- und Statusfarben bleiben erhalten. Druckansichten und PDFs bleiben unverändert.</p><button class="btn-primary" type="submit">Darstellung speichern</button></form></section>
+<section><h2>Gespeicherte Tabellenansichten</h2><p>Spalten direkt in der jeweiligen Übersicht auswählen. Änderungen werden im Benutzerkonto gespeichert – nicht nur lokal auf diesem Gerät.</p>
+{% for key,label,endpoint in [('articles.columns','Artikelübersicht','articles.list'),('tools.columns','Werkzeugübersicht','tools.list_tools')] %}
+<div class="personal-view"><div><h3>{{ label }}</h3><p>{{ 'Persönliche Auswahl gespeichert' if ui_preferences_boot.sections[key].version else 'Standardansicht aktiv' }}</p></div><div class="personal-view-actions">
+{% if key=='articles.columns' %}<a class="btn-secondary" href="{{ url_for('articles.list') }}">Spalten auswählen</a>{% else %}<a class="btn-secondary" href="{{ url_for('tools.list_tools') }}">Spalten auswählen</a>{% endif %}
+<form method="post"><input type="hidden" name="csrf_token" value="{{ ui_preferences_boot.csrf }}"><input type="hidden" name="action" value="{{ key }}"><input type="hidden" name="version" value="{{ ui_preferences_boot.sections[key].version }}"><button type="submit" class="btn-secondary">Standard wiederherstellen</button></form></div></div>{% endfor %}
+<p class="personal-help">Weitere Ansichten und Designoptionen können künftig dieselbe kontobezogene Speicherung nutzen. Benutzername, Rolle und Berechtigungen werden hier nicht geändert.</p></section></div>
+{% endblock %}

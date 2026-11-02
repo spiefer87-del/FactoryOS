@@ -12,7 +12,7 @@
 <details class="article-column-picker" id="article-column-picker">
 <summary>Spalten auswählen <span id="article-visible-count"></span></summary>
 <div class="article-column-options">
-<p>Auswahl für diesen Benutzer in diesem Browser speichern.</p>
+<p>Auswahl in deinem Benutzerkonto speichern – auch auf anderen Geräten verfügbar.</p>
 {% for key,label in [('article_no','Artikelnummer'),('article_name','Artikelname'),('customer','Kunde'),('material','Rohstoff'),('tools','Werkzeuge'),('status','Status'),('sampling','Musterung'),('actions','Aktionen')] %}
 <label><input type="checkbox" data-article-column-toggle="{{ key }}" checked {% if key=='article_no' %}disabled{% endif %}> {{ label }}{% if key=='article_no' %}<small>immer sichtbar</small>{% endif %}</label>
 {% endfor %}
