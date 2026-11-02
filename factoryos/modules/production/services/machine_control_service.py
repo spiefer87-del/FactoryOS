@@ -7,7 +7,7 @@ import hashlib
 import json
 from uuid import UUID
 from datetime import datetime
-from sqlalchemy import update
+from sqlalchemy import update,or_
 from factoryos.extensions import db
 from factoryos.core.auth import has_permission
 from factoryos.core.models.change_log import ChangeLog
@@ -70,6 +70,9 @@ def snapshot(machine_id):
              "active":[{"id":b.id,"process":b.process,"type":b.type,"order_id":b.order_id,
                         "tool_no":b.tool_no,"start":b.start_time.isoformat(),
                         "prev_order_id":b.prev_order_id,"reason_id":b.downtime_reason_id} for b in active]}
+    from factoryos.modules.production.models import ProductionPlanEntry
+    value["plan_queue"]=[(e.id,e.order_id,e.position) for e in ProductionPlanEntry.query.filter_by(
+        machine_id=machine_id,state="queued").order_by(ProductionPlanEntry.position,ProductionPlanEntry.id).all()]
     value["revision"] = hashlib.sha256(json.dumps(value,sort_keys=True).encode()).hexdigest()
     return value
 
@@ -104,12 +107,16 @@ def _order(order_id, machine_id, ignore_booking_id=None):
         raise ValueError("Im Auftrag fehlt eine gültige Soll-Zykluszeit. Bitte zuerst ergänzen.")
     if not order.target_qty or order.target_qty<=0:
         raise ValueError("Im Auftrag fehlt eine positive Sollmenge. Bitte zuerst ergänzen.")
-    active = TimeBooking.query.filter_by(order_id=order.id,end_time=None).all()
+    active = TimeBooking.query.filter(TimeBooking.end_time.is_(None),or_(TimeBooking.order_id==order.id,TimeBooking.prev_order_id==order.id)).all()
     if any(b.id!=ignore_booking_id for b in active):
         raise ControlConflict("Der Auftrag ist bereits aktiv oder auf einer Maschine reserviert.")
     reserved = MachineControlState.query.filter_by(resume_order_id=order.id).all()
     if any(s.machine_id!=machine_id for s in reserved):
         raise ControlConflict("Der unterbrochene Auftrag ist noch auf einer anderen Maschine reserviert.")
+    from factoryos.modules.production.models import ProductionPlanEntry
+    assigned=ProductionPlanEntry.query.filter_by(order_id=order.id,state="queued").first()
+    if assigned and assigned.machine_id!=machine_id:
+        raise ControlConflict("Auftrag ist auf einer anderen Maschine eingeplant. Zuerst durch Fertigungsleitung umplanen.")
     return order
 
 
@@ -170,6 +177,9 @@ def execute(machine_id, user_id, action, command_id, expected_revision, *, order
     if action in ("start","setup","unsetup"):
         order=_order(order_id,machine_id) if order_id else None
         if action=="start" and not order: raise ValueError("Bitte Auftrag auswählen.")
+        if action=="start":
+            from .planning_service import assert_start_allowed
+            assert_start_allowed(machine_id,order)
         next_tool=tool_no or (order.tool_no if order else None)
         if action in ("setup","unsetup") and not next_tool:
             raise ValueError("Bitte Werkzeugnummer für den Rüstvorgang auswählen.")
@@ -233,6 +243,9 @@ def execute(machine_id, user_id, action, command_id, expected_revision, *, order
         downtime_reason_id=reason.id if reason else None,
         prev_order_id=state.resume_order_id if next_process=="STOERUNG" else None,comment=comment or None)
     db.session.add(booking);state.version+=1;db.session.flush()
+    if action=="start":
+        from .planning_service import consume_on_start
+        consume_on_start(machine_id,next_order,booking,user_id)
     after=snapshot(machine_id)
     receipt=MachineControlCommand(command_id=command_id,machine_id=machine_id,user_id=user_id,
         source="app",action=action,payload_hash=digest,comment=comment or None,before_state=before,after_state=after)

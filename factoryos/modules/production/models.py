@@ -97,6 +97,40 @@ class MachineControlCommand(db.Model):
     user = db.relationship("User")
 
 
+class ProductionPlanningState(db.Model):
+    __tablename__ = "production_planning_state"
+    id = db.Column(db.Integer, primary_key=True)
+    version = db.Column(db.Integer, nullable=False, default=0)
+
+
+class MachinePlanningSettings(db.Model):
+    __tablename__ = "machine_planning_settings"
+    machine_id = db.Column(db.Integer, db.ForeignKey("machines.id"), primary_key=True)
+    available_from = db.Column(db.DateTime)
+    availability_note = db.Column(db.String(255))
+
+
+class ProductionPlanEntry(db.Model):
+    __tablename__ = "production_plan_entries"
+    id = db.Column(db.Integer, primary_key=True)
+    machine_id = db.Column(db.Integer, db.ForeignKey("machines.id"), nullable=False, index=True)
+    order_id = db.Column(db.Integer, db.ForeignKey("orders.id"), nullable=False, index=True)
+    position = db.Column(db.Integer, nullable=False)
+    state = db.Column(db.String(20), nullable=False, default="queued")
+    setup_minutes = db.Column(db.Integer, nullable=False, default=0)
+    not_before = db.Column(db.DateTime)
+    note = db.Column(db.String(255))
+    created_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    updated_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow,onupdate=datetime.utcnow)
+    started_booking_id = db.Column(db.Integer, db.ForeignKey("time_bookings.id"))
+    order = db.relationship("Order")
+    machine = db.relationship("Machine")
+    __table_args__ = (db.Index("uq_production_plan_queued_order", "order_id", unique=True,
+        sqlite_where=db.text("state = 'queued'"),postgresql_where=db.text("state = 'queued'")),)
+
+
 class ProductionCalendarSettings(db.Model):
     """Weekly production window used by machine-booking forecasts."""
 

@@ -151,6 +151,8 @@ def save_sampling(form, user_id, sampling=None):
     active = False
     if sampling:
         active = TimeBooking.query.filter_by(order_id=sampling.order_id, end_time=None).first() is not None
+        from factoryos.modules.production.models import ProductionPlanEntry
+        active = active or ProductionPlanEntry.query.filter_by(order_id=sampling.order_id,state="queued").first() is not None
         if active and (sampling.article_id != (article.id if article else None) or
                        sampling.tool_id != (tool.id if tool else None)):
             raise ValueError("Artikel und Werkzeug können während einer laufenden Buchung nicht geändert werden.")
@@ -230,6 +232,9 @@ def save_sampling(form, user_id, sampling=None):
 
 def completion_errors(sampling):
     errors = []
+    from factoryos.modules.production.models import ProductionPlanEntry
+    if ProductionPlanEntry.query.filter_by(order_id=sampling.order_id,state="queued").first():
+        errors.append("Musterung steht noch in der Auftragsplanung. Zuerst starten oder aus der Planung nehmen.")
     if not valid_cycle_time(sampling.order.cycle_time_s):
         errors.append("Soll-Zykluszeit fehlt. Bitte im Musterungsauftrag einen positiven Sollwert hinterlegen.")
     if sampling.reason == "color_change" and not color_confirmed(sampling):

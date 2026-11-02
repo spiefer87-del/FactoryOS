@@ -13,11 +13,11 @@ def delete(order_id):
     order = Order.query.get_or_404(order_id)
     if order.sampling:
         return redirect(url_for("sampling.detail", sampling_id=order.sampling.id))
-    from factoryos.modules.production.models import TimeBooking,QuantityReport,MachineControlState
+    from factoryos.modules.production.models import TimeBooking,QuantityReport,MachineControlState,ProductionPlanEntry
     from factoryos.modules.production.services.machine_control_service import acquire_control_lock
     acquire_control_lock()
     if (TimeBooking.query.filter_by(order_id=order.id).first() or QuantityReport.query.filter_by(order_id=order.id).first() or
-        MachineControlState.query.filter_by(resume_order_id=order.id).first()):
+        MachineControlState.query.filter_by(resume_order_id=order.id).first() or ProductionPlanEntry.query.filter_by(order_id=order.id).first()):
         db.session.rollback()
         flash("Auftrag besitzt Buchungen oder ist an einer Maschine reserviert. Er bleibt zur Nachverfolgung erhalten.","warning")
         return redirect(url_for("orders.detail",order_id=order.id))

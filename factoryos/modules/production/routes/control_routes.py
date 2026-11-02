@@ -59,13 +59,18 @@ def machine_control(machine_id):
     orders=Order.query.filter_by(is_project=False).order_by(Order.order_no).all()
     orders=[o for o in orders if (o.status or "").lower() not in TERMINAL and
             (not o.sampling or (o.sampling.state in ("in_progress","review") and o.sampling.machine_id==machine_id))]
+    from factoryos.modules.production.services.planning_service import queue
+    from factoryos.modules.production.models import ProductionPlanEntry
+    planned_queue=queue(machine_id)
+    assignments={e.order_id:e.machine_id for e in ProductionPlanEntry.query.filter_by(state="queued")}
+    orders=[o for o in orders if o.id not in assignments or assignments[o.id]==machine_id]
     response=render_template("production/control/panel.html",machine=machine,state=state,active=active,
         process=process,actions=actions,action_labels=ACTIONS,labels=LABELS,permitted=permitted,
         conflict=conflict,error=error,orders=orders,
         tools=Tool.query.order_by(Tool.tool_no).all(),
         history=MachineControlCommand.query.filter_by(machine_id=machine_id).order_by(MachineControlCommand.id.desc()).limit(30).all(),
-        embedded=embedded,command_id=str(uuid4()),local_label=local_label,
-        selected_order=request.form.get("order_id",request.args.get("order_id","")),
+        embedded=embedded,command_id=str(uuid4()),local_label=local_label,planned_queue=planned_queue,
+        selected_order=request.form.get("order_id",request.args.get("order_id",str(planned_queue[0].order_id) if planned_queue else "")),
         selected_tool=request.form.get("tool_no",""),
         comment=request.form.get("comment", ""))
     return response,status,{"Cache-Control":"no-store","X-Frame-Options":"SAMEORIGIN"}

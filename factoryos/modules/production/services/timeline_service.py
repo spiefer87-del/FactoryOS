@@ -195,6 +195,9 @@ def get_machine_timeline(horizon_key="24h", now=None, range_start=None, range_en
         bookings_by_machine.setdefault(booking.machine_id, []).append(booking)
 
     stats_cache = {}
+    from .planning_service import build_schedule
+    schedule=build_schedule(now,calendar_settings,calendar_exceptions)
+    planned_by_machine={lane["machine"].id:lane for lane in schedule["machines"]}
     lanes = []
     counters = {
         "machines": len(machines),
@@ -286,6 +289,26 @@ def get_machine_timeline(horizon_key="24h", now=None, range_start=None, range_en
                 (active_booking.process or "Buchung", "other"),
             )
 
+        plan_lane=planned_by_machine.get(machine.id,{"rows":[],"warnings":[],"error":None})
+        for row in plan_lane["rows"]:
+            if not row["start"]:continue
+            for phase,start,end in (("setup",row["setup_start"],row["setup_end"]),("production",row["start"],row["end"])):
+                start=max(start,range_start);end=min(end,range_end)
+                if end<=start:continue
+                segments=[(start,end)]
+                for closure_start,closure_end,_ in get_non_working_periods(start,end,calendar_settings,calendar_exceptions):
+                    updated=[]
+                    for left_edge,right_edge in segments:
+                        if closure_end<=left_edge or closure_start>=right_edge:updated.append((left_edge,right_edge));continue
+                        if left_edge<closure_start:updated.append((left_edge,closure_start))
+                        if closure_end<right_edge:updated.append((closure_end,right_edge))
+                    segments=updated
+                for left_edge,right_edge in segments:
+                    left=_percent(left_edge,range_start,range_end);right=_percent(right_edge,range_start,range_end)
+                    items.append(dict(kind="planned",phase=phase,**{"class":"planned-"+phase},
+                        left=left,width=min(100-left,max(0.2,right-left)),row=row,
+                        label=f"Plan {row['entry'].position}: {row['entry'].order.order_no}"+(" · Rüsten" if phase=="setup" else "")))
+
         lanes.append({
             "machine": machine,
             "items": items,
@@ -294,6 +317,8 @@ def get_machine_timeline(horizon_key="24h", now=None, range_start=None, range_en
             "active_process_label": active_process_label,
             "active_class": active_class,
             "active_count": len(current),
+            "plan_rows": plan_lane["rows"],
+            "plan_error": plan_lane["error"],
         })
 
     weekday_names = dict(WEEKDAYS)
@@ -327,6 +352,8 @@ def get_machine_timeline(horizon_key="24h", now=None, range_start=None, range_en
         "show_now": range_start<=now<=range_end,
         "ticks": ticks,
         "track_width": max(840,len(ticks)*95),
+        "planning_version": schedule["version"],
+        "planning_blocked": sum(1 for lane in schedule["machines"] for row in lane["rows"] if row["error"]),
         "calendar_settings": calendar_settings,
         "calendar_closures": calendar_closures,
         "calendar_summary": (

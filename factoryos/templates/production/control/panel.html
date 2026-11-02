@@ -26,6 +26,7 @@
 {% if conflict %}<p class="control-error" role="alert">Mehrere aktive Altbuchungen gefunden. Bedienung ist gesperrt; bitte Administration zur fachlichen Klärung informieren. Es wird nichts automatisch geschlossen.</p>
 <ul>{% for item in state.active %}<li>Buchung #{{ item.id }} · {{ labels.get(item.process,item.process) }} · {{ item.start }} UTC</li>{% endfor %}</ul>{% endif %}
 <form method="post" id="control-command-form">
+{% if planned_queue %}<p class="control-note"><strong>Nächster Planauftrag: {{ planned_queue[0].order.order_no }}</strong>. Produktionsstart weiterhin manuell bestätigen. Andere Reihenfolgen muss die Fertigungsleitung zuerst in der <a href="{{ url_for('production.planning') }}" target="_blank" rel="noopener">Auftragsplanung</a> ändern.</p>{% endif %}
 <input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}"><input type="hidden" name="command_id" value="{{ command_id }}"><input type="hidden" name="revision" value="{{ state.revision }}">
 {% if process=='FREI' %}<section class="control-fields"><h2>Auftrag und Werkzeug zuordnen</h2>
 <label>Auftrag suchen<input type="search" id="control-order-search" placeholder="Auftragsnummer, Artikel …" autocomplete="off"></label>

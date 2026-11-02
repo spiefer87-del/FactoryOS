@@ -47,6 +47,7 @@ add("production", "setup", "Rüstvorgänge erfassen", "Rüstvorgänge an Maschin
 add("production", "events", "Maschinenereignisse erfassen", "Ereignisse an einer Maschine mit ergänzenden Angaben oder Kommentaren erfassen.")
 add("production", "clear_fault", "Maschine entstören", "Die Behebung einer Maschinenstörung mit Begründung bestätigen. Produktion wird dadurch nicht automatisch wieder gestartet.")
 add("production", "maintenance", "Wartung buchen", "Wartung an einer Maschine mit Beschreibung starten und beenden. Es wird kein Wartungsintervall in den Stammdaten verändert.")
+add("production", "plan", "Aufträge planen", "Auftragsreihenfolgen je Maschine, Rüstzeiten und begründete Verfügbarkeitsannahmen pflegen. Planung startet keine Maschine automatisch.")
 add("projects", "view", "Projekte ansehen", "Die Projektübersicht öffnen und vorhandene Projekte ansehen.")
 add("projects", "create", "Projekte anlegen", "Neue Projektaufträge anlegen. Zusätzlich ist die Rolle Schichtleitung oder Systemadministration erforderlich. Für Zeitbuchungen gelten die Start- und Stopprechte der Produktion.")
 add("quality", "view", "Qualitätsdaten ansehen", "Qualitätsübersichten, Prüfpläne und Prüfmittel mit ihren Details aufrufen.")

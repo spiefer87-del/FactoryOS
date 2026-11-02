@@ -25,10 +25,10 @@ def edit(order_id):
             return render_template("orders/edit.html", order=order, articles=Article.query.order_by(Article.article_no).all()), 400
 
         from factoryos.modules.production.services.machine_control_service import acquire_control_lock,TERMINAL
-        from factoryos.modules.production.models import TimeBooking,MachineControlState
+        from factoryos.modules.production.models import TimeBooking,MachineControlState,ProductionPlanEntry
         acquire_control_lock()
         occupied=(TimeBooking.query.filter_by(order_id=order.id,end_time=None).first() or
-                  MachineControlState.query.filter_by(resume_order_id=order.id).first())
+                  MachineControlState.query.filter_by(resume_order_id=order.id).first() or ProductionPlanEntry.query.filter_by(order_id=order.id,state="queued").first())
         if occupied and (request.form.get("article")!=order.article or
                          request.form.get("status",order.status).lower() in TERMINAL):
             db.session.rollback()

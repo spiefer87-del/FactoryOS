@@ -18,6 +18,7 @@
             </p>
         </div>
         <div class="booking-header-actions">
+            <a class="btn-secondary" href="{{ url_for('production.planning') }}">Auftragsplanung / Reihenfolge</a>
             {% if current_user.role and current_user.role.name|lower == 'admin' %}
             <a class="btn-secondary" href="{{ url_for('production.booking_calendar_setup') }}">
                 Arbeitszeiten &amp; Feiertage
@@ -96,7 +97,8 @@
             </form>
         </div>
         {% if range_error %}<p class="timeline-range-error" role="alert">{{ range_error }}</p>{% endif %}
-        <p class="calendar-summary-line">Zeitachse und Eingaben: Europe/Berlin (CET/CEST). Vergangene Balken sind Buchungen; zukünftige Balken sind ausschließlich aktuelle Endprognosen, noch keine geplanten Auftragsreihenfolgen.</p>
+        <p class="calendar-summary-line">Zeitachse und Eingaben: Europe/Berlin (CET/CEST). Vergangene Balken sind Buchungen. Blau gestrichelte Balken zeigen die gespeicherten Auftragsreihenfolgen (Planversion {{ planning_version }}), nicht gestartete Produktion.</p>
+        {% if planning_blocked %}<p class="timeline-range-error">{{ planning_blocked }} Planeintrag/Einträge ohne belastbaren Termin. Bitte in der <a href="{{ url_for('production.planning') }}">Auftragsplanung</a> prüfen.</p>{% endif %}
         {% if not show_now %}<p class="booking-scroll-hint">„Jetzt“ liegt außerhalb des angezeigten Zeitraums. Aktuelle Zustände findest du unterhalb der Timeline.</p>{% endif %}
 
         <div class="booking-legend" aria-label="Legende">
@@ -106,6 +108,8 @@
             <span><i class="legend-swatch pause"></i>Pause</span>
             <span><i class="legend-swatch free"></i>Frei</span>
             <span><i class="legend-swatch forecast"></i>Prognose</span>
+            <span><i class="legend-swatch planned-production"></i>Geplanter Auftrag</span>
+            <span><i class="legend-swatch planned-setup"></i>Geplantes Rüsten</span>
             <span><i class="legend-swatch non-working"></i>Produktionsfrei</span>
             <span><i class="legend-now"></i>Jetzt</span>
         </div>
@@ -156,6 +160,11 @@
                         {% if show_now %}<i class="timeline-now-line" style="left: {{ '%.4f'|format(now_position) }}%;"></i>{% endif %}
 
                         {% for item in lane["items"] %}
+                            {% if item.kind=='planned' %}
+                            <a class="timeline-bar planned {{ item.class }}" href="{{ url_for('production.planning',_anchor='plan-machine-' ~ lane.machine.id) }}"
+                               style="left: {{ '%.4f'|format(item.left) }}%; width: {{ '%.4f'|format(item.width) }}%;"
+                               title="Geplant (keine Ist-Buchung): {{ item.row.entry.order.order_no }} · Produktion {{ local_label(item.row.start) }} bis {{ local_label(item.row.end) }}. {{ item.row.warnings|join(' ') }}"><span>{{ item.label }}</span></a>
+                            {% else %}
                             {% set item_title = item.process_label ~ ': ' ~ item.label %}
                             {% if item.kind == 'forecast' %}
                                 {% set item_title = item_title ~ ' – voraussichtlich ' ~ local_label(item.forecast.at) %}
@@ -178,6 +187,7 @@
                                  title="{{ item_title }}">
                                 <span>{{ item.label }}</span>
                             </div>
+                            {% endif %}
                             {% endif %}
                         {% endfor %}
 
