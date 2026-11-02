@@ -1,6 +1,7 @@
 from datetime import datetime
 from factoryos.extensions import db
 from factoryos.modules.sampling.models import SamplingOrder
+from .import_models import ERPOrderData, ERPImportBatch
 
 class Order(db.Model):
 
@@ -8,6 +9,8 @@ class Order(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     sampling = db.relationship("SamplingOrder", back_populates="order", uselist=False)
+    erp_import = db.relationship("ERPOrderData", back_populates="order", uselist=False,
+                                 cascade="all, delete-orphan")
 
     order_no = db.Column(db.String(50), unique=True, nullable=False, index=True)
 

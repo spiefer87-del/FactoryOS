@@ -1,5 +1,6 @@
 from flask import render_template
-from flask_login import login_required
+from flask_login import login_required, current_user
+from factoryos.core.auth import has_permission
 
 from factoryos.modules.orders.models import Order
 from . import bp
@@ -13,5 +14,6 @@ def dashboard():
 
     return render_template(
         "orders/dashboard.html",
-        orders=orders
+        orders=orders,
+        can_import_orders=has_permission(current_user, "orders.excel_import")
     )

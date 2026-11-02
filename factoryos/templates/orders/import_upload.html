@@ -1,0 +1,19 @@
+{% extends "orders/import_base.html" %}
+{% block import_content %}
+<header><p class="erp-eyebrow">Aufträge / ERP-Import</p><h1>Fertigungsaufträge importieren</h1>
+<p>Erst prüfen, dann übernehmen. Der Upload legt noch keine Aufträge oder Stammdaten an.</p></header>
+<section><h2>1. Excel-Datei auswählen</h2>
+<form method="post" enctype="multipart/form-data">
+<input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}">
+<label>ERP-Datei (.xlsx, maximal 5 MB / 500 Auftragszeilen)<input type="file" name="file" accept=".xlsx" required></label>
+<label>Blattname (nur bei mehreren passenden Tabellen nötig)<input name="sheet_name" maxlength="100" placeholder="Automatisch erkennen"></label>
+<button class="btn-primary" type="submit">Datei prüfen und Vorschau öffnen</button>
+</form></section>
+<section><h2>So funktioniert der Assistent</h2>
+<ol><li>Excel-Spalten und Originalwerte lesen.</li><li>Jede Zeile prüfen, Stammdaten auswählen oder deren Neuanlage bestätigen.</li><li>Vorschau mit Abweichungen prüfen und erst dann den einzelnen Auftrag übernehmen.</li></ol>
+<p>Vorhandene Kunden, Artikel, Werkzeuge und Materialien werden niemals automatisch überschrieben. Ähnliche Nummern sind nur Vorschläge. Unbekannte ERP-Statuscodes werden nicht als FactoryOS-Status interpretiert.</p>
+<p>Musterungs- und Projektaufträge bleiben getrennt. Liefer-KW wird nicht in einen erfundenen Liefertermin umgerechnet. Lieferanten und weitere ERP-Spalten bleiben als Originalangaben erhalten.</p></section>
+{% if batches %}<section><h2>Eigene Importentwürfe fortsetzen</h2><p>Entwürfe sind sieben Tage bearbeitbar.</p>
+{% for batch in batches %}<p><a class="erp-link" href="{{ url_for('orders.import_batch', batch_id=batch.id) }}">{{ batch.filename }} · {{ batch.created_at.strftime('%d.%m.%Y %H:%M') }} UTC · {{ batch.rows|length }} Zeile(n)</a></p>{% endfor %}</section>{% endif %}
+<a class="btn-secondary" href="{{ url_for('orders.dashboard') }}">Zur Auftragsübersicht</a>
+{% endblock %}

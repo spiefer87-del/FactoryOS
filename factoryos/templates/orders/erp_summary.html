@@ -1,0 +1,11 @@
+{% set erp=order.erp_import.snapshot %}
+<div class="erp-import"><section><h2>ERP-Auftragsdaten und bestätigte Zuordnungen</h2>
+<p>{{ erp.filename }} · {{ erp.sheet }} · Excel-Zeile {{ erp.excel_row }} · Import {{ order.erp_import.imported_at.strftime('%d.%m.%Y %H:%M') }} UTC</p>
+<dl class="erp-source">{% for kind,item in erp.references.items() %}<div><dt>{{ {'customer':'Kunde','article':'Artikel','tool':'Werkzeug','material':'Rohstoff','machine':'Geplante Maschine'}.get(kind,kind) }}</dt><dd>{{ item.number or 'Keine Zuordnung' }}{% if item.name %} – {{ item.name }}{% endif %}{% if item.mode=='none' %} (ohne Stammdatenbezug){% endif %}</dd></div>{% endfor %}
+<div><dt>Lieferdatum</dt><dd>{{ erp.fields.delivery_date or 'Nicht angegeben' }}</dd></div>
+<div><dt>Liefer-KW (kein konkretes Tagesdatum)</dt><dd>{{ erp.fields.delivery_week or 'Nicht angegeben' }}</dd></div></dl>
+<p>Dies ist der bestätigte Importstand. Spätere Änderungen am Auftrag stehen in dessen aktuellen Feldern; die ERP-Originalangaben werden dadurch nicht überschrieben.</p>
+<details><summary>ERP-Originalangaben einschließlich Material- und Lieferhinweisen</summary><dl class="erp-source">{% for cell in erp.source %}<div><dt>{{ cell.label }}</dt><dd>{{ cell.value or 'Leer' }}</dd></div>{% endfor %}</dl></details>
+{% if erp.warnings_confirmed %}<details><summary>Beim Import bestätigte Hinweise</summary><ul>{% for warning in erp.warnings_confirmed %}<li>{{ warning }}</li>{% endfor %}</ul></details>{% endif %}
+{% if erp.history %}<details><summary>{{ erp.history|length }} frühere Importstände</summary>{% for older in erp.history|reverse %}<h3>{{ older.filename }} · Zeile {{ older.excel_row }}</h3><dl class="erp-source">{% for cell in older.source %}<div><dt>{{ cell.label }}</dt><dd>{{ cell.value or 'Leer' }}</dd></div>{% endfor %}</dl>{% endfor %}</details>{% endif %}
+</section></div>

@@ -1,0 +1,48 @@
+{% extends "orders/import_base.html" %}
+{% block import_content %}
+<header><p class="erp-eyebrow">ERP-Import / Zeile {{ row.excel_row }}</p><h1>Auftrag {{ row.fields.order_no or 'ohne Nummer' }} prüfen</h1>
+<p>{{ index+1 }} von {{ batch.rows|length }} · {{ batch.filename }}</p></header>
+<p>{% for cell in row.source if cell.label in ['Auftragsart','Status'] %}<strong>ERP-{{ cell.label }}:</strong> {{ cell.value if cell.value else 'Nicht angegeben' }}{% if not loop.last %} · {% endif %}{% endfor %}</p>
+<a class="erp-link" href="{{ url_for('orders.import_batch', batch_id=batch.id) }}">← Alle Importzeilen</a>
+{% if plan.errors %}<section class="erp-errors" role="alert"><h2>Noch zu klären</h2><ul>{% for error in plan.errors %}<li>{{ error }}</li>{% endfor %}</ul></section>{% endif %}
+{% if plan.warnings %}<section class="erp-warnings"><h2>Abweichungen und Hinweise</h2><ul>{% for warning in plan.warnings %}<li>{{ warning }}</li>{% endfor %}</ul></section>{% endif %}
+<form method="post">
+<input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}">
+<input type="hidden" name="version" value="{{ batch.version }}">
+<input type="hidden" name="intent" value="preview">
+<section><h2>2. Angaben korrigieren</h2>
+<p>Links stehen die bearbeitbaren Importwerte. Alle ursprünglichen ERP-Werte bleiben unten einsehbar.</p>
+<div class="erp-grid">{% for key,label in field_labels.items() %}<label>{{ label }}
+<input name="{{ key }}" value="{{ row.fields.get(key,'') }}" {% if key in ('order_no','article_no','quantity','unit') %}required{% endif %} maxlength="{{ 255 if key not in ('order_no','article_no') else 50 }}"></label>{% endfor %}
+<label>Materialkategorie bei Neuanlage<select name="material_type">{% for key,label in material_types.items() %}<option value="{{ key }}" {% if row.fields.get('material_type')==key %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+<label>Maschinentyp bei Neuanlage<select name="machine_type">{% for key,label in machine_types.items() %}<option value="{{ key }}" {% if row.fields.get('machine_type')==key %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+<label>Auftragsaktion<select name="order_action"><option value="create" {% if row.get('action','create')=='create' %}selected{% endif %}>Neuen Fertigungsauftrag anlegen</option><option value="update" {% if row.get('action')=='update' %}selected{% endif %}>Vorhandenen offenen, ungebuchten Auftrag aktualisieren</option></select></label>
+</div></section>
+<section><h2>3. Stammdaten zuordnen oder anlegen</h2>
+<p>Exakte Nummern werden vorausgewählt. Ähnliche Treffer sind nur Vorschläge. „Neu anlegen“ verwendet die oben geprüfte Nummer und Bezeichnung. Nur ein neu angelegter Artikel erhält die gewählten Stammdatenbezüge; bestehende Artikel bleiben unverändert.</p>
+<div class="erp-grid">{% for kind,definition in entities.items() %}<div class="erp-assignment"><label>{{ definition[4] }}{% if definition[5] %} (erforderlich){% else %} (optional){% endif %}
+<select name="choice_{{ kind }}">
+<option value="">Bitte Zuordnung wählen</option>
+{% if not definition[5] %}<option value="none" {% if row.choices.get(kind)=='none' %}selected{% endif %}>Bewusst ohne Zuordnung</option>{% endif %}
+{% if can_create[kind] %}<option value="new" {% if row.choices.get(kind)=='new' %}selected{% endif %}>Neu anlegen – Nummer/Bezeichnung oben prüfen</option>{% endif %}
+{% if suggestions[kind] %}<optgroup label="Mögliche Treffer – bitte prüfen">{% for obj in suggestions[kind] %}<option value="id:{{ obj.id }}" {% if row.choices.get(kind)=='id:'~obj.id %}selected{% endif %}>{{ obj.number }} – {{ obj.name }}</option>{% endfor %}</optgroup>{% endif %}
+<optgroup label="Vorhandene Stammdaten">{% for obj in available[kind] %}{% if obj not in suggestions[kind] %}<option value="id:{{ obj.id }}" {% if row.choices.get(kind)=='id:'~obj.id %}selected{% endif %}>{{ obj.number }} – {{ obj.name }}</option>{% endif %}{% endfor %}</optgroup>
+</select></label>
+{% if not can_create[kind] %}<small>Für eine Neuanlage fehlt dir das entsprechende Stammdatenrecht.</small>{% endif %}
+{% if row.fields.get(definition[1]) and not row.choices.get(kind) %}<p class="erp-missing">Kein eindeutiger Treffer. Vorhandenen Datensatz wählen oder Neuanlage prüfen.</p>{% endif %}
+</div>{% endfor %}</div>
+</section>
+<section><h2>4. Prüfung bestätigen</h2>
+<label class="erp-checkbox"><input type="checkbox" name="acknowledged" value="yes" {% if row.acknowledged %}checked{% endif %}>Ich habe ERP-Auftragsart, Statuscodes, Stückzahl, Stammdaten und Abweichungen geprüft. Die Übernahme erfolgt als Fertigungsauftrag; es wird keine Produktion gestartet.</label>
+<button class="btn-primary" type="submit">Vorschau prüfen / Änderungen speichern</button>
+</section></form>
+{% if ready %}<section class="erp-ready"><h2>5. Geprüfte Zeile übernehmen</h2>
+<p>Alle Angaben sind geprüft. Erst dieser Schritt schreibt Auftrag und ausdrücklich gewählte Neuanlagen.</p>
+{% if plan.new_masters %}<h3>Neue Stammdaten</h3><ul>{% for item in plan.new_masters %}<li>{{ item }}</li>{% endfor %}</ul>{% endif %}
+<h3>Auftragszuordnungen</h3><ul>{% for kind,item in plan.resolved.items() %}<li>{{ item.label }}: {{ item.number or 'Keine Zuordnung' }}{% if item.name %} – {{ item.name }}{% endif %} ({{ {'new':'Neuanlage','existing':'vorhanden','none':'bewusst ohne Bezug'}.get(item.mode,item.mode) }})</li>{% endfor %}</ul>
+<p>Fertigungsmenge: <strong>{{ plan.target.target_qty }} Stück</strong></p>
+{% if plan.changes %}<h3>Änderungen am vorhandenen Auftrag</h3><ul>{% for item in plan.changes %}<li>{{ {'article':'Artikel','article_name':'Artikelname','tool_no':'Werkzeug','target_qty':'Menge'}.get(item.field,item.field) }}: {{ item.before or 'Leer' }} → {{ item.after or 'Leer' }}</li>{% endfor %}</ul>{% endif %}
+<form method="post"><input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}"><input type="hidden" name="version" value="{{ batch.version }}"><input type="hidden" name="intent" value="commit"><button class="btn-primary" type="submit">Diese geprüfte Zeile verbindlich übernehmen</button></form></section>{% endif %}
+<section><details><summary>Alle ursprünglichen ERP-Angaben anzeigen</summary><p>Blatt {{ batch.sheet }}, Excel-Zeile {{ row.excel_row }}. Nicht zugeordnete Spalten bleiben als Quellangaben erhalten.</p><dl class="erp-source">{% for cell in row.source %}<div><dt>{{ cell.column }} · {{ cell.label }}</dt><dd>{{ cell.value or 'Leer' }}</dd></div>{% endfor %}</dl></details></section>
+<form method="post"><input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}"><input type="hidden" name="version" value="{{ batch.version }}"><input type="hidden" name="intent" value="skip"><button type="submit" class="btn-secondary">Zeile ohne Übernahme überspringen</button></form>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "orders/import_base.html" %}
+{% block import_content %}
+<header><p class="erp-eyebrow">ERP-Import / Vorschau</p><h1>Auftragszeilen prüfen</h1>
+<p>{{ batch.filename }} · Blatt {{ batch.sheet }} · {{ batch.rows|length }} Zeile(n)</p></header>
+<section><p>Jede Zeile wird separat bestätigt. Noch offene und übersprungene Zeilen verändern keine Aufträge oder Stammdaten.</p>
+<div class="erp-table-scroll"><table><thead><tr><th>Excel-Zeile</th><th>FA-Nummer</th><th>Artikel</th><th>Menge</th><th>Prüfstand</th><th>Aktion</th></tr></thead><tbody>
+{% for row in batch.rows %}<tr><td>{{ row.excel_row }}</td><td>{{ row.fields.order_no or 'Fehlt' }}</td><td>{{ row.fields.article_no or 'Fehlt' }}</td><td>{{ row.fields.quantity }}</td>
+<td>{{ {'pending':'Prüfung offen','ready':'Vorschau geprüft','imported':'Übernommen','skipped':'Übersprungen'}.get(row.state,row.state) }}</td>
+<td>{% if row.state=='imported' %}<a class="erp-link" href="{{ url_for('orders.detail', order_id=row.order_id) }}">Auftrag öffnen</a>{% elif row.state!='skipped' %}<a class="erp-link" href="{{ url_for('orders.import_row', batch_id=batch.id, index=loop.index0) }}">Zeile prüfen →</a>{% else %}Keine Übernahme{% endif %}</td></tr>{% endfor %}
+</tbody></table></div></section>
+<a class="btn-secondary" href="{{ url_for('orders.import_orders') }}">Weitere Datei hochladen</a>
+<a class="btn-secondary" href="{{ url_for('orders.overview') }}">Aufträge anzeigen</a>
+{% endblock %}

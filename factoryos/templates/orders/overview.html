@@ -1,43 +1,17 @@
 {% extends "layout/base.html" %}
-
 {% block content %}
-
 <h2>Auftragsübersicht</h2>
-
-{% set columns = [
-"Auftrag",
-"Artikel",
-"Artikelname",
-"Menge",
-"Status",
-"Aktionen"
-] %}
-
-{% set rows = [] %}
-
-{% for order in orders %}
-
-{% set row = [
-
-'<a href="' ~ url_for("orders.detail", order_id=order.id) ~ '">' ~ order.order_no ~ '</a>',
-
-order.article or "",
-order.article_name or "",
-order.target_qty or "",
-
-'<span class="status-badge status-' ~ order.status ~ '">' ~ order.status ~ '</span>',
-
-'<div class="table-actions">
-<a class="btn-small btn-edit" href="' ~ url_for("orders.edit", order_id=order.id) ~ '">Bearbeiten</a>
-<a class="btn-small btn-delete" href="' ~ url_for("orders.delete", order_id=order.id) ~ '">Löschen</a>
-</div>'
-
-] %}
-
-{% set _ = rows.append(row) %}
-
-{% endfor %}
-
-{% include "components/table.html" with context %}
-
+<div class="fos-table-wrapper">
+<div class="fos-table-toolbar"><input type="search" class="fos-search" placeholder="Aufträge suchen..." data-table-search="orders-table"></div>
+<div class="fos-table-container">
+<table class="fos-table" id="orders-table">
+<thead><tr>{% for label in ['Auftrag','Artikel','Artikelname','Menge','Status','Aktionen'] %}<th>{{ label }}</th>{% endfor %}</tr></thead>
+<tbody>{% for order in orders %}<tr>
+<td><a href="{{ url_for('orders.detail', order_id=order.id) }}">{{ order.order_no }}</a></td>
+<td>{{ order.article or '' }}</td><td>{{ order.article_name or '' }}</td>
+<td>{{ order.target_qty if order.target_qty is not none else '' }}</td>
+<td><span class="status-badge">{{ order.status }}</span></td>
+<td><div class="table-actions"><a class="btn-small btn-edit" href="{{ url_for('orders.edit', order_id=order.id) }}">Bearbeiten</a><a class="btn-small btn-delete" href="{{ url_for('orders.delete', order_id=order.id) }}">Löschen</a></div></td>
+</tr>{% endfor %}</tbody></table></div>
+<div class="fos-pagination" data-table="orders-table"></div></div>
 {% endblock %}

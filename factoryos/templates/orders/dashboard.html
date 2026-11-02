@@ -5,6 +5,11 @@
 <h2>Aufträge</h2>
 
 <div class="dashboard-grid">
+{% if can_import_orders %}
+<a href="{{ url_for('orders.import_orders') }}" class="dashboard-card">
+<div class="card-icon">📥</div><div class="card-title">ERP-Aufträge importieren</div>
+<div class="card-desc">Excel prüfen, Stammdaten zuordnen und Schritt für Schritt übernehmen</div></a>
+{% endif %}
 <a href="{{ url_for('sampling.overview') }}" class="dashboard-card">
 <div class="card-icon">🔬</div><div class="card-title">Musterungsaufträge</div>
 <div class="card-desc">Bemusterung, Prüfungen und Freigaben</div></a>

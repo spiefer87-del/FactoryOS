@@ -37,6 +37,7 @@ for group in ("materials", "tools"):
 
 add("activity", "view", "Protokoll ansehen", "Das zentrale Aktivitätsprotokoll mit protokollierten Änderungen und Benutzeraktionen öffnen.")
 add("orders", "delete", "Löschen", "Gewöhnliche Aufträge löschen. Musterungsaufträge werden nicht über diese Funktion gelöscht.")
+add("orders", "excel_import", "ERP-Aufträge importieren", "ERP-Exceldateien prüfen und eigene Importentwürfe bearbeiten. Aufträge und fehlende Stammdaten erst nach Bestätigung mit den jeweils zusätzlich erforderlichen Anlage- oder Bearbeitungsrechten übernehmen.")
 add("tools", "edit", "Bearbeiten", "Werkzeugdaten ändern und das Hauptbild eines Werkzeugs festlegen.")
 add("production", "view", "Übersicht ansehen", "Die Produktionsübersicht und die Maschinen-Timeline öffnen.")
 add("production", "start", "Buchungen starten", "Aufträge und Projektzeiten starten sowie pausierte oder unterbrochene Buchungen fortsetzen.")
