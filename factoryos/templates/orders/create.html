@@ -8,33 +8,34 @@
 
 <div class="form-group">
 <label>Auftragsnummer</label>
-<input type="text" name="order_no" required>
+<input type="text" name="order_no" required value="{{ request.form.get('order_no','') }}">
 </div>
 
 <div class="form-group">
 <label>Artikelnummer</label>
-<input type="text" name="article">
+<input type="text" id="order-article" name="article" list="order-articles" value="{{ request.form.get('article','') }}">
 </div>
 
 <div class="form-group">
 <label>Artikelname</label>
-<input type="text" name="article_name">
+<input type="text" name="article_name" value="{{ request.form.get('article_name','') }}">
 </div>
 
 <div class="form-group">
 <label>Beschreibung</label>
-<textarea name="description"></textarea>
+<textarea name="description">{{ request.form.get('description','') }}</textarea>
 </div>
 
 <div class="form-group">
 <label>Standort</label>
-<input type="text" name="location">
+<input type="text" name="location" value="{{ request.form.get('location','') }}">
 </div>
 
 <div class="form-group">
 <label>Zielmenge</label>
-<input type="number" name="target_qty">
+<input type="number" name="target_qty" value="{{ request.form.get('target_qty','') }}">
 </div>
+{% include "orders/cycle_field.html" %}
 
 <button type="submit" class="btn-primary">
 Auftrag erstellen

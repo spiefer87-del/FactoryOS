@@ -122,6 +122,7 @@ def render_form(sampling, submitted=None):
         values["material_confirmed"] = "yes" if material_confirmed(sampling) else ""
         values["color_confirmed"] = "yes" if color_confirmed(sampling) else ""
         values.update(order_no=sampling.order.order_no, target_qty=sampling.order.target_qty,
+                      target_cycle_seconds=sampling.order.cycle_time_s,
                       reason=sampling.reason, state=sampling.state, version=sampling.version)
         for key in ("article_id", "customer_id", "tool_id", "material_id", "machine_id", "previous_id"):
             values[key] = str(getattr(sampling, key) or "")

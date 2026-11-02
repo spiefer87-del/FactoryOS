@@ -5,6 +5,7 @@ from sqlalchemy.orm.attributes import flag_modified
 from factoryos.extensions import db
 from factoryos.core.services.change_log_service import log_change
 from factoryos.modules.orders.models import Order
+from factoryos.modules.orders.services.cycle_time import parse_cycle_time, valid_cycle_time
 from factoryos.modules.masterdata.articles.models import Article
 from factoryos.modules.masterdata.customers.models import Customer
 from factoryos.modules.masterdata.materials.models import Material
@@ -110,6 +111,7 @@ def save_sampling(form, user_id, sampling=None):
     if sampling and previous and previous.id != sampling.previous_id:
         raise ValueError("Die ursprüngliche Musterung kann nach Anlage nicht geändert werden.")
     data = parse_data(form)
+    data["target_cycle_seconds"] = parse_cycle_time(form.get("target_cycle_seconds"))
     batch = reference(form, "masterbatch_id", Material)
     if batch and batch.material_type != "masterbatch":
         raise ValueError("Farbbatch muss aus der Kategorie Masterbatch stammen.")
@@ -190,6 +192,7 @@ def save_sampling(form, user_id, sampling=None):
     sampling.order.article_name = snapshot.get("article", {}).get("name") or None
     sampling.order.tool_no = snapshot.get("tool", {}).get("number") or None
     sampling.order.target_qty = quantity
+    sampling.order.cycle_time_s = data["target_cycle_seconds"]
     sampling.order.status = "in_arbeit" if state in ("in_progress", "review") else "gesperrt"
     for check in sampling.checks:
         allowed = ("open", "granted", "rejected", "not_required") if check.key in ("internal", "external") else ("open", "done", "rejected", "not_required")
@@ -224,6 +227,8 @@ def save_sampling(form, user_id, sampling=None):
 
 def completion_errors(sampling):
     errors = []
+    if not valid_cycle_time(sampling.order.cycle_time_s):
+        errors.append("Soll-Zykluszeit fehlt. Bitte im Musterungsauftrag einen positiven Sollwert hinterlegen.")
     if sampling.reason == "color_change" and not color_confirmed(sampling):
         errors.append("Farbänderung: Gewünschten Farbton oder RAL angeben und Farbangaben bewusst bestätigen.")
     if sampling.reason == "material_change" and not material_confirmed(sampling):

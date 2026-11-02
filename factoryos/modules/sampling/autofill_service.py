@@ -3,12 +3,14 @@ from sqlalchemy.orm import joinedload
 from factoryos.modules.masterdata.articles.models import Article
 from factoryos.modules.masterdata.materials.models import Material
 from factoryos.modules.masterdata.tools.models import Tool
+from factoryos.modules.orders.services.cycle_time import valid_cycle_time
 
 
 def article_defaults(article):
     tools = sorted(article.tools, key=lambda t: (t.tool_no or "", t.id))
     return {
         "customer_id": str(article.customer_id or ""),
+        "target_cycle_seconds": valid_cycle_time(article.cycle_time_s),
         "material_id": str(article.material_id or ""),
         "tool_id": str(tools[0].id) if len(tools) == 1 else "",
         "tool_count": len(tools),
@@ -26,7 +28,7 @@ def article_defaults(article):
             "Gewünschter Farbton / RAL laut Artikel": article.masterbatch.ral_color if article.masterbatch else "-",
             "Zeichnungsnummer": article.drawing_no or "-",
             "Zeichnungsindex": article.drawing_revision or "-",
-            "Zykluszeit laut Artikel (s)": article.cycle_time_s,
+            "Zykluszeit laut Artikel (s)": valid_cycle_time(article.cycle_time_s),
             "Schussgewicht laut Artikel (g)": article.shot_weight_g,
             "Verpackungseinheit laut Artikel": article.pack_unit,
         },

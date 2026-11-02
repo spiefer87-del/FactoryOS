@@ -19,6 +19,7 @@ from factoryos.modules.masterdata.machines.models import Machine
 from factoryos.modules.production.models import TimeBooking, QuantityReport
 from factoryos.modules.masterdata.shared.constants import MACHINE_TYPES
 from .erp_excel_reader import clean, quantity, iso_date
+from .cycle_time import parse_cycle_time, valid_cycle_time
 
 ENTITIES = {
     "customer": (Customer, "customer_no", "name", "customers", "Kunde", False),
@@ -32,6 +33,7 @@ MATERIAL_TYPES = {"plastic": "Kunststoff", "masterbatch": "Masterbatch / Farbbat
 FIELD_LABELS = {
     "order_no": "Fertigungsauftragsnummer", "article_no": "Artikelnummer",
     "article_name": "Artikelbezeichnung", "quantity": "Fertigungsmenge (Stück)",
+    "cycle_time_s": "Soll-Zykluszeit (Sekunden pro Maschinenzyklus, Pflicht)",
     "customer_no": "Kundennummer", "customer_name": "Kundenname",
     "tool_no": "Werkzeugnummer", "tool_name": "Werkzeugbezeichnung",
     "material_no": "Materialnummer", "material_name": "Materialbezeichnung",
@@ -64,6 +66,8 @@ def default_choices(row, user):
         try: article = db.session.get(Article, int(article_choice[3:]))
         except (ValueError, OverflowError): article = None
         if article:
+            if not row.get("reviewed") and not row["fields"].get("cycle_time_s") and valid_cycle_time(article.cycle_time_s):
+                row["fields"]["cycle_time_s"] = str(article.cycle_time_s)
             for kind, obj in (("customer", article.customer), ("material", article.material),
                               ("tool", article.tools[0] if len(article.tools) == 1 else None)):
                 model, number, name, group, label, required = ENTITIES[kind]
@@ -109,6 +113,8 @@ def build_plan(row, user):
         fields[key] = clean(fields.get(key))
         if len(fields[key]) > limit: error(f"{FIELD_LABELS.get(key, key)}: maximal {limit} Zeichen.")
     if not fields["order_no"]: error("Fertigungsauftragsnummer fehlt.")
+    try: cycle = parse_cycle_time(fields.get("cycle_time_s"))
+    except ValueError as ex: error(str(ex)); cycle = None
     try: amount = quantity(fields.get("quantity"))
     except ValueError as ex: error(str(ex)); amount = None
     if fields["unit"].casefold() not in ("stück", "stueck", "stk", "st", "pcs", "piece", "pieces"):
@@ -206,7 +212,7 @@ def build_plan(row, user):
     changes = []
     target = {"article": article.get("number", ""), "article_name": article.get("name", ""),
               "tool_no": resolved["tool"].get("number", "") if resolved["tool"]["mode"] != "none" else None,
-              "target_qty": amount}
+              "target_qty": amount, "cycle_time_s": cycle}
     if existing:
         for key, value in target.items():
             if getattr(existing, key) != value:

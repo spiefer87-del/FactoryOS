@@ -29,6 +29,7 @@
 {% if record.reason=='color_change' %}<p class="sampling-material-warning">Farbänderung: {{ 'Farbangaben bewusst bestätigt (keine Qualitätsfreigabe).' if record.data.get('color_confirmation') else 'Farbangaben noch bewusst prüfen und bestätigen.' }}</p>{% endif %}
 {% for key,label in [('material','Rohstoff')] %}<div class="detail-item"><label>{{ label }} (Auftragsstand)</label><div>{{ record.snapshot.get(key,{}).get('number') or '–' }}<br>{{ record.snapshot.get(key,{}).get('name') or '' }}</div></div>{% endfor %}
 <div class="detail-item"><label>Musteranzahl</label><div>{{ record.order.target_qty }}</div></div>
+<div class="detail-item"><label>Soll-Zykluszeit (Sekunden pro Maschinenzyklus)</label><div>{{ record.order.cycle_time_s if record.order.cycle_time_s is not none else 'Nicht hinterlegt (Altauftrag)' }}</div></div>
 <div class="detail-item"><label>Zeichnung / Index</label><div>{{ record.snapshot.get('drawing_no') or '–' }} / {{ record.snapshot.get('drawing_revision') or '–' }}</div></div>
 {% if record.previous %}<div class="detail-item"><label>Vorherige Musterung</label><a href="{{ url_for('sampling.detail', sampling_id=record.previous.id) }}">{{ record.previous.order.order_no }}</a></div>{% endif %}
 <div class="detail-item"><label>Rüsten + Musterungsdauer</label><div>{{ (record.data.get('setup_minutes') or 0)+(record.data.get('sampling_minutes') or 0) }} Minuten{% if record.data.get('setup_minutes') is none or record.data.get('sampling_minutes') is none %} (unvollständige Zeitangabe){% endif %}</div></div>
@@ -38,7 +39,7 @@
 <section class="detail-card"><h3>Vorgaben und Ergebnisse</h3><div class="detail-grid">
 {% for key,label in text_fields.items() if record.data.get(key) and key not in ['color','masterbatch','ral_color','other_reason'] %}<div class="detail-item"><label>{{ label }}</label><div class="sampling-text">{{ record.data[key] }}</div></div>{% endfor %}
 {% for key,label in date_fields.items() %}<div class="detail-item"><label>{{ label }}</label><div>{{ record.data.get(key) or '–' }}</div></div>{% endfor %}
-{% for key,meta in number_fields.items() if key!='masterbatch_percent' %}<div class="detail-item"><label>{{ meta[0] }}</label><div>{{ record.data.get(key) if record.data.get(key) is not none else '–' }}</div></div>{% endfor %}
+{% for key,meta in number_fields.items() if key not in ['masterbatch_percent','target_cycle_seconds'] %}<div class="detail-item"><label>{{ meta[0] }}</label><div>{{ record.data.get(key) if record.data.get(key) is not none else '–' }}</div></div>{% endfor %}
 {% for key,label in yes_no_fields.items() %}<div class="detail-item"><label>{{ label }}</label><div>{{ {'yes':'Ja','no':'Nein'}.get(record.data.get(key),'Offen') }}</div></div>{% endfor %}
 </div></section>
 <section class="detail-card"><h3>Prüfungen und Freigaben</h3><div class="fos-table-container"><table class="fos-table"><thead><tr><th>Prüfpunkt</th><th>Status</th><th>Datum</th><th>Bearbeitet von</th><th>Notiz</th></tr></thead><tbody>

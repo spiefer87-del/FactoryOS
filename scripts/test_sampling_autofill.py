@@ -34,7 +34,7 @@ with app.app_context():
     assert article_defaults(article)["tool_id"]==""
     assert article_defaults(article)["tool_count"]==2
     record=SamplingOrder.query.filter_by(reason="material_change").one()
-    form=dict(order_no="MATERIAL-CONFIRM", reason="material_change", target_qty="1", state="draft",
+    form=dict(order_no="MATERIAL-CONFIRM", reason="material_change", target_qty="1", target_cycle_seconds="12.5", state="draft",
               article_id=str(article.id), tool_id=str(fixture["tool"].id),
               customer_id=str(fixture["customer"].id), material_id=str(fixture["material"].id))
     with app.test_request_context():

@@ -227,14 +227,17 @@
                             <strong>{{ lane.active_forecast.at.strftime('%d.%m.%Y, %H:%M') }} Uhr</strong>
                             <small>
                                 Noch {{ lane.active_forecast.remaining_qty }} Stück ·
-                                Zyklus {{ '%.2f'|format(lane.active_forecast.cycle_time_s) }} s
+                                Soll-Zyklus {{ '%.2f'|format(lane.active_forecast.cycle_time_s) }} s
                             </small>
+                            <small>{{ lane.active_forecast.cycle_source }} · {{ lane.active_forecast.parts_per_cycle }} Teil(e)/Zyklus · {{ lane.active_forecast.remaining_cycles }} Restzyklen · reine Laufzeit {{ lane.active_forecast.duration_label }}</small>
+                            {% if lane.active_forecast.cavities_assumed %}<small class="forecast-missing">Annahme: 1 Teil je Zyklus, da keine gültige Werkzeugkavitätenzahl vorliegt. Bitte Werkzeugdaten prüfen.</small>{% endif %}
+                            {% if not lane.active_forecast.cavities_assumed %}<small>{{ lane.active_forecast.tool_source }}</small>{% endif %}
                             {% if lane.active_forecast.calendar_delay_seconds %}
                             <small class="calendar-delay-note">
                                 Produktionsfreie Zeit berücksichtigt: +{{ lane.active_forecast.calendar_delay_label }}
                             </small>
                             {% endif %}
-                            {% elif lane.active_booking.process == 'PROD' %}
+                            {% elif lane.active_booking.process in ['PROD','MUSTER'] %}
                             <span class="forecast-missing">Keine Prognose – Zykluszeit oder Auftragsdaten fehlen.</span>
                             {% else %}
                             –
@@ -253,9 +256,13 @@
 
     <div class="forecast-note">
         <strong>Hinweis zur Fertigstellungsprognose:</strong>
-        Sie wird aus Restmenge × Zykluszeit des Artikelstamms berechnet und berücksichtigt
+        Sie wird aus Restzyklen × Soll-Zykluszeit des Auftrags berechnet und berücksichtigt
         den Produktionskalender einschließlich Wochenenden, Feiertagen und Brückentagen.
-        Störungen, Pausen, Ausschuss und Mehrfachkavitäten verändern den tatsächlichen Endzeitpunkt.
+        Restzyklen = aufgerundete Reststückzahl / Werkzeugkavitäten. Fehlt die Kavitätenzahl,
+        wird die Annahme 1 Teil je Zyklus angezeigt. Bei Altaufträgen ohne eigenen Sollwert
+        dient ein vorhandener Artikelwert nur als ausdrücklich gekennzeichnete Ersatzprognose.
+        Die Restmenge basiert auf gebuchten Gutteilen. Störungen, Ausschuss, abweichende aktive
+        Nester sowie Rüst- und Prüfzeiten sind nicht vorweggenommen; bei Musterungen ist dies nur die reine Zykluslaufzeit.
     </div>
 </div>
 {% endblock %}

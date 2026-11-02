@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }));
     });
 
-    ["customer_id", "tool_id", "material_id", ...colorKeys].forEach(function (id) {
+    ["customer_id", "tool_id", "material_id", "target_cycle_seconds", ...colorKeys].forEach(function (id) {
         const el = document.getElementById(id);
         if (!el) return;
         ["change", "input"].forEach(function (event) {
@@ -116,6 +116,7 @@ document.addEventListener("DOMContentLoaded", function () {
         setSuggestion("customer_id", a ? a.customer_id : "");
         setSuggestion("material_id", a ? a.material_id : "");
         setSuggestion("tool_id", a ? a.tool_id : "");
+        setSuggestion("target_cycle_seconds", a ? a.target_cycle_seconds : "");
         message.textContent = a && a.tool_count > 1
             ? "Mehrere Werkzeuge zugeordnet (" + a.tool_names.join(", ") + "). Bitte Werkzeug bewusst auswählen. Manuelle Angaben bleiben erhalten."
             : "Verfügbare, eindeutige Zuordnungen wurden vorgeschlagen. Manuelle Angaben bleiben erhalten.";

@@ -41,6 +41,7 @@ def document_data(record):
         ("Kunde", ref("customer")), ("Artikel", ref("article")),
         ("Werkzeug", ref("tool")), ("Maschine", ref("machine")),
         ("Musteranzahl", display(record.order.target_qty)),
+        ("Soll-Zykluszeit (Sekunden pro Maschinenzyklus)", display(record.order.cycle_time_s)),
         ("Zeichnung / Index", f"{snapshot.get('drawing_no') or '-'} / {snapshot.get('drawing_revision') or '-'}"),
         ("Kunden-Auftragsnummer", display(data.get("customer_order"))),
         ("Geplanter Termin", date_value(data.get("planned_date"))),
@@ -57,7 +58,7 @@ def document_data(record):
     execution = [("Durchgeführt von", display(data.get("operator"))),
                  ("Bemustert am", date_value(data.get("sampled_date"))),
                  ("Einrichter", display(data.get("setter")))]
-    execution += [(label, display(data.get(key))) for key, (label, _) in NUMBER_FIELDS.items() if key != "masterbatch_percent"]
+    execution += [(label, display(data.get(key))) for key, (label, _) in NUMBER_FIELDS.items() if key not in ("masterbatch_percent", "target_cycle_seconds")]
     setup, sampling = data.get("setup_minutes"), data.get("sampling_minutes")
     execution += [("Gesamtaufwand (Minuten)", display(setup + sampling) if setup is not None and sampling is not None else "Nicht vollständig erfasst"),
                   ("Datumstempel", {"yes": "Ja", "no": "Nein"}.get(data.get("date_stamp"), "Offen")),

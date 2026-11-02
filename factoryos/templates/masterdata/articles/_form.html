@@ -1,6 +1,31 @@
 <div class="form-grid">
-    <div class="form-group"><label for="masterbatch_id">Farbbatch (Materialstamm, optional)</label><select id="masterbatch_id" name="masterbatch_id"><option value="">Kein Farbbatch</option>{% for batch in materials if batch.material_type=='masterbatch' %}<option value="{{ batch.id }}" {% if article and article.masterbatch_id==batch.id %}selected{% endif %}>{{ batch.material_no }} – {{ batch.name }} · {{ batch.color or '' }} · {{ batch.ral_color or '' }}</option>{% endfor %}</select><small>Farbe und RAL werden zentral am Masterbatch gepflegt.</small></div>
-    <div class="form-group"><label for="masterbatch_percent">Farbbatch-Zugabe (%) (optional)</label><input type="number" id="masterbatch_percent" name="masterbatch_percent" min="0" max="100" step="any" value="{{ article.masterbatch_percent if article and article.masterbatch_percent is not none else '' }}"><small>Bezogen auf das Hauptrohstoffgewicht: 2 % = 2 kg Farbbatch je 100 kg Hauptrohstoff.</small></div>
+    <div class="form-group">
+        <label>Artikelnummer</label>
+        <input type="text" name="article_no"
+               value="{{ article.article_no if article else '' }}"
+               required>
+    </div>
+
+    <div class="form-group">
+        <label>Artikelname</label>
+        <input type="text" name="article_name"
+               value="{{ article.article_name if article else '' }}"
+               required>
+    </div>
+
+    <div class="form-group full">
+    <label>Werkzeuge</label>
+
+    <select id="tool-select" name="tools" multiple>
+        {% for tool in tools %}
+            <option value="{{ tool.id }}"
+                {% if article and tool in article.tools %}selected{% endif %}>
+                {{ tool.tool_no }} - {{ tool.name or '' }}
+            </option>
+        {% endfor %}
+    </select>
+    </div>
+
     <div class="form-group">
         <label for="material_id">Rohstoff (optional)</label>
         <select id="material_id" name="material_id">
@@ -20,51 +45,26 @@
         </select>
     </div>
 
-    <div class="form-group">
-        <label>Artikelnummer</label>
-        <input type="text" name="article_no"
-               value="{{ article.article_no if article else '' }}"
-               required>
-    </div>
-
-    <div class="form-group">
-        <label>Artikelname</label>
-        <input type="text" name="article_name"
-               value="{{ article.article_name if article else '' }}"
-               required>
-    </div>
-    
+    <div class="form-group"><label for="masterbatch_id">Farbbatch (Materialstamm, optional)</label><select id="masterbatch_id" name="masterbatch_id"><option value="">Kein Farbbatch</option>{% for batch in materials if batch.material_type=='masterbatch' %}<option value="{{ batch.id }}" {% if article and article.masterbatch_id==batch.id %}selected{% endif %}>{{ batch.material_no }} – {{ batch.name }} · {{ batch.color or '' }} · {{ batch.ral_color or '' }}</option>{% endfor %}</select><small>Farbe und RAL werden zentral am Masterbatch gepflegt.</small></div>
+    <div class="form-group"><label for="masterbatch_percent">Farbbatch-Zugabe (%) (optional)</label><input type="number" id="masterbatch_percent" name="masterbatch_percent" min="0" max="100" step="any" value="{{ article.masterbatch_percent if article and article.masterbatch_percent is not none else '' }}"><small>Bezogen auf das Hauptrohstoffgewicht: 2 % = 2 kg Farbbatch je 100 kg Hauptrohstoff.</small></div>
     <div class="form-group">
         <label>Zeichnungsnummer</label>
-    
+
         <input
             type="text"
             name="drawing_no"
             value="{{ article.drawing_no if article else '' }}">
     </div>
-    
+
     <div class="form-group">
         <label>Zeichnungsrevision</label>
-    
+
         <input
             type="text"
             name="drawing_revision"
             value="{{ article.drawing_revision if article else '' }}">
     </div>
 
-    <div class="form-group full">
-    <label>Werkzeuge</label>
-
-    <select id="tool-select" name="tools" multiple>
-        {% for tool in tools %}
-            <option value="{{ tool.id }}"
-                {% if article and tool in article.tools %}selected{% endif %}>
-                {{ tool.tool_no }} - {{ tool.name or '' }}
-            </option>
-        {% endfor %}
-    </select>
-    </div>
-    
     <div class="form-group full">
         <label>Beschreibung</label>
         <textarea name="description" rows="3">{{ article.description if article else '' }}</textarea>

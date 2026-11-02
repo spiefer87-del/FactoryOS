@@ -50,6 +50,7 @@ TEXT_FIELDS = {
     "initial_evidence": "Prüfbericht- / EMPB-Referenz (Erstbemusterung)",
 }
 NUMBER_FIELDS = {
+    "target_cycle_seconds": ("Soll-Zykluszeit (Sekunden pro Maschinenzyklus)", False),
     "masterbatch_percent": ("Farbbatch-Zugabe (% vom Hauptrohstoffgewicht)", False),
     "setup_minutes": ("Rüstzeit (Minuten)", False),
     "sampling_minutes": ("Musterungsdauer (Minuten)", False),

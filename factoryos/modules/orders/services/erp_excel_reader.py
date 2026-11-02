@@ -22,6 +22,9 @@ ALIASES = {
     "Liefertermin": "delivery_date", "Liefer-KW": "delivery_week",
     "Mengeneinheit": "unit", "Status": "erp_status", "Auftragsart": "erp_type",
     "Startdatum": "planned_start", "Enddatum": "planned_end",
+    "Zykluszeit": "cycle_time_s", "Zykluszeit (s)": "cycle_time_s",
+    "Soll-Zykluszeit": "cycle_time_s", "Soll-Zykluszeit (s)": "cycle_time_s",
+    "cycle_time_s": "cycle_time_s",
 }
 
 def clean(value):
@@ -133,6 +136,7 @@ def read_erp_excel(file, sheet_name=""):
                 "order_no": data.get("order_no", ""), "article_no": data.get("article_no", ""),
                 "article_name": data.get("article_name", "").split("\n")[0],
                 "quantity": data.get("quantity", ""), "customer_no": data.get("customer_no", ""),
+                "cycle_time_s": data.get("cycle_time_s", ""),
                 "customer_name": data.get("customer_name", ""), "tool_no": tool_no,
                 "tool_name": tool_name, "material_no": material_no, "material_name": material_name,
                 "machine_no": machine_no, "delivery_date": data.get("delivery_date", ""),

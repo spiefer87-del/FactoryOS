@@ -10,7 +10,7 @@ function setup(saved = false, tomselect = false, recipe = false) {
         "material_confirmed", "sampling-material-warning", "group-material_id",
         "sampling-reference-values", "sampling-autofill-message", "sampling-stock-material", "sampling-autofill-data",
         "masterbatch_id", "masterbatch_percent", "ral_color", "color_confirmed", "sampling-color-warning",
-        "group-masterbatch_id", "group-masterbatch_percent", "group-ral_color", "group-color"];
+        "group-masterbatch_id", "group-masterbatch_percent", "group-ral_color", "group-color", "target_cycle_seconds"];
     const fields = Object.fromEntries(ids.map(id => [id, {
         value:"", hidden:false, required:false, checked:false, textContent:"", children:[],
         listeners:{}, addEventListener(type, fn){(this.listeners[type] ||= []).push(fn);},
@@ -35,7 +35,7 @@ function setup(saved = false, tomselect = false, recipe = false) {
     fields["sampling-autofill-data"].textContent=JSON.stringify({
         catalog:{
             articles:{
-                "1":{customer_id:"1",material_id:"10",tool_id:"1",tool_count:1,tool_names:["W1"],reference:{Artikel:"A1"},
+                "1":{customer_id:"1",material_id:"10",tool_id:"1",tool_count:1,tool_names:["W1"],target_cycle_seconds:12.5,reference:{Artikel:"A1"},
                     ...(recipe?{masterbatch_id:"30",masterbatch_percent:2.5}:{})},
                 "2":{customer_id:"2",material_id:"20",tool_id:"",tool_count:2,tool_names:["W2","W3"],reference:{Artikel:"A2"}},
                 "3":{customer_id:"",material_id:"",tool_id:"",tool_count:0,tool_names:[],reference:{Artikel:"A3"}}
@@ -61,10 +61,13 @@ for (const ts of [false,true]) {
     assert.strictEqual(f.customer_id.value,"1");
     assert.strictEqual(f.tool_id.value,"1");
     assert.strictEqual(f.material_id.value,"10");
+    assert.strictEqual(f.target_cycle_seconds.value,"12.5");
+    change("target_cycle_seconds","18");
     assert.strictEqual(f.color.value,"Natur");
     change("article_id","2");
     assert.strictEqual(f.customer_id.value,"2");
     assert.strictEqual(f.tool_id.value,"");
+    assert.strictEqual(f.target_cycle_seconds.value,"18"); // manual target is not a measured value or silently replaced
     assert(f["sampling-autofill-message"].textContent.includes("Mehrere Werkzeuge"));
     change("customer_id","MANUAL");
     change("article_id","1");

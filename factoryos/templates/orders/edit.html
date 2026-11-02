@@ -8,32 +8,35 @@
 
 <div class="form-group">
 <label>Artikelnummer</label>
-<input type="text" name="article" value="{{ order.article }}">
+<input type="text" id="order-article" name="article" list="order-articles" value="{{ request.form.get('article',order.article or '') }}">
 </div>
 
 <div class="form-group">
 <label>Artikelname</label>
-<input type="text" name="article_name" value="{{ order.article_name }}">
+<input type="text" name="article_name" value="{{ request.form.get('article_name',order.article_name or '') }}">
 </div>
 
 <div class="form-group">
 <label>Beschreibung</label>
-<textarea name="description">{{ order.description }}</textarea>
+<textarea name="description">{{ request.form.get('description',order.description or '') }}</textarea>
 </div>
 
 <div class="form-group">
 <label>Standort</label>
-<input type="text" name="location" value="{{ order.location }}">
+<input type="text" name="location" value="{{ request.form.get('location',order.location or '') }}">
 </div>
 
 <div class="form-group">
 <label>Zielmenge</label>
-<input type="number" name="target_qty" value="{{ order.target_qty }}">
+<input type="number" name="target_qty" value="{{ request.form.get('target_qty',order.target_qty) }}">
 </div>
 
 <div class="form-group">
 <label>Status</label>
 <select name="status">
+{% if order.status not in ['offen','in_arbeit','fertig','gesperrt'] %}
+<option value="{{ order.status }}" selected>{{ order.status }}</option>
+{% endif %}
 
 <option value="offen" {% if order.status=="offen" %}selected{% endif %}>
 Offen
@@ -54,6 +57,7 @@ Gesperrt
 </select>
 </div>
 
+{% include "orders/cycle_field.html" %}
 <button class="btn-primary">Speichern</button>
 
 </form>

@@ -77,7 +77,7 @@ with app.app_context():
     def form(number, reason):
         return dict(csrf_token=token, order_no=number, reason=reason,
                     material_confirmed="yes",
-                    target_qty="10", state="review",
+                    target_qty="10", target_cycle_seconds="30", state="review",
                     article_id=str(article.id), customer_id=str(customer.id),
                     tool_id=str(tool.id), material_id=str(material.id),
                     machine_id=str(machine.id), sampled_date=date.today().isoformat(),

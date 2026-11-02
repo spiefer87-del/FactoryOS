@@ -8,6 +8,7 @@
 <p>Artikel: {{ order.article }}</p>
 <p>Status: {{ order.status }}</p>
 <p>Menge: {{ order.target_qty }}</p>
+<p>Soll-Zykluszeit: {{ ('%g'|format(order.cycle_time_s)) ~ ' s pro Maschinenzyklus' if order.cycle_time_s is not none else 'Nicht hinterlegt (Altauftrag)' }}</p>
 {% if order.erp_import %}{% include "orders/erp_summary.html" %}{% endif %}
 
 <a href="{{ url_for('orders.edit', order_id=order.id) }}" class="btn-primary">

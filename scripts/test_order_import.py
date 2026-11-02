@@ -34,9 +34,9 @@ from openpyxl import Workbook
 from flask import g
 
 HEADERS = ["FA-Nummer", "Artikelnummer", "Bezeichnung", "Fertigungsmenge", "Mengeneinheit",
-           "Kundennummer", "Kundenkurzname", "Werkzeug", "Material", "Liefer-KW", "Status", "Auftragsart", "Zusatz"]
+           "Kundennummer", "Kundenkurzname", "Werkzeug", "Material", "Liefer-KW", "Status", "Auftragsart", "Zykluszeit (s)", "Zusatz"]
 VALUES = [261742, "103010227", "Traverse_x000D_\nABS weiß", 2000, "Stück",
-          10301, "Testkunde", "COR150 - Traverse Grohe", "00000004 - ABS weiß RAL 9003_x000D_\nPrüfzeugnis erforderlich", "44/26", 1, 0, "<script>BAD</script>"]
+          10301, "Testkunde", "COR150 - Traverse Grohe", "00000004 - ABS weiß RAL 9003_x000D_\nPrüfzeugnis erforderlich", "44/26", 1, 0, 30, "<script>BAD</script>"]
 
 def excel(headers=HEADERS, rows=None):
     workbook = Workbook()

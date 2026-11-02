@@ -27,6 +27,8 @@ class Order(db.Model):
     location = db.Column(db.String(100), nullable=True)
 
     target_qty = db.Column(db.Integer, default=0)
+    # Nullable only for legacy and non-production project orders.
+    cycle_time_s = db.Column(db.Float, nullable=True)
 
     status = db.Column(
         db.String(20),

@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import math
 
 from sqlalchemy import func, or_
 from sqlalchemy.orm import joinedload
@@ -6,6 +7,8 @@ from sqlalchemy.orm import joinedload
 from factoryos.extensions import db
 from factoryos.models.machine import Machine
 from factoryos.modules.masterdata.articles.models import Article
+from factoryos.modules.masterdata.tools.models import Tool
+from factoryos.modules.orders.services.cycle_time import valid_cycle_time
 from factoryos.modules.production.models import QuantityReport, TimeBooking
 from factoryos.modules.production.services.calendar_service import (
     WEEKDAYS,
@@ -84,13 +87,19 @@ def _forecast_for(
     now,
     calendar_settings,
     calendar_exceptions,
+    tools_by_number=None,
 ):
-    if booking.process != "PROD" or not booking.order:
+    if booking.process not in ("PROD", "MUSTER") or not booking.order or booking.order.is_project:
         return None
 
     order = booking.order
     article = articles_by_number.get((order.article or "").strip())
-    if not article or not article.cycle_time_s or article.cycle_time_s <= 0:
+    cycle = valid_cycle_time(order.cycle_time_s)
+    cycle_source = "Auftragssollwert"
+    if cycle is None:
+        cycle = valid_cycle_time(article.cycle_time_s) if article else None
+        cycle_source = "Artikelwert für Altauftrag (nicht am Auftrag gesichert)"
+    if cycle is None:
         return None
 
     target_qty = max(0, order.target_qty or 0)
@@ -99,13 +108,25 @@ def _forecast_for(
 
     good_qty = max(0, int(good_by_order.get(order.id, 0) or 0))
     remaining_qty = max(0, target_qty - good_qty)
-    remaining_seconds = remaining_qty * article.cycle_time_s
-    finish_at = calculate_production_finish(
-        now,
-        remaining_seconds,
-        calendar_settings,
-        calendar_exceptions,
-    )
+    tool_number = (booking.tool_no or order.tool_no or "").strip()
+    tool = (tools_by_number or {}).get(tool_number)
+    tool_source = "Auftrags-/Buchungswerkzeug"
+    if not tool_number and article and len(article.tools) == 1:
+        tool = article.tools[0]
+        tool_source = "Eindeutige Werkzeugzuordnung im Artikelstamm"
+    cavities = getattr(tool, "cavities", None)
+    valid_cavities = isinstance(cavities, int) and not isinstance(cavities, bool) and cavities > 0
+    parts_per_cycle = cavities if valid_cavities else 1
+    remaining_cycles = math.ceil(remaining_qty / parts_per_cycle)
+    remaining_seconds = remaining_cycles * cycle
+    if not math.isfinite(remaining_seconds):
+        return None
+    try:
+        finish_at = calculate_production_finish(
+            now, remaining_seconds, calendar_settings, calendar_exceptions,
+        )
+    except (OverflowError, ValueError, RuntimeError):
+        return None
     calendar_delay_seconds = max(
         0,
         int((finish_at - now).total_seconds() - remaining_seconds),
@@ -116,7 +137,13 @@ def _forecast_for(
         "remaining_qty": remaining_qty,
         "good_qty": good_qty,
         "target_qty": target_qty,
-        "cycle_time_s": article.cycle_time_s,
+        "cycle_time_s": cycle,
+        "cycle_source": cycle_source,
+        "parts_per_cycle": parts_per_cycle,
+        "cavities_assumed": not valid_cavities,
+        "tool_source": tool_source if tool else "Kein eindeutiges Werkzeug",
+        "remaining_cycles": remaining_cycles,
+        "remaining_seconds": remaining_seconds,
         "duration_label": _format_duration(remaining_seconds),
         "calendar_delay_label": _format_duration(calendar_delay_seconds),
         "calendar_delay_seconds": calendar_delay_seconds,
@@ -189,10 +216,13 @@ def get_machine_timeline(horizon_key="24h", now=None):
     }
     articles_by_number = {}
     if article_numbers:
-        articles = Article.query.filter(Article.article_no.in_(article_numbers)).all()
+        articles = Article.query.options(joinedload(Article.tools)).filter(Article.article_no.in_(article_numbers)).all()
         articles_by_number = {article.article_no: article for article in articles}
 
     bookings_by_machine = {}
+    tool_numbers = {(booking.tool_no or booking.order.tool_no or "").strip()
+                    for booking in bookings if booking.order}
+    tools_by_number = {tool.tool_no: tool for tool in Tool.query.filter(Tool.tool_no.in_(tool_numbers)).all()} if tool_numbers else {}
     for booking in bookings:
         bookings_by_machine.setdefault(booking.machine_id, []).append(booking)
 
@@ -245,6 +275,7 @@ def get_machine_timeline(horizon_key="24h", now=None):
                     now,
                     calendar_settings,
                     calendar_exceptions,
+                    tools_by_number,
                 )
                 if forecast:
                     active_forecast = forecast
