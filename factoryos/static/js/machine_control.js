@@ -22,6 +22,15 @@
   if(!form)return;
   const search=document.getElementById('control-order-search');
   const select=document.getElementById('control-order');
+  if(form.hasAttribute('data-fault-form')){
+    const comment=form.querySelector('textarea[name="comment"]');
+    const updateDescription=()=>{
+      const own=!form.querySelector('input[name="reason_id"]:checked')?.value;
+      comment.required=own;comment.minLength=own?5:0;
+    };
+    form.querySelectorAll('input[name="reason_id"]').forEach(input=>input.addEventListener('change',updateDescription));
+    updateDescription();
+  }
   search?.addEventListener('input',()=>{
     const term=search.value.toLocaleLowerCase();
     [...select.options].forEach(option=>{option.hidden=!!option.value && !option.text.toLocaleLowerCase().includes(term);});

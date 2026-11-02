@@ -34,11 +34,13 @@
 <label>Werkzeug (für Rüsten erforderlich)<select name="tool_no" id="control-tool"><option value="">Aus Auftrag übernehmen</option>
 {% for tool in tools %}<option value="{{ tool.tool_no }}" {% if selected_tool==tool.tool_no %}selected{% endif %}>{{ tool.tool_no }} · {{ tool.name or '' }}</option>{% endfor %}</select></label>
 <p class="control-note">Rüsten beenden gibt die Maschine frei. Produktion wird anschließend mit eigenem Startbefehl gestartet. Kein automatischer Auftragswechsel.</p></section>{% endif %}
-{% if 'fault' in actions %}<label>Störgrund (alternativ Beschreibung)<select name="reason_id"><option value="">Über Beschreibung erfassen</option>{% for reason in reasons %}<option value="{{ reason.id }}" {% if selected_reason|string==reason.id|string %}selected{% endif %}>{{ reason.name }}</option>{% endfor %}</select></label>{% endif %}
-<label>Beschreibung / Begründung<textarea name="comment" maxlength="255" rows="2" placeholder="Was wurde gemacht oder was ist gestört?">{{ comment }}</textarea></label>
-<p class="control-note">Bei Entstören, Stoppen, Wartung und Sonstiges mindestens 5 Zeichen; bei Störung einen Grund auswählen oder beschreiben.</p>
+<label>Beschreibung / Begründung<textarea name="comment" maxlength="255" rows="2" placeholder="Tätigkeit, Behebung oder Grund für das Stoppen">{{ comment }}</textarea></label>
+<p class="control-note">Bei Entstören, Stoppen, Wartung und Sonstiges mindestens 5 Zeichen. Störungen erfasst du im nächsten Schritt separat.</p>
 <div class="control-buttons" aria-label="Maschinenbefehle">
-{% for action in actions %}<button type="submit" name="action" value="{{ action }}" data-label="{{ action_labels[action] }}" class="command-button command-{{ action }}" {% if conflict or not permitted[action] or (machine.machine_status!='aktiv' and action in ['start','setup','unsetup','maintenance','other','resume']) %}disabled{% endif %}>{{ action_labels[action] }}{% if not permitted[action] %}<small>Keine Berechtigung</small>{% endif %}</button>{% endfor %}
+{% for action in actions %}
+{% if action=='fault' and not conflict and permitted[action] %}
+<a class="command-button command-fault" data-control-navigation href="{{ url_for('production.machine_fault',machine_id=machine.id,embedded='1' if embedded else None,revision=state.revision) }}">Störung melden<span class="command-hint">Störgrund auswählen ›</span></a>
+{% else %}<button type="submit" name="action" value="{{ action }}" data-label="{{ action_labels[action] }}" class="command-button command-{{ action }}" {% if conflict or not permitted[action] or (machine.machine_status!='aktiv' and action in ['start','setup','unsetup','maintenance','other','resume']) %}disabled{% endif %}>{{ action_labels[action] }}{% if not permitted[action] %}<small>Keine Berechtigung</small>{% endif %}</button>{% endif %}{% endfor %}
 </div></form>
 <details class="control-history"><summary>Maschinenverlauf und Befehlsprotokoll (letzte 30)</summary>
 {% for item in history %}<article><strong>{{ action_labels.get(item.action,item.action) }}</strong><p>{{ local_label(item.created_at) }} · {{ item.user.username if item.user else 'Unbekannt' }} · App</p>

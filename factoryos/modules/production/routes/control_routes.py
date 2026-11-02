@@ -26,6 +26,12 @@ def machine_control(machine_id):
     error=None;status=200
     if request.method=="POST":
         if not valid_csrf(): abort(400,"Formular abgelaufen. Bitte neu laden.")
+        if request.form.get("action")=="fault":
+            if not has_permission(current_user,PERMISSIONS["fault"]): abort(403)
+            # Old clients may still submit the former button. Navigation only:
+            # a fault is now confirmed exclusively on its own selection page.
+            return redirect(url_for("production.machine_fault",machine_id=machine_id,
+                embedded="1" if embedded else None,revision=request.form.get("revision","")),code=303)
         try:
             _,replayed=execute(machine_id,current_user.id,request.form.get("action"),
                 request.form.get("command_id"),request.form.get("revision"),
@@ -57,12 +63,49 @@ def machine_control(machine_id):
         process=process,actions=actions,action_labels=ACTIONS,labels=LABELS,permitted=permitted,
         conflict=conflict,error=error,orders=orders,
         tools=Tool.query.order_by(Tool.tool_no).all(),
-        reasons=DowntimeReason.query.filter_by(active=True).order_by(DowntimeReason.name).all(),
         history=MachineControlCommand.query.filter_by(machine_id=machine_id).order_by(MachineControlCommand.id.desc()).limit(30).all(),
         embedded=embedded,command_id=str(uuid4()),local_label=local_label,
         selected_order=request.form.get("order_id",request.args.get("order_id","")),
-        selected_tool=request.form.get("tool_no",""),selected_reason=request.form.get("reason_id",""),
+        selected_tool=request.form.get("tool_no",""),
         comment=request.form.get("comment", ""))
+    return response,status,{"Cache-Control":"no-store","X-Frame-Options":"SAMEORIGIN"}
+
+
+@bp.route("/machine/<int:machine_id>/control/fault",methods=["GET","POST"])
+@login_required
+@permission_required("production.view")
+@permission_required("production.stop")
+def machine_fault(machine_id):
+    machine=Machine.query.get_or_404(machine_id)
+    embedded=request.args.get("embedded")=="1"
+    error=None;status=200
+    if request.method=="POST":
+        if not valid_csrf(): abort(400,"Formular abgelaufen. Bitte neu laden.")
+        try:
+            _,replayed=execute(machine_id,current_user.id,"fault",
+                request.form.get("command_id"),request.form.get("revision"),
+                reason_id=request.form.get("reason_id"),comment=request.form.get("comment",""))
+            flash("Störung war bereits gespeichert – keine Doppelbuchung." if replayed else "Störung gespeichert.","success")
+            return redirect(url_for("production.machine_control",machine_id=machine_id,
+                embedded="1" if embedded else None,changed="1"),code=303)
+        except ControlDenied as exc:
+            db.session.rollback();abort(403,str(exc))
+        except ValueError as exc:
+            db.session.rollback();error=str(exc);status=409 if isinstance(exc,ControlConflict) else 400
+        except SQLAlchemyError:
+            db.session.rollback();error="Maschinenstand wurde parallel geändert oder Datenbank ist belegt. Bitte neu laden und prüfen.";status=409
+    state=snapshot(machine_id);active=current_booking(machine_id)
+    process=active.process if active else "FREI"
+    expected=request.form.get("revision","") if request.method=="POST" else request.args.get("revision",state["revision"])
+    blocked=(len(state["active"])>1 or "fault" not in available_actions(process) or expected!=state["revision"])
+    if blocked:
+        error="Der Maschinenstand ist nicht mehr für diese Störmeldung gültig. Bitte neu laden und den aktuellen Zustand prüfen."
+        status=409
+    response=render_template("production/control/fault.html",machine=machine,state=state,active=active,
+        process=process,labels=LABELS,embedded=embedded,error=error,blocked=blocked,
+        expected_revision=expected,command_id=str(uuid4()),local_label=local_label,
+        reasons=DowntimeReason.query.filter_by(active=True).order_by(DowntimeReason.name).all(),
+        selected_reason=request.form.get("reason_id",""),comment=request.form.get("comment",""))
     return response,status,{"Cache-Control":"no-store","X-Frame-Options":"SAMEORIGIN"}
 
 

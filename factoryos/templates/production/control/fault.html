@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Störung melden · {{ machine.machine_no }} · FactoryOS</title>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/machine_control.css') }}">
+<script src="{{ url_for('static',filename='js/machine_control.js') }}" defer></script></head>
+<body class="machine-control-page" data-revision="{{ expected_revision }}" data-state-url="{{ url_for('production.machine_control_state',machine_id=machine.id) }}">
+<main class="control-panel">
+<header class="control-heading"><div><p>FactoryOS · {{ current_user.username }} · {{ machine.machine_no }}</p><h1>Störung melden</h1><p>{{ machine.name or 'Maschine' }}</p></div>
+<a class="control-link" href="{{ url_for('production.machine_fault',machine_id=machine.id,embedded='1' if embedded else None) }}">Neu laden</a></header>
+<p class="control-note">Wähle aus, welche Störung vorliegt. Erst mit „Störung speichern“ wird der laufende Vorgang unterbrochen und die Störzeit gestartet.</p>
+{% if error %}<p class="control-error" role="alert">{{ error }}</p>{% endif %}
+<p role="alert" class="control-error" id="control-stale" hidden>Der Maschinenstand wurde inzwischen geändert. Bitte neu laden und den aktuellen Zustand prüfen.</p>
+<section class="control-current process-{{ process|lower }}"><span>{{ machine.machine_no }} · Aktuell</span><h2>{{ labels.get(process,process) }}</h2>
+{% if active %}<p>Seit {{ local_label(active.start_time) }}</p>{% if active.order %}<p>Auftrag <strong>{{ active.order.order_no }}</strong></p>{% endif %}{% if active.tool_no %}<p>Werkzeug <strong>{{ active.tool_no }}</strong></p>{% endif %}{% endif %}</section>
+<form method="post" id="control-command-form" data-fault-form>
+<input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}"><input type="hidden" name="command_id" value="{{ command_id }}"><input type="hidden" name="revision" value="{{ expected_revision }}">
+<fieldset class="fault-reasons" {% if blocked %}disabled{% endif %}><legend>Was für eine Störung liegt vor?</legend>
+{% for reason in reasons %}<label class="fault-reason"><input type="radio" name="reason_id" value="{{ reason.id }}" {% if selected_reason|string==reason.id|string %}checked{% endif %}><span>{{ reason.name }}</span></label>{% endfor %}
+<label class="fault-reason"><input type="radio" name="reason_id" value="" {% if not selected_reason %}checked{% endif %}><span>Sonstige Störung / eigene Beschreibung</span></label>
+{% if not reasons %}<p class="control-note">Noch keine Störgründe hinterlegt. Bitte die Störung unten beschreiben.</p>{% endif %}</fieldset>
+<label>Störung beschreiben<textarea name="comment" maxlength="255" rows="3" {% if not selected_reason %}required minlength="5"{% endif %} {% if blocked %}disabled{% endif %} placeholder="Was ist gestört? Bei Sonstiges mindestens 5 Zeichen.">{{ comment }}</textarea></label>
+<p class="control-note">Bei einem ausgewählten Störgrund ist die Beschreibung optional. Entstören und Fortsetzen bleiben separate Schritte.</p>
+<div class="control-buttons fault-actions"><button type="submit" name="action" value="fault" data-label="Störung speichern" class="command-button command-fault" {% if blocked %}disabled{% endif %}>Störung speichern</button>
+<a class="command-button" href="{{ url_for('production.machine_control',machine_id=machine.id,embedded='1' if embedded else None) }}">Abbrechen / zurück</a></div>
+</form></main></body></html>
