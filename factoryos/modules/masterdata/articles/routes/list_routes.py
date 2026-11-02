@@ -3,6 +3,8 @@ from flask_login import login_required
 
 from . import bp
 from ..queries.article_queries import search_articles
+from ..queries.sampling_queries import sampling_summaries
+from factoryos.modules.sampling.definitions import STATES
 
 
 @bp.route("/list")
@@ -15,5 +17,7 @@ def list():
 
     return render_template(
         "masterdata/articles/list.html",
-        articles=articles
+        articles=articles,
+        sampling_summaries=sampling_summaries(a.id for a in articles),
+        sampling_states=STATES,
     )

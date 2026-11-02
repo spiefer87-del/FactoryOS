@@ -18,7 +18,7 @@ def get_article(article_id):
 
 def search_articles(search=None):
 
-    query = Article.query
+    query = Article.query.options(joinedload(Article.tools), joinedload(Article.customer), joinedload(Article.material))
 
     if search:
         query = query.filter(
