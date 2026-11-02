@@ -42,6 +42,7 @@ add("tools", "edit", "Bearbeiten", "Werkzeugdaten ändern und das Hauptbild eine
 add("production", "view", "Übersicht ansehen", "Die Produktionsübersicht und die Maschinen-Timeline öffnen.")
 add("production", "start", "Buchungen starten", "Aufträge und Projektzeiten starten sowie pausierte oder unterbrochene Buchungen fortsetzen.")
 add("production", "stop", "Buchungen stoppen", "Buchungen beenden, Maschinenstillstände erfassen und laufende Musterungsbuchungen stoppen.")
+add("production", "edit_booking_time", "Startzeiten korrigieren", "Tatsächliche Startzeiten von Produktions- und offenen Musterungsbuchungen mit Vorschau und Begründung korrigieren. Überschneidungen bleiben gesperrt; jede Änderung wird protokolliert.")
 add("production", "setup", "Rüstvorgänge erfassen", "Rüstvorgänge an Maschinen starten und dem vorgesehenen Auftrag oder Werkzeug zuordnen. Die Arbeitszeiten im Produktionskalender werden dadurch nicht geändert.")
 add("production", "events", "Maschinenereignisse erfassen", "Ereignisse an einer Maschine mit ergänzenden Angaben oder Kommentaren erfassen.")
 add("projects", "view", "Projekte ansehen", "Die Projektübersicht öffnen und vorhandene Projekte ansehen.")

@@ -2,6 +2,7 @@
 
 
     "tools": "Werkzeuge",
+    "booking_start_correction": "Startzeit korrigiert",
     "description": "Beschreibung",
     "status": "Status",
 
@@ -183,7 +184,14 @@
 <!-- Werte -->
 <div class="changelog-values">
 
-{% if values.added or values.removed %}
+{% if field == 'booking_start_correction' %}
+    <div>Buchung {{ values.booking_id }} · Maschine {{ values.machine_id }}</div>
+    <div>{{ values.start_time_utc.old }} → {{ values.start_time_utc.new }} (UTC)</div>
+    <div><strong>Begründung:</strong> {{ values.reason }}</div>
+    {% for interval in values.free_intervals %}
+    <div>Freizeit-Buchung {{ interval.booking_id }}: Ende {{ interval.old_end_utc }} → {{ interval.new_end_utc }} (UTC)</div>
+    {% endfor %}
+{% elif values.added or values.removed %}
 
     {% if values.added %}
         <div class="change-added">

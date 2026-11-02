@@ -22,6 +22,7 @@
 {% for key,label in [('tool','Werkzeug'),('article','Artikel'),('machine','Maschine'),('customer','Kunde')] %}
 <div class="sampling-key-fact{% if key in ['tool','article'] %} sampling-key-fact-primary{% endif %}"><span>{{ label }}</span><strong>{{ record.snapshot.get(key,{}).get('number') or 'Noch nicht zugeordnet' }}</strong><p>{{ record.snapshot.get(key,{}).get('name') or '' }}</p></div>
 {% endfor %}</section>
+{% include "orders/statistics.html" %}
 <section class="detail-card"><h3>Weitere Auftragsdaten</h3><div class="detail-grid">
 {% if record.data.get('other_reason') %}<div class="detail-item full"><label>Konkreter Grund / Erläuterung</label><div class="sampling-text">{{ record.data['other_reason'] }}</div></div>{% endif %}
 {% for key in ['color','masterbatch','ral_color'] %}<div class="detail-item{% if record.reason=='color_change' %} sampling-material-attention{% endif %}"><label>{{ text_fields[key] }}</label><div class="sampling-text">{{ record.data.get(key) or '–' }}</div></div>{% endfor %}

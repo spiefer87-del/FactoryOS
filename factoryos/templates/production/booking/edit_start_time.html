@@ -1,0 +1,19 @@
+{% extends "layout/base.html" %}
+{% block styles %}{{ super() }}<link rel="stylesheet" href="{{ url_for('static',filename='css/order_statistics.css') }}">{% endblock %}
+{% block content %}<div class="order-statistics">
+<h1>Startzeit korrigieren</h1>
+<p>Auftrag {{ booking.order.order_no }} · Maschine {{ booking.machine.machine_no }} · Buchung #{{ booking.id }}</p>
+<section><h2>Gespeicherte Buchung</h2><p>Start: <strong>{{ local_label(booking.start_time) }}</strong></p>
+<p>Ende: {{ local_label(booking.end_time) if booking.end_time else 'Läuft aktuell' }}</p>
+<p>Eingabe in <strong>Europe/Berlin</strong> (Sommer-/Winterzeit). Intern werden UTC-Zeitpunkte gespeichert.</p></section>
+<form method="post"><input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}"><input type="hidden" name="revision" value="{{ values.revision }}">
+<section><label>Richtiger tatsächlicher Start<input type="datetime-local" name="start_time" step="1" value="{{ values.start_time }}" required></label>
+<label>Nur bei doppelter Stunde der Zeitumstellung<select name="fold"><option value="">Automatisch, wenn eindeutig</option><option value="0" {% if values.fold=='0' %}selected{% endif %}>Erste Stunde (Sommerzeit)</option><option value="1" {% if values.fold=='1' %}selected{% endif %}>Zweite Stunde (Winterzeit)</option></select></label>
+<label>Begründung (Pflicht)<textarea name="reason" minlength="5" maxlength="1000" rows="3" required>{{ values.reason }}</textarea></label>
+<button class="btn-primary" name="intent" value="preview">Änderung prüfen</button></section>
+{% if plan is not none %}<section><h2>Vorschau</h2><p>{{ local_label(booking.start_time) }} → <strong>{{ local_label(proposed) }}</strong></p>
+{% if plan %}<p>Folgende automatisch erfasste Frei-Zeiten werden angepasst, damit keine Überschneidung entsteht. Vollständig überdeckte Frei-Phasen bleiben als Nullzeit-Datensätze mit Protokoll erhalten.</p>
+<ul>{% for item in plan %}<li>Frei-Buchung #{{ item.id }}: Ende {{ local_label(item.old_end) }} → {{ local_label(item.new_end) }}</li>{% endfor %}</ul>{% endif %}
+<p>Auftragsstatus, Gut-/Ausschussmengen und andere Produktions-, Rüst- oder Störungsbuchungen werden nicht verändert. Bei späterem Start werden keine neuen Frei-Zeiten erfunden.</p>
+<button class="btn-primary" name="intent" value="commit">Startzeit verbindlich korrigieren</button></section>{% endif %}
+</form><a class="btn-secondary" href="{{ url_for('orders.detail',order_id=booking.order_id) }}">Zum Auftrag</a></div>{% endblock %}

@@ -1,0 +1,36 @@
+<div class="order-statistics">
+<section aria-labelledby="order-stats-heading"><h2 id="order-stats-heading">Auftragsübersicht und Kennzahlen</h2>
+<p class="stats-note">Stand {{ local_label(statistics.now) }}. Erfasste Mengen und Zeit-/Materialschätzungen sind getrennt.</p>
+{% if can_correct_time and statistics.active_booking %}<p><a class="btn-secondary" href="{{ url_for('production.edit_booking_time',booking_id=statistics.active_booking.id) }}">Startzeit der laufenden Buchung korrigieren</a></p>{% endif %}
+<div class="stats-grid">
+<div class="stats-kpi"><span>{{ 'Abschluss' if statistics.is_complete else 'Voraussichtlich fertig · Schätzung' }}</span><strong>{{ 'Auftrag abgeschlossen' if statistics.is_complete else local_label(statistics.eta) if statistics.eta else 'Noch kein verbindlicher Endtermin' }}</strong>
+{% if statistics.is_complete %}<small>Letzte beendete Produktionsbuchung: {{ local_label(statistics.last_end) }}</small>
+{% elif statistics.forecast %}<small>{{ statistics.forecast_basis }}. {% if not statistics.active_booking %}Bei Start/Fortsetzung jetzt: {{ local_label(statistics.forecast.at) }}.{% endif %}</small>{% endif %}</div>
+<div class="stats-kpi"><span>Produktionsstart</span><strong>{{ local_label(statistics.first_start) }}</strong><small>Früheste erfasste Produktions-/Musterungsbuchung</small></div>
+<div class="stats-kpi"><span>Gebuchte Gutmenge</span><strong>{{ statistics.good if statistics.report_count else 'Noch keine Mengenmeldung' }}{% if statistics.report_count %} / {{ statistics.target }} Stück{% endif %}</strong>
+{% if statistics.report_count and statistics.progress is not none %}<progress max="100" value="{{ statistics.progress }}" aria-label="Gemeldeter Gutfortschritt"></progress><small>{{ '%.1f'|format(statistics.progress) }} % gemeldet</small>{% endif %}</div>
+<div class="stats-kpi"><span>Restmenge laut Gutmeldungen</span><strong>{{ statistics.remaining }} Stück</strong><small>Sollmenge {{ statistics.target }} Stück. Zeitprognosen verändern keine Mengenbuchung.</small></div>
+<div class="stats-kpi"><span>Ausschuss · erfasst</span><strong>{{ statistics.scrap if statistics.report_count else 'Nicht gemeldet' }}{% if statistics.report_count %} Stück{% endif %}</strong><small>{% if statistics.scrap_percent is not none %}{{ '%.1f'|format(statistics.scrap_percent) }} % der gemeldeten Gesamtmenge{% endif %}</small></div>
+<div class="stats-kpi"><span>Reine Soll-Laufzeit für Gesamtmenge</span><strong>{{ duration(statistics.planned_seconds) }}</strong>
+{% if statistics.forecast %}<small>{{ '%g'|format(statistics.forecast.cycle_time_s) }} s/Zyklus · {{ statistics.forecast.parts_per_cycle }} Teil(e)/Zyklus · {{ statistics.forecast.cycle_source }}</small>{% endif %}</div>
+<div class="stats-kpi"><span>Gebuchte Produktionszeit · brutto</span><strong>{{ duration(statistics.gross_seconds) }}</strong><small>Aus Buchungsintervallen, kein Maschinensignal</small></div>
+<div class="stats-kpi"><span>Produktionszeit innerhalb Arbeitskalender</span><strong>{{ duration(statistics.working_seconds) }}</strong><small>Gebuchte Pause separat: {{ duration(statistics.pause_seconds) }}</small></div>
+{% if statistics.forecast %}<div class="stats-kpi"><span>Rechnerische Restlaufzeit · Solltempo</span><strong>{{ statistics.forecast.duration_label }}</strong><small>Rechnerische Restmenge {{ statistics.forecast.estimated_remaining_qty }} Stück. Noch nicht gemessener Fortschritt nach Solltempo.</small></div>{% endif %}
+</div>
+{% if statistics.issues %}<ul class="stats-warnings">{% for issue in statistics.issues %}<li>{{ issue }}</li>{% endfor %}</ul>{% endif %}
+<p class="stats-note">Die Endprognose nimmt Solltempo ohne zusätzlichen künftigen Ausschuss an. Sie berücksichtigt gebuchte Produktionsintervalle und Produktionskalender. Ungeplante Störungen, aktive Nesterabweichungen, Rüst-/QS-Arbeit und weitere Stopps können das Ende verschieben. Ein rechnerisch erreichtes Sollende schließt keinen Auftrag automatisch ab.</p>
+</section>
+<section><h2>Materialbedarf und Verbrauchsschätzung</h2>
+<p><strong>Rohstoff:</strong> {{ statistics.material_label }}</p>
+<p class="stats-note">Quelle: {{ statistics.shot_source }}. Schussgewicht umfasst den gesamten Schuss einschließlich Anguss. Kein gemessener Ist-Verbrauch vorhanden.</p>
+<div class="stats-grid">
+{% for label,value in [('Gesamtbedarf · rechnerisch',statistics.total_mass),('Restbedarf laut Gutmeldungen · rechnerisch',statistics.remaining_mass),('Bisheriger Verbrauch aus Gut-/Ausschussmeldungen · geschätzt',statistics.consumed_estimate),('Hauptrohstoff für Gesamtmenge · geschätzt',statistics.main_mass),('Farbbatch für Gesamtmenge · geschätzt',statistics.batch_mass)] %}
+<div class="stats-kpi"><span>{{ label }}</span><strong>{{ ('%.3f'|format(value)) ~ ' kg' if value is not none else 'Nicht berechenbar / nicht erfasst' }}</strong></div>{% endfor %}
+<div class="stats-kpi"><span>Schussgewicht</span><strong>{{ ('%g'|format(statistics.shot_weight)) ~ ' g' if statistics.shot_weight is not none else 'Fehlt im Artikel / in der Musterung' }}</strong></div>
+</div>
+<p class="stats-note">Material = aufgerundete Schusszahl × Schussgewicht. Zusatzschüsse durch künftigen Ausschuss, Anfahren und Reinigung sind nicht eingeplant. Farbbatch-% beziehen sich auf das Hauptrohstoffgewicht: Hauptrohstoff = Gesamtmischung / (1 + Prozent/100). Bei normalen Aufträgen ist die aktuelle Artikelrezeptur nur eine Schätzgrundlage, keine eingefrorene auftragsbezogene Rezeptur und keine Verbrauchsbuchung.</p>
+</section>
+{% if statistics.bookings %}<section><h2>Produktionsbuchungen und Startzeiten</h2><div class="stats-scroll"><table><thead><tr><th>Maschine</th><th>Start (Europe/Berlin)</th><th>Ende</th><th>Aktion</th></tr></thead><tbody>
+{% for booking in statistics.bookings %}<tr><td>{{ booking.machine.machine_no if booking.machine else 'Unbekannt' }}</td><td>{{ local_label(booking.start_time) }}</td><td>{{ local_label(booking.end_time) if booking.end_time else 'Läuft aktuell' }}</td><td>{% if can_correct_time and booking.type=='START' %}<a class="btn-secondary" href="{{ url_for('production.edit_booking_time',booking_id=booking.id) }}">Startzeit korrigieren</a>{% else %}Nur Ansicht{% endif %}</td></tr>{% endfor %}
+</tbody></table></div></section>{% endif %}
+</div>

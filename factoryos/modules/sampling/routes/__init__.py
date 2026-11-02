@@ -10,6 +10,8 @@ from factoryos.core.services.change_log_service import log_change
 from factoryos.core.queries.change_log_queries import get_logs
 from ..models import SamplingOrder
 from factoryos.modules.production.models import TimeBooking
+from factoryos.core.auth import has_permission
+from factoryos.modules.production.services.order_statistics import order_statistics,local_label,duration
 from factoryos.modules.production.services.machine_service import start_machine_free
 from ..definitions import *
 from ..service import choices, save_sampling, completion_errors, complete_sampling
@@ -156,6 +158,9 @@ def create():
 def detail(sampling_id):
     record = SamplingOrder.query.get_or_404(sampling_id)
     return render_template("sampling/detail.html", record=record,
+                           order=record.order,statistics=order_statistics(record.order),
+                           local_label=local_label,duration=duration,
+                           can_correct_time=record.state!="completed" and has_permission(current_user,"production.edit_booking_time"),
                            active_bookings=TimeBooking.query.filter_by(order_id=record.order_id, end_time=None).all(),
                            errors=completion_errors(record) if record.state != "completed" else [],
                            logs=get_logs(entity_type="sampling", entity_id=record.id, limit=25),

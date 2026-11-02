@@ -1,21 +1,19 @@
 {% extends "layout/base.html" %}
-
-{% block styles %}{{ super() }}<link rel="stylesheet" href="{{ url_for('static', filename='css/order_import.css') }}">{% endblock %}
+{% block styles %}{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/order_import.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/order_statistics.css') }}">
+{% endblock %}
 {% block content %}
-
-<h2>Auftrag {{ order.order_no }}</h2>
-
-<p>Artikel: {{ order.article }}</p>
-<p>Status: {{ order.status }}</p>
-<p>Menge: {{ order.target_qty }}</p>
-<p>Soll-Zykluszeit: {{ ('%g'|format(order.cycle_time_s)) ~ ' s pro Maschinenzyklus' if order.cycle_time_s is not none else 'Nicht hinterlegt (Altauftrag)' }}</p>
-{% if order.erp_import %}{% include "orders/erp_summary.html" %}{% endif %}
-
-<a href="{{ url_for('orders.edit', order_id=order.id) }}" class="btn-primary">
-Bearbeiten
-</a>
-
-<a href="{{ url_for('orders.delete', order_id=order.id) }}" class="btn-danger">
-Löschen
-</a>
+<div class="order-statistics">
+<header><p class="stats-note">Aufträge / Fertigung</p><h1>Auftrag {{ order.order_no }}</h1>
+<p>{{ order.article or 'Ohne Artikelnummer' }} · {{ order.article_name or '' }}</p>
+<p>Status: {{ order.status }} · Sollmenge {{ order.target_qty }} Stück</p>
+<div class="page-actions">
+{% if can_edit_order %}<a class="btn-primary" href="{{ url_for('orders.edit',order_id=order.id) }}">Auftrag bearbeiten</a>{% endif %}
+<a class="btn-secondary" href="{{ url_for('orders.overview') }}">Alle Aufträge</a>
+{% if can_delete_order %}<a class="btn-secondary" href="{{ url_for('orders.delete',order_id=order.id) }}">Löschen</a>{% endif %}
+</div></header></div>
+{% include "orders/statistics.html" %}
+{% if order.erp_import %}<details class="order-erp-summary"><summary>ERP-Auftragsdaten und ursprüngliche Angaben öffnen</summary>{% include "orders/erp_summary.html" %}</details>{% endif %}
+<details class="order-erp-summary"><summary>Aktivitäten und protokollierte Korrekturen</summary>{% include "components/changelog.html" %}</details>
 {% endblock %}

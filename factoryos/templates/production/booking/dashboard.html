@@ -61,7 +61,7 @@
             <div>
                 <h2 id="timeline-heading">Maschinen-Timeline</h2>
                 <p>
-                    Stand {{ now.strftime('%d.%m.%Y, %H:%M') }} Uhr ·
+                    Stand {{ now.strftime('%d.%m.%Y, %H:%M') }} Uhr UTC ·
                     {{ range_start.strftime('%d.%m. %H:%M') }} bis
                     {{ range_end.strftime('%d.%m. %H:%M') }} Uhr
                 </p>
@@ -211,6 +211,9 @@
                             <a href="{{ url_for('orders.detail', order_id=lane.active_booking.order.id) }}">
                                 {{ lane.active_booking.order.order_no }}
                             </a>
+                            {% if can_correct_time and lane.active_booking.process in ['PROD','MUSTER'] and lane.active_booking.type=='START' %}
+                            <small><a href="{{ url_for('production.edit_booking_time',booking_id=lane.active_booking.id) }}">Startzeit korrigieren</a></small>
+                            {% endif %}
                             {% else %}
                             –
                             {% endif %}
@@ -224,12 +227,13 @@
                         <dt>Voraussichtlich fertig</dt>
                         <dd>
                             {% if lane.active_forecast %}
-                            <strong>{{ lane.active_forecast.at.strftime('%d.%m.%Y, %H:%M') }} Uhr</strong>
+                            <strong>{{ local_label(lane.active_forecast.at) }}</strong>
                             <small>
-                                Noch {{ lane.active_forecast.remaining_qty }} Stück ·
+                                Rest laut Gutmeldungen {{ lane.active_forecast.remaining_qty }} Stück ·
                                 Soll-Zyklus {{ '%.2f'|format(lane.active_forecast.cycle_time_s) }} s
                             </small>
                             <small>{{ lane.active_forecast.cycle_source }} · {{ lane.active_forecast.parts_per_cycle }} Teil(e)/Zyklus · {{ lane.active_forecast.remaining_cycles }} Restzyklen · reine Laufzeit {{ lane.active_forecast.duration_label }}</small>
+                            <small>Endprognose nach Solltempo seit Start bzw. letzter Mengenmeldung; rechnerische Restmenge {{ lane.active_forecast.estimated_remaining_qty }} Stück, keine Mengenbuchung.</small>
                             {% if lane.active_forecast.cavities_assumed %}<small class="forecast-missing">Annahme: 1 Teil je Zyklus, da keine gültige Werkzeugkavitätenzahl vorliegt. Bitte Werkzeugdaten prüfen.</small>{% endif %}
                             {% if not lane.active_forecast.cavities_assumed %}<small>{{ lane.active_forecast.tool_source }}</small>{% endif %}
                             {% if lane.active_forecast.calendar_delay_seconds %}
@@ -261,7 +265,11 @@
         Restzyklen = aufgerundete Reststückzahl / Werkzeugkavitäten. Fehlt die Kavitätenzahl,
         wird die Annahme 1 Teil je Zyklus angezeigt. Bei Altaufträgen ohne eigenen Sollwert
         dient ein vorhandener Artikelwert nur als ausdrücklich gekennzeichnete Ersatzprognose.
-        Die Restmenge basiert auf gebuchten Gutteilen. Störungen, Ausschuss, abweichende aktive
+        Die gemeldete Restmenge basiert auf Gutmeldungen. Für den Endtermin wird zusätzlich
+        die gebuchte kalenderbereinigte Produktionszeit seit Start bzw. letzter Mengenmeldung
+        nach Solltempo angerechnet. Das sind Schätzungen und keine automatisch gebuchten Stückzahlen.
+        Die Timeline-Achse zeigt weiterhin UTC, Endprognosen sind in Europe/Berlin beschriftet.
+        Störungen, Ausschuss, abweichende aktive
         Nester sowie Rüst- und Prüfzeiten sind nicht vorweggenommen; bei Musterungen ist dies nur die reine Zykluslaufzeit.
     </div>
 </div>

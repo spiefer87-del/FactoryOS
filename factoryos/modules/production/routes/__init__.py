@@ -10,6 +10,7 @@ bp = Blueprint(
 
 # Route Dateien importieren
 from . import booking_routes
+from . import booking_time_routes
 from . import calendar_routes
 from . import dashboard_routes
 from . import machine_routes
