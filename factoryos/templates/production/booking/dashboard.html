@@ -4,6 +4,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/booking_timeline.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/machine_control.css') }}">
 <script src="{{ url_for('static',filename='js/machine_control.js') }}" defer></script>
+<script src="{{ url_for('static',filename='js/timeline_range.js') }}" defer></script>
 {% endblock %}
 
 {% block content %}
@@ -31,6 +32,7 @@
         </div>
     </div>
 
+    <p class="booking-scroll-hint">Kennzahlen und Bedienung zeigen immer den aktuellen Maschinenstand – unabhängig vom gewählten Zeitraum.</p>
     <div class="booking-kpis" aria-label="Aktueller Maschinenstatus">
         <div class="booking-kpi">
             <span class="booking-kpi-label">Maschinen</span>
@@ -63,26 +65,39 @@
             <div>
                 <h2 id="timeline-heading">Maschinen-Timeline</h2>
                 <p>
-                    Stand {{ now.strftime('%d.%m.%Y, %H:%M') }} Uhr UTC ·
-                    {{ range_start.strftime('%d.%m. %H:%M') }} bis
-                    {{ range_end.strftime('%d.%m. %H:%M') }} Uhr
+                    Stand {{ local_label(now) }} · Anzeige:
+                    {{ local_label(range_start) }} bis {{ local_label(range_end) }}
                 </p>
                 <p class="calendar-summary-line">
                     Produktionskalender: {{ calendar_summary }}
                 </p>
             </div>
-            <form method="get" class="booking-horizon-form">
+            <form method="get" class="booking-horizon-form timeline-range-form" id="timeline-range-form">
                 <label for="zeitraum">Zeitraum</label>
-                <select id="zeitraum" name="zeitraum" onchange="this.form.submit()">
+                <select id="zeitraum" name="zeitraum">
                     {% for key, option in horizons.items() %}
-                    <option value="{{ key }}" {% if key == horizon_key %}selected{% endif %}>
+                    <option value="{{ key }}" {% if key == selected_horizon %}selected{% endif %}>
                         {{ option.label }}
                     </option>
                     {% endfor %}
+                    <option value="custom" {% if selected_horizon=='custom' %}selected{% endif %}>Eigener Zeitraum</option>
                 </select>
-                <noscript><button class="btn-secondary" type="submit">Anzeigen</button></noscript>
+                <fieldset id="timeline-custom-fields"><legend>Von bis · Europe/Berlin</legend>
+                    <label for="timeline-von">Von<input type="datetime-local" id="timeline-von" name="von" step="60" value="{{ custom_start }}"></label>
+                    <label for="timeline-bis">Bis<input type="datetime-local" id="timeline-bis" name="bis" step="60" value="{{ custom_end }}"></label>
+                    <p>Mindestens 1 Minute, höchstens 366 Tage.</p>
+                    <details><summary>Doppelte Stunde bei Zeitumstellung</summary>
+                      <label>Beginn<select name="von_fold"><option value="">Automatisch (eindeutige Uhrzeit)</option><option value="0" {% if request.args.get('von_fold')=='0' %}selected{% endif %}>Erste Stunde (Sommerzeit)</option><option value="1" {% if request.args.get('von_fold')=='1' %}selected{% endif %}>Zweite Stunde (Winterzeit)</option></select></label>
+                      <label>Ende<select name="bis_fold"><option value="">Automatisch (eindeutige Uhrzeit)</option><option value="0" {% if request.args.get('bis_fold')=='0' %}selected{% endif %}>Erste Stunde (Sommerzeit)</option><option value="1" {% if request.args.get('bis_fold')=='1' %}selected{% endif %}>Zweite Stunde (Winterzeit)</option></select></label>
+                    </details>
+                </fieldset>
+                <button class="btn-secondary" type="submit">Zeitraum anzeigen</button>
+                <a href="{{ url_for('production.booking_dashboard') }}" class="btn-secondary">Zurück zu jetzt</a>
             </form>
         </div>
+        {% if range_error %}<p class="timeline-range-error" role="alert">{{ range_error }}</p>{% endif %}
+        <p class="calendar-summary-line">Zeitachse und Eingaben: Europe/Berlin (CET/CEST). Vergangene Balken sind Buchungen; zukünftige Balken sind ausschließlich aktuelle Endprognosen, noch keine geplanten Auftragsreihenfolgen.</p>
+        {% if not show_now %}<p class="booking-scroll-hint">„Jetzt“ liegt außerhalb des angezeigten Zeitraums. Aktuelle Zustände findest du unterhalb der Timeline.</p>{% endif %}
 
         <div class="booking-legend" aria-label="Legende">
             <span><i class="legend-swatch production"></i>Produktion</span>
@@ -98,14 +113,14 @@
         {% if lanes %}
         <p class="booking-scroll-hint">Auf kleinen Bildschirmen die Timeline seitlich verschieben.</p>
         <div class="timeline-scroll" tabindex="0" aria-label="Horizontale Maschinen-Timeline">
-            <div class="timeline-board">
+            <div class="timeline-board" style="--timeline-track-width: {{ track_width }}px;">
                 <div class="timeline-row timeline-axis-row">
                     <div class="timeline-machine-cell timeline-corner">Maschine</div>
                     <div class="timeline-track timeline-axis">
                         {% for closure in calendar_closures %}
                         <div class="timeline-closure axis-closure"
                              style="left: {{ '%.4f'|format(closure.left) }}%; width: {{ '%.4f'|format(closure.width) }}%;"
-                             title="{{ closure.label }}: {{ closure.start_at.strftime('%d.%m. %H:%M') }} bis {{ closure.end_at.strftime('%d.%m. %H:%M') }} Uhr">
+                             title="{{ closure.label }}: {{ local_label(closure.start_at) }} bis {{ local_label(closure.end_at) }}">
                             <span>{{ closure.label }}</span>
                         </div>
                         {% endfor %}
@@ -115,9 +130,9 @@
                             <strong>{{ tick.label }}</strong>
                         </div>
                         {% endfor %}
-                        <div class="timeline-now-line" style="left: {{ '%.4f'|format(now_position) }}%;">
+                        {% if show_now %}<div class="timeline-now-line" data-now-marker style="left: {{ '%.4f'|format(now_position) }}%;">
                             <span>Jetzt</span>
-                        </div>
+                        </div>{% endif %}
                     </div>
                 </div>
 
@@ -138,16 +153,16 @@
                         {% for tick in ticks %}
                         <i class="timeline-gridline" style="left: {{ '%.4f'|format(tick.position) }}%;"></i>
                         {% endfor %}
-                        <i class="timeline-now-line" style="left: {{ '%.4f'|format(now_position) }}%;"></i>
+                        {% if show_now %}<i class="timeline-now-line" style="left: {{ '%.4f'|format(now_position) }}%;"></i>{% endif %}
 
                         {% for item in lane["items"] %}
                             {% set item_title = item.process_label ~ ': ' ~ item.label %}
                             {% if item.kind == 'forecast' %}
-                                {% set item_title = item_title ~ ' – voraussichtlich ' ~ item.forecast.at.strftime('%d.%m.%Y, %H:%M') ~ ' Uhr' %}
+                                {% set item_title = item_title ~ ' – voraussichtlich ' ~ local_label(item.forecast.at) %}
                             {% elif item.booking.end_time %}
-                                {% set item_title = item_title ~ ' – ' ~ item.booking.start_time.strftime('%d.%m. %H:%M') ~ ' bis ' ~ item.booking.end_time.strftime('%d.%m. %H:%M') ~ ' Uhr' %}
+                                {% set item_title = item_title ~ ' – ' ~ local_label(item.booking.start_time) ~ ' bis ' ~ local_label(item.booking.end_time) %}
                             {% else %}
-                                {% set item_title = item_title ~ ' – gestartet ' ~ item.booking.start_time.strftime('%d.%m. %H:%M') ~ ' Uhr' %}
+                                {% set item_title = item_title ~ ' – gestartet ' ~ local_label(item.booking.start_time) %}
                             {% endif %}
 
                             {% if item.booking.order %}
@@ -186,7 +201,7 @@
     <section class="booking-panel" aria-labelledby="current-heading">
         <div class="booking-section-heading">
             <h2 id="current-heading">Aktueller Stand</h2>
-            <p>Detailübersicht der laufenden Maschinenzustände.</p>
+            <p>Live-Stand jetzt, nicht der historische Zustand des gewählten Zeitfensters.</p>
         </div>
         <div class="machine-status-grid">
             {% for lane in lanes %}
@@ -198,11 +213,12 @@
                     <span class="machine-status-badge">{{ lane.active_process_label }}</span>
                 </div>
 
+                {% if lane.active_count>1 %}<p class="timeline-range-error">Mehrere aktive Altbuchungen. Bitte in der Maschinenbedienung prüfen; automatische Änderungen sind gesperrt.</p>{% endif %}
                 {% if lane.active_booking %}
                 <dl>
                     <div>
                         <dt>Gestartet</dt>
-                        <dd>{{ lane.active_booking.start_time.strftime('%d.%m.%Y, %H:%M') }} Uhr</dd>
+                        <dd>{{ local_label(lane.active_booking.start_time) }}</dd>
                     </div>
                     <div>
                         <dt>Auftrag</dt>
@@ -268,7 +284,7 @@
         Die gemeldete Restmenge basiert auf Gutmeldungen. Für den Endtermin wird zusätzlich
         die gebuchte kalenderbereinigte Produktionszeit seit Start bzw. letzter Mengenmeldung
         nach Solltempo angerechnet. Das sind Schätzungen und keine automatisch gebuchten Stückzahlen.
-        Die Timeline-Achse zeigt weiterhin UTC, Endprognosen sind in Europe/Berlin beschriftet.
+        Die Zeitachse, Datumsfelder und Endprognosen zeigen Europe/Berlin (CET/CEST); die Speicherung erfolgt weiterhin in UTC.
         Störungen, Ausschuss, abweichende aktive
         Nester sowie Rüst- und Prüfzeiten sind nicht vorweggenommen; bei Musterungen ist dies nur die reine Zykluslaufzeit.
     </div>

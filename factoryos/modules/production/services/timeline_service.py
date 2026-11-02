@@ -1,17 +1,13 @@
 from datetime import datetime, timedelta
 
-from sqlalchemy import func, or_
+from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 
-from factoryos.extensions import db
-from .order_statistics import order_statistics, forecast_data
+from .order_statistics import order_statistics, forecast_data, local_time
 from factoryos.models.machine import Machine
-from factoryos.modules.masterdata.articles.models import Article
-from factoryos.modules.masterdata.tools.models import Tool
-from factoryos.modules.production.models import QuantityReport, TimeBooking
+from factoryos.modules.production.models import TimeBooking
 from factoryos.modules.production.services.calendar_service import (
     WEEKDAYS,
-    calculate_production_finish,
     get_calendar_exceptions,
     get_non_working_periods,
     get_or_create_calendar_settings,
@@ -19,6 +15,8 @@ from factoryos.modules.production.services.calendar_service import (
 
 
 HORIZONS = {
+    "1h": {"label":"1 Stunde","past":timedelta(minutes=15),"future":timedelta(minutes=45),"tick":timedelta(minutes=10)},
+    "8h": {"label":"8 Stunden","past":timedelta(hours=2),"future":timedelta(hours=6),"tick":timedelta(hours=1)},
     "24h": {
         "label": "24 Stunden",
         "past": timedelta(hours=6),
@@ -37,7 +35,35 @@ HORIZONS = {
         "future": timedelta(days=6),
         "tick": timedelta(hours=12),
     },
+    "30d": {"label":"30 Tage","past":timedelta(days=7),"future":timedelta(days=23),"tick":timedelta(days=2)},
 }
+
+MAX_CUSTOM_SPAN=timedelta(days=366)
+
+def parse_timeline_range(start,end,start_fold="",end_fold=""):
+    from .booking_time_service import parse_local_start
+    try:
+        first=parse_local_start(start,start_fold)
+        last=parse_local_start(end,end_fold)
+    except ValueError as exc:
+        raise ValueError("Zeitraum: "+str(exc)) from exc
+    validate_timeline_range(first,last)
+    return first,last
+
+def validate_timeline_range(start,end):
+    if not isinstance(start,datetime) or not isinstance(end,datetime) or start.tzinfo or end.tzinfo:
+        raise ValueError("Bitte Beginn und Ende des Zeitraums angeben.")
+    if start<datetime(1970,1,1) or end>=datetime(2101,1,1):
+        raise ValueError("Bitte einen Zeitraum zwischen 1970 und 2100 wählen.")
+    if end-start<timedelta(minutes=1):
+        raise ValueError("Das Ende muss mindestens eine Minute nach dem Beginn liegen.")
+    if end-start>MAX_CUSTOM_SPAN:
+        raise ValueError("Bitte höchstens 366 Tage auf einmal anzeigen.")
+
+def _custom_tick(span):
+    for minutes in (1,5,10,30,60,120,360,720,1440,2880,10080,20160,43200):
+        if timedelta(minutes=minutes)>=span/16:return timedelta(minutes=minutes)
+    return timedelta(days=30)
 
 PROCESS_META = {
     "PROD": ("Produktion", "production"),
@@ -107,7 +133,8 @@ def _forecast_for(
 
 def _axis_ticks(range_start, range_end, step):
     ticks = []
-    cursor = range_start.replace(minute=0, second=0, microsecond=0)
+    origin=datetime(1970,1,1)
+    cursor=origin+((range_start-origin)//step)*step
     if cursor < range_start:
         cursor += step
 
@@ -115,19 +142,24 @@ def _axis_ticks(range_start, range_end, step):
         ticks.append({
             "position": _percent(cursor, range_start, range_end),
             "time": cursor,
-            "label": cursor.strftime("%H:%M"),
-            "date_label": cursor.strftime("%d.%m."),
+            "label": local_time(cursor).strftime("%H:%M %Z"),
+            "date_label": local_time(cursor).strftime("%d.%m."),
         })
         cursor += step
     return ticks
 
 
-def get_machine_timeline(horizon_key="24h", now=None):
+def get_machine_timeline(horizon_key="24h", now=None, range_start=None, range_end=None):
     now = now or datetime.utcnow()
-    horizon_key = horizon_key if horizon_key in HORIZONS else "24h"
-    horizon = HORIZONS[horizon_key]
-    range_start = now - horizon["past"]
-    range_end = now + horizon["future"]
+    if horizon_key=="custom":
+        validate_timeline_range(range_start,range_end)
+        tick_step=_custom_tick(range_end-range_start)
+    else:
+        horizon_key = horizon_key if horizon_key in HORIZONS else "24h"
+        horizon = HORIZONS[horizon_key]
+        range_start = now - horizon["past"]
+        range_end = now + horizon["future"]
+        tick_step=horizon["tick"]
     calendar_settings = get_or_create_calendar_settings()
     calendar_exceptions = get_calendar_exceptions()
 
@@ -150,35 +182,15 @@ def get_machine_timeline(horizon_key="24h", now=None):
         .order_by(TimeBooking.machine_id.asc(), TimeBooking.start_time.asc())
         .all()
     )
-
-    order_ids = {booking.order_id for booking in bookings if booking.order_id}
-    good_by_order = {}
-    if order_ids:
-        quantity_rows = (
-            db.session.query(
-                QuantityReport.order_id,
-                func.coalesce(func.sum(QuantityReport.good_qty), 0),
-            )
-            .filter(QuantityReport.order_id.in_(order_ids))
-            .group_by(QuantityReport.order_id)
-            .all()
-        )
-        good_by_order = {order_id: good_qty for order_id, good_qty in quantity_rows}
-
-    article_numbers = {
-        (booking.order.article or "").strip()
-        for booking in bookings
-        if booking.order and booking.order.article
-    }
-    articles_by_number = {}
-    if article_numbers:
-        articles = Article.query.options(joinedload(Article.tools)).filter(Article.article_no.in_(article_numbers)).all()
-        articles_by_number = {article.article_no: article for article in articles}
+    # Current status/controls must not depend on the historical display window.
+    active_bookings=(TimeBooking.query.options(joinedload(TimeBooking.order),joinedload(TimeBooking.downtime_reason))
+        .filter(TimeBooking.machine_id.isnot(None),TimeBooking.end_time.is_(None))
+        .order_by(TimeBooking.start_time,TimeBooking.id).all())
+    active_by_machine={}
+    for booking in active_bookings:active_by_machine.setdefault(booking.machine_id,[]).append(booking)
+    bookings=sorted({b.id:b for b in [*bookings,*active_bookings]}.values(),key=lambda b:(b.machine_id,b.start_time,b.id))
 
     bookings_by_machine = {}
-    tool_numbers = {(booking.tool_no or booking.order.tool_no or "").strip()
-                    for booking in bookings if booking.order}
-    tools_by_number = {tool.tool_no: tool for tool in Tool.query.filter(Tool.tool_no.in_(tool_numbers)).all()} if tool_numbers else {}
     for booking in bookings:
         bookings_by_machine.setdefault(booking.machine_id, []).append(booking)
 
@@ -195,10 +207,8 @@ def get_machine_timeline(horizon_key="24h", now=None):
 
     for machine in machines:
         machine_bookings = bookings_by_machine.get(machine.id, [])
-        active_booking = next(
-            (booking for booking in reversed(machine_bookings) if booking.end_time is None),
-            None,
-        )
+        current=active_by_machine.get(machine.id,[])
+        active_booking=current[-1] if current else None
         active_forecast = None
         items = []
 
@@ -208,7 +218,7 @@ def get_machine_timeline(horizon_key="24h", now=None):
                 (booking.process or "Buchung", "other"),
             )
             visible_start = max(booking.start_time, range_start)
-            actual_end = min(booking.end_time or now, range_end)
+            actual_end = min(booking.end_time or now, now, range_end)
 
             if actual_end > visible_start:
                 left = _percent(visible_start, range_start, range_end)
@@ -217,7 +227,7 @@ def get_machine_timeline(horizon_key="24h", now=None):
                     "kind": "actual",
                     "class": color_class,
                     "left": left,
-                    "width": max(0.35, right - left),
+                    "width": min(100-left,max(0.35, right - left)),
                     "label": _booking_label(booking, process_label),
                     "process_label": process_label,
                     "booking": booking,
@@ -226,7 +236,7 @@ def get_machine_timeline(horizon_key="24h", now=None):
 
             if booking.end_time is None:
                 forecast = None
-                if booking.order and booking.process in ("PROD","MUSTER"):
+                if len(current)==1 and booking.start_time<=now and booking.order and booking.process in ("PROD","MUSTER"):
                     if booking.order_id not in stats_cache:
                         stats_cache[booking.order_id] = order_statistics(booking.order,now,calendar_settings,calendar_exceptions)
                     stats = stats_cache[booking.order_id]
@@ -235,14 +245,14 @@ def get_machine_timeline(horizon_key="24h", now=None):
                 if forecast:
                     active_forecast = forecast
                     forecast_end = min(forecast["at"], range_end)
-                    if forecast_end > now and now < range_end:
+                    if forecast_end > max(now,range_start) and now < range_end:
                         left = _percent(max(now, range_start), range_start, range_end)
                         right = _percent(forecast_end, range_start, range_end)
                         items.append({
                             "kind": "forecast",
                             "class": color_class,
                             "left": left,
-                            "width": max(0.35, right - left),
+                            "width": min(100-left,max(0.35, right - left)),
                             "label": f"Prognose {booking.order.order_no}",
                             "process_label": "Fertigstellungsprognose",
                             "booking": booking,
@@ -283,6 +293,7 @@ def get_machine_timeline(horizon_key="24h", now=None):
             "active_forecast": active_forecast,
             "active_process_label": active_process_label,
             "active_class": active_class,
+            "active_count": len(current),
         })
 
     weekday_names = dict(WEEKDAYS)
@@ -300,9 +311,10 @@ def get_machine_timeline(horizon_key="24h", now=None):
             "end_at": end_at,
             "label": label,
             "left": left,
-            "width": max(0.15, right - left),
+            "width": min(100-left,max(0.15, right - left)),
         })
 
+    ticks=_axis_ticks(range_start,range_end,tick_step)
     return {
         "lanes": lanes,
         "counters": counters,
@@ -312,7 +324,9 @@ def get_machine_timeline(horizon_key="24h", now=None):
         "range_end": range_end,
         "now": now,
         "now_position": _percent(now, range_start, range_end),
-        "ticks": _axis_ticks(range_start, range_end, horizon["tick"]),
+        "show_now": range_start<=now<=range_end,
+        "ticks": ticks,
+        "track_width": max(840,len(ticks)*95),
         "calendar_settings": calendar_settings,
         "calendar_closures": calendar_closures,
         "calendar_summary": (
