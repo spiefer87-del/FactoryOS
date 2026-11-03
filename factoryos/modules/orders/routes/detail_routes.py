@@ -4,6 +4,7 @@ from factoryos.core.auth import has_permission
 from factoryos.core.queries.change_log_queries import get_logs
 from factoryos.modules.production.services.order_statistics import order_statistics, local_label, duration
 from factoryos.modules.orders.models import Order
+from ..services.order_form_service import overview_records
 from . import bp
 
 @bp.route("/<int:order_id>")
@@ -12,7 +13,7 @@ def detail(order_id):
     order = Order.query.get_or_404(order_id)
     if order.sampling:
         return redirect(url_for("sampling.detail", sampling_id=order.sampling.id))
-    return render_template("orders/detail.html", order=order, statistics=order_statistics(order),
+    return render_template("orders/detail.html", order=order, master=overview_records([order])[0], statistics=order_statistics(order),
         local_label=local_label,duration=duration,
         can_correct_time=has_permission(current_user,"production.edit_booking_time"),
         can_edit_order=has_permission(current_user,"orders.edit"),

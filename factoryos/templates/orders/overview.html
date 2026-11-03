@@ -1,17 +1,19 @@
 {% extends "layout/base.html" %}
-{% block content %}
-<h2>Auftragsübersicht</h2>
-<div class="fos-table-wrapper">
-<div class="fos-table-toolbar"><input type="search" class="fos-search" placeholder="Aufträge suchen..." data-table-search="orders-table"></div>
-<div class="fos-table-container">
-<table class="fos-table" id="orders-table">
-<thead><tr>{% for label in ['Auftrag','Artikel','Artikelname','Menge','Status','Aktionen'] %}<th>{{ label }}</th>{% endfor %}</tr></thead>
-<tbody>{% for order in orders %}<tr>
-<td><a href="{{ url_for('orders.detail', order_id=order.id) }}">{{ order.order_no }}</a></td>
-<td>{{ order.article or '' }}</td><td>{{ order.article_name or '' }}</td>
-<td>{{ order.target_qty if order.target_qty is not none else '' }}</td>
-<td><span class="status-badge">{{ order.status }}</span></td>
-<td><div class="table-actions"><a class="btn-small btn-edit" href="{{ url_for('orders.edit', order_id=order.id) }}">Bearbeiten</a><a class="btn-small btn-delete" href="{{ url_for('orders.delete', order_id=order.id) }}">Löschen</a></div></td>
-</tr>{% endfor %}</tbody></table></div>
-<div class="fos-pagination" data-table="orders-table"></div></div>
-{% endblock %}
+{% block styles %}{{ super() }}<link rel="stylesheet" href="{{ url_for('static',filename='css/order_ui.css',v='20261102-form1') }}">{% endblock %}
+{% block content %}<main class="orders-page">
+<header class="orders-heading"><div><p>Produktion / Aufträge</p><h1>Auftragsübersicht</h1><p>Fertigungsaufträge und Projekte · Stammdatenbezug auf einen Blick</p></div><div class="orders-row-actions">{% if can_access('orders.create') %}<a class="btn-primary" href="{{ url_for('orders.create') }}">＋ Neuer Auftrag</a>{% endif %}{% if can_access('production.planning') %}<a class="btn-secondary" href="{{ url_for('production.planning') }}">Auftragsplanung</a>{% endif %}</div></header>
+<div class="orders-kpis"><div><span>Aufträge insgesamt</span><strong>{{ rows|length }}</strong></div><div><span>Offen</span><strong>{{ open_count }}</strong></div><div><span>In Arbeit</span><strong>{{ running_count }}</strong></div><div><span>Angaben prüfen</span><strong>{{ review_count }}</strong></div></div>
+<div class="fos-table-wrapper"><div class="fos-table-toolbar"><label for="orders-search">Auftrag suchen<input id="orders-search" type="search" class="fos-search" placeholder="Auftrag, Artikel, Werkzeug oder Status …" data-table-search="orders-table"></label></div>
+<p class="orders-scroll-hint">↔ Bei wenig Platz seitlich scrollen. Spalten bleiben gut lesbar und werden nicht zusammengedrückt.</p>
+{% if rows %}<div class="fos-table-container orders-table-scroll" tabindex="0" role="region" aria-label="Aufträge, seitlich scrollbar">
+<table class="fos-table" id="orders-table"><thead><tr>{% for label in ['Auftrag','Artikelnummer','Artikelname','Werkzeug','Stückzahl','Soll-Zyklus (s)','Status','Aktionen'] %}<th>{{ label }}</th>{% endfor %}</tr></thead><tbody>
+{% for row in rows %}{% set order=row.order %}<tr>
+<td><a class="order-link-chip" href="{{ url_for('orders.detail',order_id=order.id) }}">{{ order.order_no }} ›</a>{% if order.is_project %}<small>Projektauftrag</small>{% endif %}</td>
+<td>{% if row.article and can_access('articles.detail') %}<a class="order-link-chip" href="{{ url_for('articles.detail',article_id=row.article.id) }}">{{ order.article }} ›</a>{% else %}{{ order.article or '–' }}{% if not row.article and order.article %}<small>Kein zugeordneter Artikelstamm</small>{% endif %}{% endif %}</td>
+<td title="{{ 'Aktueller Artikelname aus Stammdaten' if row.article else 'Gespeicherter Auftragsname' }}">{{ row.name or '–' }}</td>
+<td>{% if row.tool %}{% if can_access('tools.detail') %}<a class="order-link-chip order-tool-chip" href="{{ url_for('tools.detail',tool_id=row.tool.id) }}">{{ row.tool.tool_no }} ›</a>{% else %}{{ row.tool.tool_no }}{% endif %}{% if row.tool_suggested %}<small>Artikelvorschlag – noch nicht am Auftrag gespeichert</small>{% endif %}{% else %}{{ order.tool_no or '–' }}{% endif %}</td>
+<td>{% if order.is_project %}–{% elif row.valid_qty %}{{ order.target_qty }} Stück{% else %}<span class="orders-review">Stückzahl fehlt</span>{% endif %}</td>
+<td>{{ '%g'|format(order.cycle_time_s) if order.cycle_time_s is not none and not order.is_project else '–' }}</td>
+<td><span class="orders-status" data-state="{{ row.status_label }}">{{ row.status_label }}</span>{% if row.issues %}<br><span class="orders-review" title="{{ row.issues|join(' ') }}">Angaben prüfen</span>{% endif %}</td>
+<td><div class="orders-row-actions">{% if can_access('orders.edit') %}<a class="btn-small btn-edit" href="{{ url_for('orders.edit',order_id=order.id) }}">Bearbeiten</a>{% endif %}{% if can_access('orders.delete') %}<a class="btn-small btn-delete" href="{{ url_for('orders.delete',order_id=order.id) }}">Löschen</a>{% endif %}</div></td>
+</tr>{% endfor %}</tbody></table></div><div class="fos-pagination" data-table="orders-table"></div>{% else %}<div class="orders-empty">Noch keine Aufträge vorhanden.</div>{% endif %}</div></main>{% endblock %}

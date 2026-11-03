@@ -1,10 +1,4 @@
-<div class="form-group">
-<label for="cycle_time_s">Soll-Zykluszeit (Sekunden pro Maschinenzyklus){{ ' *' if not order or not order.is_project else '' }}</label>
-<input id="cycle_time_s" type="number" name="cycle_time_s" min="0.000001" step="any"
-       {% if not order or not order.is_project %}required{% endif %}
-       value="{{ request.form.get('cycle_time_s', order.cycle_time_s if order and order.cycle_time_s is not none else '') }}">
-<small>Artikelwerte dienen nur als Vorschlag. Dieser Sollwert wird am Auftrag gespeichert; die Artikelstammdaten bleiben unverändert.</small>
-<p id="order-cycle-hint" role="status" style="font-size:.8rem;color:#64748b"></p>
-</div>
-<datalist id="order-articles">{% for article in articles %}<option value="{{ article.article_no }}" data-cycle="{{ article.cycle_time_s if article.cycle_time_s is not none else '' }}">{{ article.article_name }}</option>{% endfor %}</datalist>
-<script src="{{ url_for('static', filename='js/order_cycle.js') }}"></script>
+<label for="cycle_time_s">Soll-Zykluszeit (Sekunden pro Maschinenzyklus) *
+<input id="cycle_time_s" type="number" name="cycle_time_s" min="0.000001" step="any" required value="{{ values.cycle_time_s if values.cycle_time_s is not none else '' }}">
+<small>Artikelwert als Vorschlag. Der Sollwert wird am Auftrag gespeichert; Stammdaten bleiben unverändert.</small>
+<span id="order-cycle-hint" role="status"></span></label>

@@ -1,0 +1,26 @@
+{% extends 'layout/base.html' %}
+{% block styles %}{{ super() }}<link rel="stylesheet" href="{{ url_for('static',filename='css/order_ui.css',v='20261102-form1') }}"><script src="{{ url_for('static',filename='js/order_form.js',v='20261102-form1') }}" defer></script>{% endblock %}
+{% block content %}<main class="orders-page order-form-page">
+<header class="orders-heading"><div><p>Produktion / Aufträge</p><h1>{{ 'Auftrag bearbeiten' if order else 'Neuer Fertigungsauftrag' }}</h1>{% if order %}<p>{{ order.order_no }}{% if order.is_project %} · Projektauftrag{% endif %}</p>{% endif %}</div><a class="btn-secondary" href="{{ url_for('orders.detail',order_id=order.id) if order else url_for('orders.overview') }}">Zurück</a></header>
+<form method="post" id="order-master-form">
+<input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}">
+<section class="order-form-card"><h2>Auftrag, Artikel und Werkzeug</h2><div class="order-form-grid">
+<label>Auftragsnummer *<input name="order_no" maxlength="50" required value="{{ values.order_no or '' }}" {% if order %}readonly{% endif %}></label>
+<label>Artikelnummer{{ ' *' if not order or not order.is_project else '' }}<input id="order-article" name="article" list="order-articles" autocomplete="off" maxlength="50" value="{{ values.article or '' }}" {% if not order or not order.is_project %}required{% else %}readonly{% endif %}></label>
+<label>Artikelname · aus Stammdaten<input id="order-article-name" name="article_name" readonly aria-readonly="true" value="{{ values.article_name or '' }}"><small>Wird automatisch übernommen und kann hier nicht verändert werden.</small></label>
+<label>Werkzeug{{ ' *' if not order or not order.is_project else '' }}{% if order and order.is_project %}<input name="tool_no" readonly value="{{ order.tool_no or '' }}">{% else %}<select name="tool_no" id="order-tool" required><option value="">{{ 'Bitte auswählen' if tool_choices else 'Zuerst Artikel und Werkzeugzuordnung prüfen' }}</option>{% for tool in tool_choices %}<option value="{{ tool.number }}" {% if values.tool_no==tool.number %}selected{% endif %}>{{ tool.number }} · {{ tool.name }}{{ ' (gespeicherte Auftragszuordnung)' if tool.legacy else '' }}</option>{% endfor %}</select>{% endif %}</label>
+</div>
+{% if not order or not order.is_project %}<p id="order-master-hint" class="order-form-hint" role="status">{% if article_record and tool_choices|length==1 %}Ein Werkzeug ist eindeutig zugeordnet und wird übernommen.{% elif article_record and tool_choices|length>1 %}Mehrere Werkzeuge: bitte das passende Werkzeug auswählen.{% elif article_record %}Dem Artikel fehlt eine Werkzeugzuordnung. Bitte zuerst die Stammdaten ergänzen.{% else %}Artikelnummer eingeben oder aus den Vorschlägen auswählen.{% endif %}</p>
+<div class="order-form-links"><button type="submit" name="intent" value="preview" formnovalidate class="btn-secondary">Artikeldaten laden</button>{% if article_record and can_access('articles.detail') %}<a class="order-link-chip" id="order-master-link" href="{{ url_for('articles.detail',article_id=article_record.id) }}" target="_blank" rel="noopener">Artikelstamm öffnen ›</a>{% endif %}</div>
+<datalist id="order-articles">{% for article in articles %}<option value="{{ article.article_no }}">{{ article.article_name }}</option>{% endfor %}</datalist>{% else %}<p class="order-form-hint">Projektauftrag: vorhandene Artikel-/Werkzeugdaten bleiben unverändert. Stückzahl- und Produktionszykluspflicht gelten nur für Fertigungsaufträge.</p>{% endif %}
+</section>
+<section class="order-form-card"><h2>{{ 'Projektangaben' if order and order.is_project else 'Menge und Produktionsvorgaben' }}</h2><div class="order-form-grid">
+{% if not order or not order.is_project %}<label>Stückzahl *<input type="number" name="target_qty" min="1" max="2147483647" step="1" inputmode="numeric" required value="{{ values.target_qty if values.target_qty is not none else '' }}"><small>Positive ganze Stückzahl; keine leere oder automatische Nullmenge.</small></label>{% include 'orders/cycle_field.html' %}{% endif %}
+{% if order %}<label>Status<select name="status">{% for key,label in status_options %}<option value="{{ key }}" {% if values.status==key %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>{% endif %}
+<label>Standort<input name="location" maxlength="100" value="{{ values.location or '' }}"></label>
+<label class="order-form-wide">Beschreibung<textarea name="description" maxlength="255" rows="3">{{ values.description or '' }}</textarea></label>
+</div></section>
+<div class="order-form-actions"><button class="btn-primary" type="submit" name="intent" value="save">{{ 'Änderungen speichern' if order else 'Auftrag erstellen' }}</button><a class="btn-secondary" href="{{ url_for('orders.detail',order_id=order.id) if order else url_for('orders.overview') }}">Abbrechen</a></div>
+</form>
+{% if not order or not order.is_project %}<script type="application/json" id="order-master-data">{{ {'articles':article_catalog,'selected_tool':values.tool_no or '', 'cycle_explicit':cycle_explicit}|tojson }}</script>{% endif %}
+</main>{% endblock %}

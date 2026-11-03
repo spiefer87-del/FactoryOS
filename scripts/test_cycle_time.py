@@ -48,6 +48,7 @@ with app.app_context():
     tool = db.session.merge(fixture["tool"])
     article.cycle_time_s = 12.5
     tool.cavities = 2
+    article.tools = [tool]
     db.session.commit()
     client = app.test_client()
     with client.session_transaction() as session: session["_user_id"]=str(user.id); session["_fresh"]=True
@@ -55,7 +56,8 @@ with app.app_context():
     controls = Controls(); controls.feed(html)
     assert "required" in next(field for field in controls.fields if field["name"]=="cycle_time_s")
     before = Order.query.count()
-    base = dict(order_no="CYCLE-ORDER", article=article.article_no, article_name="Cycle test",target_qty="5",description="",location="")
+    with client.session_transaction() as session: access_token=session["access_csrf"]
+    base = dict(order_no="CYCLE-ORDER", article=article.article_no, article_name="Cycle test",tool_no=tool.tool_no,target_qty="5",description="",location="",access_csrf=access_token)
     for value in ("","0","NaN","-1","Infinity"):
         response = client.post("/orders/create",data={**base,"cycle_time_s":value})
         assert response.status_code == 400
@@ -110,10 +112,13 @@ with app.app_context():
     assert not result["cavities_assumed"]
     original_tools=list(article.tools)
     article.tools=[tool]
+    saved_order_tool=order.tool_no
+    order.tool_no=""
     booking.tool_no=""
     result=forecast(datetime(2026,11,2,10))
     assert not result["cavities_assumed"] and "Artikelstamm" in result["tool_source"]
     booking.tool_no=tool.tool_no
+    order.tool_no=saved_order_tool
     article.tools=original_tools
     result=forecast(datetime(2026,11,2,10),tools={})
     assert result["cavities_assumed"] and result["remaining_seconds"]==90

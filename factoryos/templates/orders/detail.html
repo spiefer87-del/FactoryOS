@@ -2,11 +2,13 @@
 {% block styles %}{{ super() }}
 <link rel="stylesheet" href="{{ url_for('static',filename='css/order_import.css') }}">
 <link rel="stylesheet" href="{{ url_for('static',filename='css/order_statistics.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/order_ui.css') }}">
 {% endblock %}
 {% block content %}
 <div class="order-statistics">
 <header><p class="stats-note">Aufträge / Fertigung</p><h1>Auftrag {{ order.order_no }}</h1>
-<p>{{ order.article or 'Ohne Artikelnummer' }} · {{ order.article_name or '' }}</p>
+<p>{% if master.article and can_access('articles.detail') %}<a class="order-link-chip" href="{{ url_for('articles.detail',article_id=master.article.id) }}">{{ order.article }} ›</a>{% else %}{{ order.article or 'Ohne Artikelnummer' }}{% endif %} · {{ master.name or '' }}</p>
+<p>Werkzeug: {% if master.tool and can_access('tools.detail') %}<a class="order-link-chip order-tool-chip" href="{{ url_for('tools.detail',tool_id=master.tool.id) }}">{{ master.tool.tool_no }} ›</a>{% else %}{{ order.tool_no or 'Noch nicht zugeordnet' }}{% endif %}{% if master.tool_suggested %} · Artikelvorschlag, noch nicht am Auftrag gespeichert{% endif %}</p>
 <p>Status: {{ order.status }} · Sollmenge {{ order.target_qty }} Stück</p>
 <div class="page-actions">
 {% if can_edit_order %}<a class="btn-primary" href="{{ url_for('orders.edit',order_id=order.id) }}">Auftrag bearbeiten</a>{% endif %}
