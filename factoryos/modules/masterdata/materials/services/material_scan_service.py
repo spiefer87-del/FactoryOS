@@ -10,7 +10,7 @@ import warnings
 from collections import OrderedDict
 from pathlib import Path
 from contextlib import contextmanager
-from flask import current_app
+from flask import current_app,has_app_context
 from PIL import Image,ImageOps,ImageFilter,UnidentifiedImageError
 from factoryos.modules.masterdata.shared.constants import POLYMER_TYPES
 
@@ -25,9 +25,20 @@ FIELDS={"name":"Genaue Bezeichnung / Handelsname","manufacturer":"Hersteller",
 class ScanUnavailable(ValueError):pass
 class ScanBusy(ValueError):pass
 
+def resolve_tesseract():
+    """Do not depend on systemd's often venv-only PATH. No shell invocation."""
+    configured=(current_app.config.get("TESSERACT_CMD") if has_app_context() else None) or os.environ.get("FACTORYOS_TESSERACT_CMD")
+    if configured:
+        path=Path(configured)
+        if not path.is_absolute() or not path.is_file() or not os.access(path,os.X_OK):
+            raise ScanUnavailable("Der konfigurierte Tesseract-Pfad ist nicht ausführbar. FACTORYOS_TESSERACT_CMD bzw. TESSERACT_CMD prüfen.")
+        return str(path)
+    for candidate in (shutil.which("tesseract"),"/usr/bin/tesseract","/usr/local/bin/tesseract","/bin/tesseract"):
+        if candidate and Path(candidate).is_file() and os.access(candidate,os.X_OK):return str(candidate)
+    raise ScanUnavailable("Tesseract ist für den FactoryOS-Dienst weder im Suchpfad noch in den Systempfaden auffindbar. scripts/check_material_scan.py ausführen und Ausgabe weitergeben.")
+
 def engine_info():
-    executable=shutil.which("tesseract")
-    if not executable:raise ScanUnavailable("Lokale Texterkennung fehlt. Bitte scripts/install_material_scan.sh ausführen.")
+    executable=resolve_tesseract()
     try:
         result=subprocess.run([executable,"--list-langs"],capture_output=True,text=True,timeout=3,check=True)
     except (OSError,subprocess.SubprocessError):raise ScanUnavailable("Lokale Texterkennung ist nicht verfügbar. Installation prüfen.")
