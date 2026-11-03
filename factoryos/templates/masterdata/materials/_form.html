@@ -1,4 +1,4 @@
-{% set m = material if material is defined else none %}
+{% set m = material if material is defined else draft_material if draft_material is defined else none %}
 
 <div class="form-grid">
     <div class="form-group full"><h3 class="section-title">Identifikation und Einordnung</h3></div>
@@ -70,7 +70,7 @@
     <div class="form-group"><label>Materialnummer beim Lieferanten</label><input type="text" name="supplier_material_no" value="{{ m.supplier_material_no if m and m.supplier_material_no else '' }}"></div>
     <div class="form-group"><label><input type="checkbox" name="hazardous_material" value="1" {% if m and m.hazardous_material %}checked{% endif %}> Gefahrstoff</label></div>
 
-    {% if not m %}
+    {% if material is not defined %}
         <div class="form-group full"><h3 class="section-title">Dokumente (optional)</h3></div>
         <div class="form-group"><label>Materialdatenblätter</label><input type="file" name="data_sheets" multiple></div>
         <div class="form-group"><label>Sicherheitsdatenblätter</label><input type="file" name="safety_data_sheets" multiple></div>

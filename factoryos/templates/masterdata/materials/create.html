@@ -1,9 +1,12 @@
 {% extends "layout/base.html" %}
+{% block styles %}{{ super() }}<link rel="stylesheet" href="{{ url_for('static',filename='css/material_scan.css') }}"><script src="{{ url_for('static',filename='js/material_scan.js') }}" defer></script>{% endblock %}
 
 {% block content %}
 <h2 style="margin-bottom:25px;">Material anlegen</h2>
+{% include 'masterdata/materials/_scanner.html' %}
 <div class="form-card">
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" id="material-create-form">
+        <input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}">
         {% include "masterdata/materials/_form.html" %}
         <div class="form-actions">
             <button type="submit" class="btn-primary">Material anlegen</button>

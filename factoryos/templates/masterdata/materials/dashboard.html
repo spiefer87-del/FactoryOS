@@ -17,6 +17,7 @@
     </a>
 
     {% if can_create %}
+        <a href="{{ url_for('materials.create',_anchor='material-scanner') }}" class="dashboard-card"><div class="card-icon">📷</div><div class="card-title">Materialsack erkennen</div><div class="card-desc">Etikett fotografieren, Angaben prüfen und Materialanlage vorausfüllen</div></a>
         <a href="{{ url_for('materials.create') }}" class="dashboard-card">
             <div class="card-icon">➕</div>
             <div class="card-title">Material anlegen</div>

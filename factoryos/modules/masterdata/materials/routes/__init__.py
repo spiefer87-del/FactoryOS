@@ -17,3 +17,4 @@ from .edit_routes import *
 from .export_routes import *
 from .import_routes import *
 from .list_routes import *
+from .scan_routes import *

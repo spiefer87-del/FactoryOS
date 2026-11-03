@@ -1,0 +1,15 @@
+<section class="material-scanner" id="material-scanner" data-scan-url="{{ url_for('materials.scan_label') }}" data-text-url="{{ url_for('materials.scan_text') }}">
+<header><div><p>Foto-Ausfüllhilfe · lokal auf FactoryOS</p><h3>Materialsack / Etikett erkennen</h3></div><span>Vorschlag, kein automatisches Speichern</span></header>
+<p>Etikett möglichst nah, gerade und gut beleuchtet fotografieren. Hersteller, Handelsname/Grade, Kunststoffart und weitere eindeutig beschriftete Angaben werden vorgeschlagen. Alle Angaben vor Übernahme prüfen.</p>
+<div class="material-scan-actions"><label class="btn-primary material-camera" role="button" tabindex="0">📷 Foto aufnehmen<input id="material-scan-camera" type="file" accept="image/*" capture="environment" hidden></label><label class="btn-secondary" role="button" tabindex="0">Vorhandenes Foto auswählen<input id="material-scan-file" type="file" accept="image/jpeg,image/png,image/webp" hidden></label></div>
+<p class="material-scan-note">JPEG/PNG/WebP · max. 10 MB / 24 MP. Kamera benötigt die Berechtigung deines Geräts. Falls die App keine Kamera anbietet, Foto auswählen oder FactoryOS im Browser öffnen. Kein Cloud-Upload: das Foto wird nur auf eurem Server vorübergehend ausgewertet und nicht dauerhaft abgelegt.</p>
+<p id="material-scan-status" role="status" aria-live="polite"></p>
+<div id="material-scan-image" hidden><img id="material-scan-preview" alt="Ausgewähltes Materialetikett"><button type="button" class="btn-secondary" id="material-scan-again">Foto erneut auslesen</button></div>
+<section id="material-scan-review" hidden><h4>Erkannte Angaben prüfen</h4><p class="material-scan-note">Häkchen wählen, Werte bei Bedarf korrigieren, dann übernehmen. Gelb markierte Vermutungen sind zunächst nicht ausgewählt. Interne Materialnummer bitte im Formular selbst vergeben.</p><p id="material-scan-readability" class="material-scan-note"></p>
+<div id="material-scan-notes"></div><div id="material-scan-duplicates"></div><div id="material-scan-fields"></div>
+<div class="material-scan-actions"><button type="button" class="btn-primary" id="material-scan-apply">Ausgewählte Angaben ins Formular übernehmen</button></div>
+<details><summary>Erkannten Etiketttext ansehen / korrigieren</summary><label>Etiketttext<textarea id="material-scan-text" rows="8" maxlength="20000"></textarea></label><button type="button" class="btn-secondary" id="material-scan-parse">Vorschläge aus korrigiertem Text aktualisieren</button></details></section>
+<noscript><p class="material-scan-alert">Für Foto-Erkennung bitte JavaScript aktivieren. Die manuelle Materialanlage bleibt verfügbar.</p></noscript>
+<input type="hidden" id="material-scan-csrf" value="{{ security_csrf_token() }}">
+<script type="application/json" id="material-scan-choices">{{ {'material_type':MATERIAL_TYPES,'polymer_type':POLYMER_TYPES,'delivery_form':MATERIAL_DELIVERY_FORMS}|tojson }}</script>
+</section>

@@ -1,4 +1,6 @@
-from flask import flash, redirect, render_template, request, url_for
+from flask import flash, redirect, render_template, request, url_for,abort
+from types import SimpleNamespace
+from factoryos.core.access_control import valid_csrf
 from flask_login import current_user, login_required
 from sqlalchemy.exc import IntegrityError
 
@@ -12,7 +14,7 @@ from factoryos.modules.masterdata.shared.constants import (
     POLYMER_TYPES,
 )
 
-from ..services.material_service import create_material
+from ..services.material_service import create_material,TEXT_FIELDS,FLOAT_FIELDS
 from ..services.material_storage_service import (
     save_material_documents,
     validate_material_documents,
@@ -24,7 +26,9 @@ from . import bp
 @login_required
 @permission_required("materials.create")
 def create():
+    draft=None
     if request.method == "POST":
+        if not valid_csrf():abort(400,"Formular abgelaufen. Bitte neu laden.")
         try:
             uploads = {
                 category: validate_material_documents(
@@ -49,6 +53,10 @@ def create():
         except (OSError, TypeError, ValueError) as error:
             db.session.rollback()
             flash(f"Material konnte nicht angelegt werden: {error}", "danger")
+        values={key:request.form.get(key,"") for key in (*TEXT_FIELDS,*FLOAT_FIELDS)}
+        values.update(material_type=values.get("material_type") or "plastic",base_unit=values.get("base_unit") or "kg",
+            material_status=values.get("material_status") or "aktiv",hazardous_material=request.form.get("hazardous_material")=="1")
+        draft=SimpleNamespace(**values)
 
     return render_template(
         "masterdata/materials/create.html",
@@ -57,4 +65,5 @@ def create():
         POLYMER_TYPES=POLYMER_TYPES,
         MATERIAL_BASE_UNITS=MATERIAL_BASE_UNITS,
         MATERIAL_DELIVERY_FORMS=MATERIAL_DELIVERY_FORMS,
+        draft_material=draft,
     )

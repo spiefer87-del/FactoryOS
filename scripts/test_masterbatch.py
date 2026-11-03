@@ -61,7 +61,7 @@ with app.app_context(), app.test_request_context():
     assert color_data(formdata(masterbatch_percent="0"))["masterbatch_percent"] == 0
     rejects(lambda: color_data(formdata(masterbatch_id=str(fixture["material"].id))), "Kategorie Masterbatch")
     rejects(lambda: ensure_batch_category(batch, "plastic"), "umgewandelt")
-    saved_form = dict(order_no="COLOR-BATCH", reason="color_change", target_qty="1", state="draft", article_id=str(article.id),
+    saved_form = dict(order_no="COLOR-BATCH", reason="color_change", target_qty="1", target_cycle_seconds="30", state="draft", article_id=str(article.id),
                       masterbatch_id=str(batch.id), masterbatch_percent="2,5", color="Lichtgrau", ral_color="RAL 7035")
     rejects(lambda: save_sampling(formdata(saved_form), uid), "bestätigen")
     saved_form["color_confirmed"] = "yes"
