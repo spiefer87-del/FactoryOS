@@ -29,18 +29,30 @@
     }
     duplicates.className=data.duplicate_count?'material-scan-alert':'';
     const fields=document.getElementById('material-scan-fields');fields.replaceChildren();candidates=[];
-    (data.proposals||[]).filter(proposal=>allowed.has(proposal.field)).forEach(proposal=>{
+    const proposals=(data.proposals||[]).filter(proposal=>allowed.has(proposal.field));
+    const primary=['manufacturer','name','material_type','polymer_type'];
+    const missing=(data.missing_fields||[]).filter(item=>allowed.has(item.field));
+    missing.filter(item=>primary.includes(item.field)).forEach(item=>proposals.push({...item,value:'',evidence:'Keine eindeutige Erkennung',certainty:'review',note:item.reason}));
+    const order=['manufacturer','name','external_material_no','material_type','polymer_type','color','color_no','ral_color','delivery_form'];
+    proposals.sort((a,b)=>order.indexOf(a.field)-order.indexOf(b.field));
+    proposals.forEach(proposal=>{
       const row=document.createElement('div');row.className='material-scan-field'+(proposal.certainty==='review'?' is-uncertain':'');
       const heading=document.createElement('label');heading.className='material-scan-check';
       const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=proposal.certainty==='label';heading.append(checkbox);textNode('span',proposal.label,heading);row.append(heading);
       let input;
-      if(choices[proposal.field]){input=document.createElement('select');Object.entries(choices[proposal.field]).forEach(([value,label])=>input.add(new Option(label,value)));}
+      if(choices[proposal.field]){input=document.createElement('select');input.add(new Option('Bitte prüfen / auswählen',''));Object.entries(choices[proposal.field]).forEach(([value,label])=>input.add(new Option(label,value)));}
       else{input=document.createElement('input');input.type='text';input.maxLength=proposal.field==='name'?200:proposal.field==='manufacturer'?150:100;}
       input.value=proposal.value;input.setAttribute('aria-label',proposal.label);row.append(input);
       textNode('small','Gelesen: '+proposal.evidence,row);
       if(proposal.note)textNode('small',proposal.note,row);
       fields.append(row);candidates.push({proposal,checkbox,input});
     });
+    const missingPanel=document.getElementById('material-scan-missing');
+    const missingBody=missingPanel.querySelector('div');missingBody.replaceChildren();missingPanel.hidden=!missing.length;
+    missing.forEach(item=>textNode('p',`${item.label}: ${item.reason}`,missingBody,'material-scan-note'));
+    const metadata=document.getElementById('material-scan-metadata');const metadataBody=metadata.querySelector('div');metadataBody.replaceChildren();
+    metadata.hidden=!(data.label_metadata||[]).length;
+    (data.label_metadata||[]).forEach(item=>textNode('p',`${item.label}: ${item.value}`,metadataBody,'material-scan-note'));
     if(!candidates.length)textNode('p','Keine eindeutigen Stammdatenfelder erkannt. Foto erneut aufnehmen oder den Etiketttext korrigieren.',fields,'material-scan-alert');
     document.getElementById('material-scan-apply').disabled=!candidates.length;
   }

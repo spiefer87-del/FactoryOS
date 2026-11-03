@@ -7,6 +7,8 @@
 <div id="material-scan-image" hidden><img id="material-scan-preview" alt="Ausgewähltes Materialetikett"><button type="button" class="btn-secondary" id="material-scan-again">Foto erneut auslesen</button></div>
 <section id="material-scan-review" hidden><h4>Erkannte Angaben prüfen</h4><p class="material-scan-note">Häkchen wählen, Werte bei Bedarf korrigieren, dann übernehmen. Gelb markierte Vermutungen sind zunächst nicht ausgewählt. Interne Materialnummer bitte im Formular selbst vergeben.</p><p id="material-scan-readability" class="material-scan-note"></p>
 <div id="material-scan-notes"></div><div id="material-scan-duplicates"></div><div id="material-scan-fields"></div>
+<details id="material-scan-missing"><summary>Nicht erkannte Angaben</summary><div></div></details>
+<section id="material-scan-metadata" hidden><h4>Weitere Etikettangaben – nur zur Kontrolle</h4><p class="material-scan-note">Charge/Los und Sackgewicht sind keine Materialstammdaten und werden nicht übernommen.</p><div></div></section>
 <div class="material-scan-actions"><button type="button" class="btn-primary" id="material-scan-apply">Ausgewählte Angaben ins Formular übernehmen</button></div>
 <details><summary>Erkannten Etiketttext ansehen / korrigieren</summary><label>Etiketttext<textarea id="material-scan-text" rows="8" maxlength="20000"></textarea></label><button type="button" class="btn-secondary" id="material-scan-parse">Vorschläge aus korrigiertem Text aktualisieren</button></details></section>
 <noscript><p class="material-scan-alert">Für Foto-Erkennung bitte JavaScript aktivieren. Die manuelle Materialanlage bleibt verfügbar.</p></noscript>

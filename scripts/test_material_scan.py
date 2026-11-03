@@ -50,6 +50,26 @@ assert values(parse_label("Product code: P123\nABS"))["external_material_no"]=="
 assert "name" not in values(parse_label("Product code: P123\nABS"))
 assert values(parse_label("BASF\nProduct: TEST 123\nABS"))["manufacturer"]=="BASF"
 assert next(p for p in parse_label("BASF\nProduct: TEST 123\nABS")["proposals"] if p["field"]=="manufacturer")["certainty"]=="review"
+# Bilingual bag layout and the manually transcribed damaged OCR from the report.
+bilingual="ENVALIOR - DURETHAN\nTyp / Type\nB30S\nFarbe / Color 000000\nPartie / Lot 000202882-1\nNetto / Net Weight 25 kg"
+bag=parse_label(bilingual);bag_values=values(bag)
+assert bag_values["manufacturer"]=="ENVALIOR" and bag_values["name"]=="DURETHAN B30S"
+assert bag_values["color_no"]=="000000" and "color" not in bag_values
+assert "polymer_type" not in bag_values and "material_type" not in bag_values
+assert any(item["value"]=="000202882-1" for item in bag["label_metadata"])
+assert any(item["value"]=="25 kg" for item in bag["label_metadata"])
+assert any(item["field"]=="polymer_type" for item in bag["missing_fields"])
+damaged=parse_label("DALIOR DURETH N N\nTyp / Type\nB30S\n|\nFarbe Color 000000\nm to: Net Weight 25 kg\nPerle 02028821\nMN II")
+assert values(damaged)["manufacturer"]=="ENVALIOR" and values(damaged)["name"]=="DURETHAN B30S"
+assert all(p["certainty"]=="review" for p in damaged["proposals"] if p["field"] in ("name","manufacturer"))
+assert values(damaged)["color_no"]=="000000"
+for batch_line in ("Perle 02028821","Parle 000123","Partie / Lot\n000202882-1","Charge: B123"):
+    assert "name" not in values(parse_label(batch_line+"\nNet weight: 25 kg"))
+assert "manufacturer" not in values(parse_label("DURETHAN\nTyp / Type\nB30S"))
+assert "manufacturer" not in values(parse_label("ENVALIOR\nBASF\nProduct: Test"))
+assert values(parse_label("Hersteller / Manufacturer\nExample Polymers GmbH\nProdukt / Product\nEXAMPLE\nTyp / Type\nG123\nFarbe / Color\nNatural"))["manufacturer"]=="Example Polymers GmbH"
+assert values(parse_label("Product: BLUE 123\nMASTERBATCH\nColor: Blue"))["name"]=="BLUE 123"
+assert values(parse_label("Manufacturer: Other Company\nType: X12\nColor / Farbe: Black"))["color"]=="Black"
 for raw in ("", "X"*20001):
     try:parse_label(raw)
     except ValueError:pass
@@ -95,6 +115,16 @@ with app.app_context():
         recognized,readability,languages=read_label(photo)
         assert "G123" in recognized and "ABS" in recognized and readability is not None
         assert list(Path(directory).iterdir())==[]
+        # Real OCR with separate bilingual header/grade, not the user's original photo.
+        label_image=Image.new("RGB",(1500,700),"white")
+        label_draw=ImageDraw.Draw(label_image)
+        for index,line in enumerate(bilingual.splitlines()):label_draw.text((60,40+index*80),line,font=font,fill="black")
+        label_stream=io.BytesIO();label_image.save(label_stream,"JPEG",quality=95)
+        bag_photo=label_stream.getvalue()
+        bag_text,_,_=read_label(bag_photo)
+        assert values(parse_label(bag_text))["manufacturer"]=="ENVALIOR",bag_text
+        assert "B30S" in values(parse_label(bag_text))["name"],bag_text
+        assert list(Path(directory).iterdir())==[]
         response=client.post(path,data={"access_csrf":token,"photo":(io.BytesIO(photo),"sack.jpg")})
         assert response.status_code==200,response.get_data(as_text=True)
         assert values(response.json)["polymer_type"]=="ABS"
@@ -103,6 +133,12 @@ with app.app_context():
             assert client.post(path,data={"access_csrf":token,"photo":(io.BytesIO(photo),"sack.jpg")}).status_code==503
         import subprocess
         original_run=subprocess.run
+        def timeout_second_pass(command,**kwargs):
+            if "--psm" in command and command[command.index("--psm")+1]=="6":raise subprocess.TimeoutExpired("tesseract",8)
+            return original_run(command,**kwargs)
+        with patch("factoryos.modules.masterdata.materials.services.material_scan_service.subprocess.run",side_effect=timeout_second_pass):
+            first_text,_,_=read_label(photo)
+            assert "G123" in first_text
         def timeout_ocr(command,**kwargs):
             if "--list-langs" in command:return original_run(command,**kwargs)
             raise subprocess.TimeoutExpired("tesseract",10)
