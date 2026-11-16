@@ -191,6 +191,14 @@
 
     <div class="workflow-actions">
 
+        {% for action in workflow_form_actions|default([]) %}
+        <form method="post" action="{{ action.url }}">
+            <input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}">
+            <input type="hidden" name="revision_token" value="{{ revision_token }}">
+            <button type="submit" name="workflow_action" value="{{ action.value }}" class="{{ action.css }}">{{ action.label }}</button>
+        </form>
+        {% endfor %}
+
         {% if allow_history %}
 
             <button
@@ -282,7 +290,8 @@
             and not allow_return_to_draft
             and not allow_release
             and not allow_close
-            and not allow_create_revision %}
+            and not allow_create_revision
+            and not workflow_form_actions|default([]) %}
 
             <span class="workflow-no-actions">
                 Keine Workflow-Aktion verfügbar

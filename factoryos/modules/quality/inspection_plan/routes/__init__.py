@@ -16,3 +16,5 @@ from .image_routes import *
 from .drawing_routes import *
 from .gauge_routes import *
 from .pdf_routes import *
+from .builder_routes import *
+from .guards import *

@@ -7,6 +7,8 @@
 <div class="form-card">
 
 <form method="POST">
+<input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}">
+{% if revision_token is defined %}<input type="hidden" name="revision_token" value="{{ revision_token }}">{% endif %}
 
 <div class="form-grid">
 

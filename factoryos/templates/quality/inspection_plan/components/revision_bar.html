@@ -1,75 +1,19 @@
-<div class="card shadow-sm mb-3">
-<div class="card-body py-2">
-
-<div class="d-flex justify-content-between align-items-center">
-
-<div class="d-flex align-items-center gap-3">
-
-<h5 class="fw-bold mb-0">
-Prüfplan Revision {{ version.revision }}
-</h5>
-
-{% if version.status == "released" %}
-<span class="badge bg-success">Freigegeben</span>
-{% else %}
-<span class="badge bg-warning text-dark">Entwurf</span>
+{% set actions=[] %}
+{% set here=url_for('inspection.quality_version_edit',plan_id=version.plan_id,version_id=version.id) %}
+{% if can_workflow %}
+{% if version.status=='draft' %}{% set _=actions.append(dict(url=here,value='review',label='📤 In Prüfung senden',css='btn-primary')) %}
+{% elif version.status=='review' %}
+{% set _=actions.append(dict(url=here,value='return',label='Zur Bearbeitung zurückgeben',css='btn-secondary')) %}
+{% set _=actions.append(dict(url=here,value='release',label='✅ Freigeben',css='btn-success')) %}
+{% elif version.status=='released' %}{% set _=actions.append(dict(url=here,value='close',label='🔒 Schließen',css='btn-secondary')) %}
 {% endif %}
-
-</div>
-
-<div class="d-flex gap-2">
-
-<a href="{{ url_for('inspection.quality_inspection_plan') }}"
-class="btn btn-outline-secondary btn-sm">
-← Übersicht
-</a>
-
-<a href="{{ url_for('inspection.quality_export_pdf', version_id=version.id) }}"
-class="btn btn-outline-secondary btn-sm">
-PDF Export
-</a>
-
-<!-- ✅ FREIGEBEN -->
-
-{% if version.status == "draft" %}
-
-<form method="post" style="display:inline">
-
-<button type="submit"
-name="release_version"
-value="1"
-class="btn btn-success btn-sm"
-
-{% if not version.is_dirty %}
-disabled
-{% endif %}>
-
-Freigeben
-
-</button>
-
-</form>
-
+{% if version.status in ['released','closed'] %}{% set _=actions.append(dict(url=url_for('inspection.quality_new_revision',version_id=version.id),value='new',label='Neue Revision',css='btn-primary')) %}{% endif %}
 {% endif %}
-
-<!-- ✅ NEUE REVISION -->
-
-{% if version.status == "released" %}
-
-<form method="post"
-action="{{ url_for('inspection.quality_new_revision', version_id=version.id) }}"
-style="display:inline">
-
-<button class="btn btn-warning btn-sm">
-Neue Revision
-</button>
-
-</form>
-
-{% endif %}
-
-</div>
-
-</div>
-</div>
-</div>
+{% with title='Prüfplan · ' ~ (version.plan.tool.tool_no if version.plan.tool else 'Ohne Werkzeug'), subtitle=(version.plan.article.article_no ~ ' · ' ~ version.plan.article.article_name) if version.plan.article else '', revision=version.revision, workflow_status=version.status, workflow_form_actions=actions, show_history_button=true %}
+{% include 'components/workflow_header.html' %}
+{% endwith %}
+<dialog id="revisionHistoryDialog" class="revision-dialog"><div class="qm-history">
+<h2>Revisionen und Status</h2><form method="dialog"><button class="btn-secondary">Schließen</button></form>
+{% for v in version.plan.versions %}<p><a href="{{ url_for('inspection.quality_version_edit',plan_id=v.plan_id,version_id=v.id) }}">Revision {{ v.revision }}</a> · {{ status_labels.get(v.status,v.status) }}{% if v.released_at %} · Freigabe {{ v.released_at.strftime('%d.%m.%Y %H:%M') }} UTC{% endif %}</p>{% endfor %}
+<p>Eine neue Entwurfsrevision ersetzt keine Freigabe. Freigegebene Fassungen bleiben unverändert erhalten.</p>
+</div></dialog>

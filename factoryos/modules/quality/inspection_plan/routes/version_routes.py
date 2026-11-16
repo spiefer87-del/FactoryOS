@@ -1,103 +1,58 @@
-from datetime import datetime
-
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, abort
 from flask_login import login_required, current_user
-from sqlalchemy.orm import selectinload
-
 from factoryos.extensions import db
-
-from factoryos.modules.quality.inspection_plan.services.section_service import add_section
-from factoryos.modules.quality.inspection_plan.services.change_log_service import log_change
-from factoryos.modules.quality.inspection_plan.services.revision_service import create_new_revision
+from factoryos.core.access_control import allowed
+from ..models import QualityInspectionPlanVersion
+from ..definitions import MODULES, STATUS_LABELS
+from ..services.section_service import add_section
+from ..services.revision_service import create_new_revision
+from ..services.builder_service import revision_token, workflow, readiness_errors, PlanValidation
 from factoryos.modules.quality.gauges.models import Gauge
-
-from ..models import (
-    QualityInspectionPlan,
-    QualityInspectionPlanVersion,
-    QualityInspectionSection,
-    QualityInspectionCharacteristic
-)
-
 from . import bp
 
 
-@bp.route("/<int:plan_id>/version/<int:version_id>/edit", methods=["GET","POST"])
+def render_editor(version, errors=None, form_data=None, form_id=None, status=200):
+    latest=max(version.plan.versions,key=lambda v:v.id)
+    editable=version.status=='draft' and latest.id==version.id and allowed('quality.inspect')
+    targets={}
+    for key in errors or {}:
+        if form_id: targets[key]=form_id+'-'+key
+        elif key.startswith('section-'):targets[key]='-'.join(key.split('-')[:2])
+        elif key.startswith('characteristic-'):targets[key]=key.replace('characteristic-','measurement-')
+        else:targets[key]=key
+    return render_template('quality/inspection_plan/version_editor.html', version=version,
+        gauges=Gauge.query.filter_by(status='active').order_by(Gauge.gauge_no).all(),
+        modules=MODULES, status_labels=STATUS_LABELS, editable=editable, is_current=latest.id==version.id,
+        revision_token=revision_token(version), readiness=readiness_errors(version),
+        errors=errors or {}, error_targets=targets, form_data=form_data or {}, form_id=form_id,
+        can_workflow=latest.id==version.id and allowed('quality.inspect')),status
+
+
+@bp.route('/<int:plan_id>/version/<int:version_id>/edit', methods=['GET','POST'])
 @login_required
-def quality_version_edit(plan_id, version_id):
-
-    version = (
-        QualityInspectionPlanVersion.query
-        .options(
-            selectinload(QualityInspectionPlanVersion.sections)
-            .selectinload(QualityInspectionSection.characteristics),
-
-            selectinload(QualityInspectionPlanVersion.sections)
-            .selectinload(QualityInspectionSection.images),
-
-            selectinload(QualityInspectionPlanVersion.sections)
-            .selectinload(QualityInspectionSection.snippets),
-
-            selectinload(QualityInspectionPlanVersion.sections)
-            .selectinload(QualityInspectionSection.gauge_checks),
-        )
-        .get_or_404(version_id)
-    )
-
-    gauges = (
-        Gauge.query
-        .filter_by(status="active")
-        .order_by(Gauge.gauge_no)
-        .all()
-    )
-
-    if request.method == "POST":
-
-        add_type = request.form.get("add_section_type")
-
-        if add_type and version.status == "draft":
-            add_section(version, add_type)
-            return redirect(request.url)
-
-        if request.form.get("release_version"):
-
-            if not version.is_dirty:
-                return redirect(request.url)
-
-            version.status = "released"
-            version.released_at = datetime.utcnow()
-            version.released_by_id = current_user.id
-            version.is_dirty = False
-
-            log_change(
-                version,
-                "RELEASE",
-                f"Version {version.revision} freigegeben"
-            )
-
-            db.session.commit()
-
-        return redirect(request.url)
-
-    return render_template(
-        "quality/inspection_plan/version_editor.html",
-        version=version,
-        gauges=gauges
-    )
+def quality_version_edit(plan_id,version_id):
+    version=QualityInspectionPlanVersion.query.filter_by(id=version_id,plan_id=plan_id).first_or_404()
+    if request.method=='POST':
+        try:
+            add_type=request.form.get('add_section_type')
+            if add_type:
+                if version.status!='draft': abort(409,'Diese Revision ist für Änderungen gesperrt.')
+                if add_type not in MODULES: raise PlanValidation({'module':'Unbekanntes Prüfmodul.'})
+                add_section(version,add_type)
+            else:
+                workflow(version,request.form.get('workflow_action'))
+                db.session.commit()
+            return redirect(request.url,code=303)
+        except PlanValidation as error:
+            db.session.rollback()
+            return render_editor(version,error.errors,dict(request.form),status=422)
+    return render_editor(version)
 
 
-@bp.route("/<int:version_id>/new_revision", methods=["POST"])
+@bp.route('/<int:version_id>/new_revision',methods=['POST'])
 @login_required
 def quality_new_revision(version_id):
-
-    new_version = create_new_revision(
-        version_id,
-        current_user.id
-    )
-
-    return redirect(
-        url_for(
-            "inspection.quality_version_edit",
-            plan_id=new_version.plan_id,
-            version_id=new_version.id   # ✅ RICHTIG
-        )
-    )
+    version=QualityInspectionPlanVersion.query.get_or_404(version_id)
+    if version.status not in ('released','closed'): abort(409,'Neue Revision erst nach Freigabe erstellen.')
+    new_version=create_new_revision(version_id,current_user.id)
+    return redirect(url_for('inspection.quality_version_edit',plan_id=new_version.plan_id,version_id=new_version.id),code=303)

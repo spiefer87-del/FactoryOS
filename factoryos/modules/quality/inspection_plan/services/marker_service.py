@@ -134,7 +134,7 @@ def delete_marker(char_id):
     )
 
     db.session.delete(char)
-    db.session.commit()
+    db.session.flush()
 
     reorder_characteristics(section_id)
 
@@ -222,7 +222,7 @@ def render_qm_markers(
         raw_x = getattr(m, "pos_x", None)
         raw_y = getattr(m, "pos_y", None)
         raw_no = getattr(m, "sort_order", None)
-        raw_rotation = getattr(m, "rotation", 0)
+        raw_rotation = m.get('rotation',0) if isinstance(m,dict) else getattr(m, "rotation", 0)
 
         if raw_x is None:
             raw_x = m["x"]
@@ -278,31 +278,31 @@ def render_qm_markers(
         # ==========================================
         # MARKER ALS EIGENE EBENE
         # ==========================================
-        
+
         marker_size = int(circle_r * 5)
-        
+
         marker_img = PILImage.new(
             "RGBA",
             (marker_size, marker_size),
             (255, 255, 255, 0)
         )
-        
+
         marker_draw = ImageDraw.Draw(marker_img)
-        
+
         # ------------------------------------------
         # LOKALE POSITIONEN
         # ------------------------------------------
-        
+
         local_cx = int(marker_size * 0.35)
         local_cy = int(marker_size * 0.50)
-        
+
         local_tip_x = local_cx + circle_r + arrow_len
         local_tip_y = local_cy
-        
+
         # ------------------------------------------
         # SPITZE
         # ------------------------------------------
-        
+
         marker_draw.polygon(
             [
                 (local_tip_x, local_tip_y),
@@ -317,11 +317,11 @@ def render_qm_markers(
             ],
             fill="#c80000"
         )
-        
+
         # ------------------------------------------
         # KREIS
         # ------------------------------------------
-        
+
         marker_draw.ellipse(
             (
                 local_cx - circle_r,
@@ -337,77 +337,77 @@ def render_qm_markers(
         # ==========================================
         # MARKER ROTIEREN (OHNE TEXT)
         # ==========================================
-        
+
         rotated_marker = marker_img.rotate(
             -rotation,
             expand=True,
             resample=PILImage.BICUBIC
         )
 
-        
-        
-        
+
+
+
         # ==========================================
         # POSITION AUF HAUPTBILD
         # ==========================================
-        
+
         paste_x = int(x - rotated_marker.width / 2)
         paste_y = int(y - rotated_marker.height / 2)
-        
+
         img.paste(
             rotated_marker,
             (paste_x, paste_y),
             rotated_marker
         )
-        
+
         # ==========================================
         # ZAHL IMMER IM KREIS ZENTRIEREN
         # ==========================================
-        
+
         # ursprüngliche Kreisposition im lokalen Marker
         orig_circle_x = local_cx
         orig_circle_y = local_cy
-        
+
         # Mittelpunkt des ursprünglichen Markerbildes
         marker_center_x = marker_size / 2
         marker_center_y = marker_size / 2
-        
+
         # Rotation berechnen
         import math
-        
+
         angle = math.radians(rotation)
-        
+
         dx = orig_circle_x - marker_center_x
         dy = orig_circle_y - marker_center_y
-        
+
         rot_x = (
             dx * math.cos(angle)
             - dy * math.sin(angle)
         )
-        
+
         rot_y = (
             dx * math.sin(angle)
             + dy * math.cos(angle)
         )
-        
+
         # finale Kreisposition im Hauptbild
         final_circle_x = paste_x + rotated_marker.width / 2 + rot_x
         final_circle_y = paste_y + rotated_marker.height / 2 + rot_y
-        
+
         # Textgröße
         bbox = draw.textbbox(
             (0, 0),
             number,
             font=font
         )
-        
+
         tw = bbox[2] - bbox[0]
         th = bbox[3] - bbox[1]
-        
+
         # Text exakt zentrieren
         tx = final_circle_x - tw / 2 - bbox[0]
         ty = final_circle_y - th / 2 - bbox[1]
-        
+
         draw.text(
             (tx, ty),
             number,

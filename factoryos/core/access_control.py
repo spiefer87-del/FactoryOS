@@ -1,7 +1,7 @@
 """Central, fail-closed endpoint policy. Installed after blueprint registration."""
 import secrets
 from functools import wraps
-from flask import request, session, abort, redirect, url_for, render_template
+from flask import request, session, abort, redirect, url_for, render_template, has_request_context
 from flask_login import current_user
 from .auth import has_permission, is_system_admin
 
@@ -72,6 +72,8 @@ def policy(endpoint, view=None):
     if blueprint in ("articles", "customers", "tools", "orders", "sampling") and action in ("create", "edit", "delete"):
         return blueprint + "." + action
     if blueprint == "inspection":
+        if action == 'quality_version_edit' and has_request_context() and request.method in ('GET','HEAD'):
+            return 'quality.view'
         return "quality.delete" if "delete" in action else "quality.inspect"
     return "DENY"
 

@@ -1,3 +1,25 @@
+// Scoped request helper: protect marker edits and show server errors.
+async function qmFetch(url, options = {}) {
+    const root = document.querySelector(".qm-plan");
+    const headers = new Headers(options.headers || {});
+    if (root) {
+        headers.set("X-Access-CSRF", root.dataset.csrf);
+        headers.set("X-QM-Revision", root.dataset.revision);
+    }
+    const response = await fetch(url, {...options, headers});
+    if (!response.ok) {
+        const message = response.status === 409 ? "Der Prüfplan wurde geändert oder ist gesperrt. Bitte neu laden." : "Speichern fehlgeschlagen. Bitte Angaben und Berechtigung prüfen (Fehler " + response.status + ").";
+        alert(message);
+        throw new Error(message);
+    }
+    const revision = response.headers.get("X-QM-Revision");
+    if (revision && root) {
+        root.dataset.revision = revision;
+        root.querySelectorAll('input[name="revision_token"]').forEach(input => input.value = revision);
+    }
+    return response;
+}
+
 let isDragging = false
 let hasMoved = false
 let pressTimer = null
@@ -99,36 +121,28 @@ document.addEventListener("DOMContentLoaded", function(){
         // MARKER
         // ======================================
     
-        document.querySelectorAll(".marker")
-        .forEach((marker, index) => {
-    
-            const number =
-                index + 1
-    
-            const span =
-                marker.querySelector(".marker-number")
-    
-            if(span){
-                span.textContent = number
-            }
-        })
+        document.querySelectorAll('.qm-dimension-legacy').forEach(section => {
+            section.querySelectorAll('.characteristic-row').forEach((row,index) => {
+                row.querySelector('.char-number').textContent=index+1;
+                const marker=section.querySelector(`.marker[data-id="${row.dataset.id}"] .marker-number`);
+                if(marker) marker.textContent=index+1;
+            });
+        });
     
         // ======================================
         // TABELLE
         // ======================================
     
-        document.querySelectorAll(
-            ".characteristic-row"
-        )
-        .forEach((row, index) => {
-    
-            const td =
-                row.querySelector(".char-number")
-    
-            if(td){
-                td.textContent = index + 1
-            }
-        })
+    }
+
+    function appendCharacteristicRow(stage,data){
+        const tbody=stage.closest('.qm-section').querySelector('table tbody');
+        if(!tbody)return;
+        const row=document.createElement('tr');row.className='characteristic-row';row.dataset.id=data.id;
+        [data.number,data.name || 'Neues Merkmal',data.target_value || '',data.tolerance_minus || '',data.tolerance_plus || '',data.unit || ''].forEach((value,index)=>{
+            const cell=document.createElement('td');cell.textContent=value;if(index===0)cell.className='char-number';row.appendChild(cell);
+        });
+        tbody.appendChild(row);
     }
 
     function getPixelCoordinates(wrapper, clientX, clientY){
@@ -246,7 +260,7 @@ document.addEventListener("DOMContentLoaded", function(){
                         "Marker und Merkmal löschen?"
                     )) return
         
-                    fetch(
+                    qmFetch(
                         "/quality/inspection-plans/delete_characteristic_marker",
                         {
                             method:"POST",
@@ -365,7 +379,7 @@ document.addEventListener("DOMContentLoaded", function(){
             marker.style.transform =
                 `translate(-50%, -50%) rotate(${rotation}deg)`
 
-            fetch(
+            qmFetch(
                 "/quality/inspection-plans/rotate_characteristic_marker",
                 {
                     method:"POST",
@@ -524,7 +538,7 @@ document.addEventListener("DOMContentLoaded", function(){
                     )
                 }
 
-                fetch("/quality/inspection-plans/add_point",{
+                qmFetch("/quality/inspection-plans/add_point",{
                     method:"POST",
                     headers:{
                         "Content-Type":"application/json"
@@ -568,20 +582,14 @@ document.addEventListener("DOMContentLoaded", function(){
 
                     stage.appendChild(marker)
 
-                    const tbody = document.querySelector(
-                        ".table tbody"
-                    )
-                    
-                    if(tbody){
-                    
-                        
-                    }
+                    appendCharacteristicRow(stage,data);
 
                     // ======================================
                     // EVENTS AKTIVIEREN
                     // ======================================
 
                     initializeMarker(marker)
+                    window.location.reload();
                 })
             }
         })
@@ -644,7 +652,7 @@ document.addEventListener("DOMContentLoaded", function(){
         const y =
             parseFloat(activeMarker.style.top)
 
-        fetch(
+        qmFetch(
             "/quality/inspection-plans/update_characteristic_position",
             {
                 method:"POST",
@@ -907,7 +915,7 @@ document.addEventListener("DOMContentLoaded", function(){
                         ).value
                 }
                 
-                fetch(characteristicForm.action, {
+                qmFetch(characteristicForm.action, {
                 
                     method:"POST",
                 
@@ -968,6 +976,7 @@ document.addEventListener("DOMContentLoaded", function(){
                     // ======================================
                     
                     marker.style.zIndex = "50"
+                    appendCharacteristicRow(stage,data);
                     marker.style.pointerEvents = "auto"
                     
                     // ======================================
@@ -989,6 +998,7 @@ document.addEventListener("DOMContentLoaded", function(){
                     ).style.display = "none"
     
                     characteristicForm.reset()
+                    window.location.reload();
                 })
             }
         )

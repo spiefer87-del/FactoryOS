@@ -1,18 +1,4 @@
-<div class="row g-3">
-
-{% for image in section.images %}
-
-<div class="col-md-3">
-
-<img src="{{ url_for('static', filename=image.image_path) }}"
-class="img-fluid rounded border">
-
-<div class="small text-muted mt-1">
-{{ image.description }}
-</div>
-
-</div>
-
-{% endfor %}
-
-</div>
+<div class="qm-reference-grid">{% for image in section.images %}<figure><img src="{{ url_for('static',filename=image.image_path) }}" alt="{{ image.description or 'Referenzbild' }}"><figcaption>{{ image.description }}</figcaption>
+{% if editable %}<form method="post" action="{{ url_for('inspection.quality_update_image_description',image_id=image.id) }}">{{ fields.security() }}<label>Bildbeschreibung<input name="description" value="{{ image.description or '' }}" maxlength="300"></label><button class="btn-secondary">Beschreibung speichern</button></form>
+<form method="post" action="{{ url_for('inspection.quality_delete_identification_image',image_id=image.id) }}" onsubmit="return confirm('Referenzbild entfernen?')">{{ fields.security() }}<button class="btn-secondary">Bild entfernen</button></form>{% endif %}</figure>{% endfor %}</div>
+{% if editable and section.images|length<5 %}<form method="post" enctype="multipart/form-data" action="{{ url_for('inspection.quality_upload_identification_image',section_id=section.id) }}" class="qm-edit-form">{{ fields.security() }}<label>Referenzbild (max. 5)<input type="file" name="image" accept="image/jpeg,image/png,image/webp" required></label><label>Beschreibung<input name="description" maxlength="300"></label><button class="btn-secondary">Bild hinzufügen</button></form>{% endif %}

@@ -88,6 +88,8 @@ class QualityInspectionSection(db.Model):
 
     title = db.Column(db.String(200), nullable=False)
     section_type = db.Column(db.String(50), nullable=False)
+    inspection_settings = db.Column(db.JSON, nullable=True)
+    checks = db.relationship('QualityInspectionCheck', back_populates='section', cascade='all, delete-orphan', order_by='QualityInspectionCheck.sort_order.asc()')
 
     sort_order = db.Column(db.Integer, default=0)
 

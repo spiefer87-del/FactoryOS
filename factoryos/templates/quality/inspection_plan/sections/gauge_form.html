@@ -1,0 +1,6 @@
+{% set group='gauge-' ~ (check.id if check else 'new-' ~ section.id) %}
+<details {% if form_id==group or not check %}open{% endif %}><summary>{{ 'Lehrenmerkmal bearbeiten' if check else 'Lehrenmerkmal hinzufügen' }}</summary><form method="post" action="{{ url_for('inspection.quality_save_gauge',section_id=section.id) }}" id="{{ group }}">{{ fields.security() }}{% if check %}<input type="hidden" name="gauge_check_id" value="{{ check.id }}">{% endif %}<div class="qm-field-grid">
+{{ fields.field('name','Merkmal',check.name if check else '',true,group=group) }}
+<div class="qm-field"><label for="{{ group }}-gauge_id">Prüfmittel aus Stammdaten *</label><select name="gauge_id" id="{{ group }}-gauge_id" required><option value="">Bitte auswählen</option>{% for gauge in gauges %}<option value="{{ gauge.id }}" {% if (form_data.get('gauge_id')|string==gauge.id|string if form_id==group else check and check.gauge_id==gauge.id) %}selected{% endif %}>{{ gauge.gauge_no }} · {{ gauge.name }}</option>{% endfor %}</select>{% if form_id==group and errors.get('gauge_id') %}<span class="qm-field-error">{{ errors.gauge_id }}</span>{% endif %}</div>
+{{ fields.field('method','Methode / Annahmekriterium',check.method if check else '',true,true,group) }}
+</div><button class="btn-primary">Lehrenmerkmal speichern</button></form></details>

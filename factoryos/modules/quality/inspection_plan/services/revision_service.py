@@ -1,3 +1,4 @@
+from copy import deepcopy
 from factoryos.extensions import db
 
 from ..models import (
@@ -16,6 +17,8 @@ from factoryos.modules.quality.inspection_plan.services.change_log_service impor
 def create_new_revision(version_id, user_id):
 
     old_version = QualityInspectionPlanVersion.query.get_or_404(version_id)
+    if old_version.status not in ('released','closed') or old_version.id != max(v.id for v in old_version.plan.versions):
+        raise ValueError('Neue Revision nur aus der aktuellen freigegebenen/geschlossenen Revision.')
 
     new_revision = increment_revision(old_version.revision)
 
@@ -62,7 +65,10 @@ def copy_sections(old_version, new_version):
             title=section.title,
             section_type=section.section_type,
             drawing_path=section.drawing_path,
-            sort_order=section.sort_order     # ✅ wichtig
+            sort_order=section.sort_order,
+            image_width=section.image_width,
+            image_height=section.image_height,
+            inspection_settings=deepcopy(section.inspection_settings)
         )
 
         db.session.add(new_section)
@@ -72,6 +78,11 @@ def copy_sections(old_version, new_version):
         copy_gauge_checks(section, new_section)
         copy_images(section, new_section)
         copy_snippets(section, new_section)
+        from ..models import QualityInspectionCheck
+        for check in section.checks:
+            db.session.add(QualityInspectionCheck(section_id=new_section.id, **{
+                key: getattr(check,key) for key in ('name','requirement','method','target_value','tolerance_minus','tolerance_plus','unit','sort_order')
+            }))
 
 
 def copy_characteristics(old_section, new_section):

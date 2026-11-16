@@ -1,1 +1,5 @@
 
+{% if editable %}<label><input type="checkbox" id="autoOpenModal" checked> Beim Setzen eines Zeichnungsmarkers das Eingabefenster öffnen</label>
+<div id="characteristicModal" class="qm-modal"><div class="qm-modal-content"><h3>Prüfmaß anlegen</h3><form id="characteristicForm" method="post" action="{{ url_for('inspection.quality_create_characteristic_with_marker') }}">{{ fields.security() }}<input type="hidden" name="pos_x" id="posX"><input type="hidden" name="pos_y" id="posY"><input type="hidden" name="section_id" id="sectionID">
+{% for key,label in [('name','Merkmal'),('target_value','Sollwert'),('tolerance_minus','Toleranz minus'),('tolerance_plus','Toleranz plus'),('unit','Einheit')] %}<label>{{ label }}<input name="{{ key }}" required></label>{% endfor %}
+<button class="btn-primary">Speichern</button><button type="button" class="btn-secondary" onclick="document.getElementById('characteristicModal').style.display='none'">Abbrechen</button></form></div></div>{% endif %}

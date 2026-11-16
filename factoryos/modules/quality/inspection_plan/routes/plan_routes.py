@@ -79,7 +79,8 @@ def quality_create():
         # 🆕 Plan erstellen
         plan = QualityInspectionPlan(
             article_id=article_id,
-            tool_id=tool_id
+            tool_id=tool_id,
+            created_by_id=current_user.id
         )
 
         db.session.add(plan)
@@ -92,6 +93,9 @@ def quality_create():
         )
 
         db.session.add(version)
+        db.session.flush()
+        from ..services.change_log_service import log_change
+        log_change(version,'CREATE_PLAN','Prüfplan als Entwurf angelegt',current_user.id)
         db.session.commit()
 
         return redirect(url_for(
@@ -109,9 +113,11 @@ def quality_create():
 @login_required
 def quality_delete_plan(plan_id):
 
+    db.session.execute(db.update(QualityInspectionPlanVersion).where(QualityInspectionPlanVersion.plan_id==plan_id).values(status=QualityInspectionPlanVersion.status))
+    db.session.expire_all()
     plan = QualityInspectionPlan.query.get_or_404(plan_id)
 
-    if any(v.status == "released" for v in plan.versions):
+    if any(v.status != "draft" for v in plan.versions):
         flash("Freigegebene Prüfpläne können nicht gelöscht werden.", "danger")
         return redirect(url_for("inspection.quality_inspection_plan"))
 

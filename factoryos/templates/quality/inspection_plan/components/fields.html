@@ -1,0 +1,27 @@
+{% macro security() -%}
+<input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}">
+<input type="hidden" name="revision_token" value="{{ revision_token }}">
+{%- endmacro %}
+{% macro field(key,label,value='',required=false,large=false,group='',hint='') -%}
+{% set invalid = form_id==group and errors.get(key) %}
+<div class="qm-field"><label for="{{ group }}-{{ key }}">{{ label }}{% if required %} *{% endif %}</label>
+{% if large %}<textarea id="{{ group }}-{{ key }}" name="{{ key }}" rows="3" {% if required %}required{% endif %} {% if invalid %}aria-invalid="true" aria-describedby="{{ group }}-{{ key }}-error"{% endif %}>{{ form_data.get(key,'') if form_id==group else value or '' }}</textarea>
+{% else %}<input id="{{ group }}-{{ key }}" name="{{ key }}" value="{{ form_data.get(key,'') if form_id==group else value or '' }}" {% if required %}required{% endif %} {% if invalid %}aria-invalid="true" aria-describedby="{{ group }}-{{ key }}-error"{% endif %}>{% endif %}
+{% if hint %}<small>{{ hint }}</small>{% endif %}
+{% if invalid %}<span class="qm-field-error" id="{{ group }}-{{ key }}-error">{{ invalid }}</span>{% endif %}</div>
+{%- endmacro %}
+{% macro check_form(section,check=none) -%}
+{% set group='check-' ~ (check.id if check else 'new-' ~ section.id) %}
+<form method="post" action="{{ url_for('inspection.quality_save_check',section_id=section.id) }}" class="qm-edit-form" id="{{ group }}">
+{{ security() }}{% if check %}<input type="hidden" name="check_id" value="{{ check.id }}">{% endif %}
+<div class="qm-field-grid">
+{{ field('name','Prüfmerkmal',check.name if check else '',true,group=group) }}
+{{ field('method','Prüfmethode / Hilfsmittel',check.method if check else '',true,group=group) }}
+{{ field('requirement','Annahme- / Fehlerkriterium',check.requirement if check else '',true,true,group) }}
+{% if section.section_type=='weight' %}
+{{ field('target_value','Sollgewicht',check.target_value if check else '',true,group=group) }}
+{{ field('tolerance_minus','Toleranz minus',check.tolerance_minus if check else '',true,group=group) }}
+{{ field('tolerance_plus','Toleranz plus',check.tolerance_plus if check else '',true,group=group) }}
+{{ field('unit','Einheit',check.unit if check else 'g',true,group=group,hint='g, kg oder mg; Zahlen ohne Einheit, Dezimalkomma erlaubt.') }}
+{% endif %}</div><button class="btn-primary">{{ 'Änderungen speichern' if check else 'Prüfmerkmal hinzufügen' }}</button></form>
+{%- endmacro %}

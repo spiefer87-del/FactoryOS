@@ -15,20 +15,14 @@ def quality_export_pdf(version_id):
 
     version = QualityInspectionPlanVersion.query.get_or_404(version_id)
 
-    pdf_path = generate_inspection_plan_pdf(version_id)
-
-    version.pdf_path = pdf_path
-    db.session.commit()
-
-    full_path = os.path.join(
-        current_app.static_folder,
-        pdf_path
-    )
+    output = generate_inspection_plan_pdf(version_id)
+    from werkzeug.utils import secure_filename
 
     return send_file(
-        full_path,
+        output,
+        mimetype='application/pdf',
         as_attachment=True,
-        download_name=f"Pruefplan_Rev_{version.revision}.pdf"
+        download_name=secure_filename(f"{version.plan.tool.tool_no}_Pruefplan_Rev_{version.revision}.pdf")
     )
 
 

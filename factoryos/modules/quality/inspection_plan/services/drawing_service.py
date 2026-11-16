@@ -104,7 +104,17 @@ def upload_drawing(section, file):
 
 def upload_snippet(section, file, description):
 
-    filename = secure_filename(file.filename)
+    from flask import abort
+    from PIL import ImageOps, UnidentifiedImageError
+    if not file:abort(400,'Zeichnungsausschnitt: Bitte ein Bild auswählen.')
+    try:
+        photo=PILImage.open(file.stream)
+        if photo.format not in ('JPEG','PNG','WEBP') or photo.width*photo.height>24000000:
+            abort(400,'Zeichnungsausschnitt: JPEG/PNG/WebP bis 24 Megapixel verwenden.')
+        photo.load();photo=ImageOps.exif_transpose(photo).convert('RGB');photo.thumbnail((1800,1800))
+    except (UnidentifiedImageError,OSError,PILImage.DecompressionBombError):
+        abort(400,'Zeichnungsausschnitt konnte nicht gelesen werden.')
+    filename = str(uuid.uuid4())+'.png'
 
     upload_folder = os.path.join(
         current_app.static_folder,
@@ -115,7 +125,7 @@ def upload_snippet(section, file, description):
 
     save_path = os.path.join(upload_folder, filename)
 
-    file.save(save_path)
+    photo.save(save_path,'PNG')
 
     snippet = QualityInspectionDimensionSnippet(
         section_id=section.id,

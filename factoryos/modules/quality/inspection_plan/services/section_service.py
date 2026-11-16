@@ -9,6 +9,11 @@ from factoryos.modules.quality.inspection_plan.services.change_log_service impor
 
 def add_section(version, section_type):
 
+    from ..definitions import MODULES
+    from flask_login import current_user
+    if version.status != 'draft' or section_type not in MODULES:
+        raise ValueError('Nur bekannte Module in einer Entwurfsrevision ergänzen.')
+
     titles = {
         "identification": "Identification",
         "dimension": "Dimension",
@@ -17,11 +22,12 @@ def add_section(version, section_type):
         "text": "Text Check"
     }
 
-    title = titles.get(section_type, "Modul")
+    title = MODULES[section_type][0]
 
     section = QualityInspectionSection(
         section_type=section_type,
-        title=title
+        title=title,
+        sort_order=max([s.sort_order or 0 for s in version.sections]+[0])+1
     )
 
     version.sections.append(section)
@@ -33,7 +39,8 @@ def add_section(version, section_type):
     log_change(
         version,
         "ADD_SECTION",
-        f"Modul '{section.title}' hinzugefügt"
+        f"Revision {version.revision}: Modul '{section.title}' hinzugefügt",
+        current_user.id
     )
 
     db.session.commit()

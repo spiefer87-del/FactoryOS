@@ -1,47 +1,43 @@
-{% extends "layout/base.html" %}
-
+{% extends 'layout/base.html' %}
 {% block styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/qm_builder.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/tool_error.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/quality_plan.css') }}">
 {% endblock %}
-
 {% block content %}
-
-<div class="qm-builder">
-
-<h2 class="qm-title">
-Prüfplan Revision {{ version.revision }}
-</h2>
-
-{% include "quality/inspection_plan/components/revision_bar.html" %}
-
-{% include "quality/inspection_plan/components/plan_info.html" %}
-
-{% include "quality/inspection_plan/components/module_selector.html" %}
-
-<div class="qm-sections">
-
-{% if not version.sections %}
-
-<div class="card qm-empty">
-Noch keine Module vorhanden.
-Bitte oben ein Modul hinzufügen.
-</div>
-
-{% endif %}
-
+{% import 'quality/inspection_plan/components/fields.html' as fields with context %}
+<div class="qm-builder qm-plan" data-csrf="{{ security_csrf_token() }}" data-revision="{{ revision_token }}">
+<nav class="qm-top-actions"><a class="btn-secondary" href="{{ url_for('inspection.quality_inspection_plan') }}">← Prüfpläne</a>
+{% if can_access('inspection.quality_export_pdf') %}<a class="btn-primary" href="{{ url_for('inspection.quality_export_pdf',version_id=version.id) }}">PDF Export</a>{% endif %}</nav>
+{% include 'quality/inspection_plan/components/revision_bar.html' %}
+{% if errors %}<div class="qm-error-summary" role="alert" tabindex="-1" autofocus><h3>Bitte Angaben prüfen – nichts gespeichert</h3><ul>{% for key,message in errors.items() %}<li><a href="#{{ error_targets.get(key,key) }}">{{ message }}</a></li>{% endfor %}</ul></div>{% endif %}
+{% if not editable %}<p class="qm-notice">Diese Revision ist schreibgeschützt. {% if version.status=='review' %}Zur Korrektur bitte zur Bearbeitung zurückgeben.{% elif version.status in ['released','closed'] %}Änderungen erfolgen über eine neue Entwurfsrevision.{% endif %}</p>{% endif %}
+{% include 'quality/inspection_plan/components/plan_info.html' %}
+{% if readiness and editable %}<details class="qm-notice"><summary>Noch {{ readiness|length }} Hinweise vor der Prüfung/Freigabe</summary><ul>{% for key,message in readiness.items() %}<li>{{ message }}</li>{% endfor %}</ul></details>{% endif %}
+{% include 'quality/inspection_plan/components/module_selector.html' %}
+{% if not version.sections %}<p class="qm-notice">Noch keine Module vorhanden. Bitte ein Modul hinzufügen.</p>{% endif %}
 {% for section in version.sections %}
-
-{% include "quality/inspection_plan/sections/" + section.section_type + ".html" %}
-
-{% endfor %}
-
-</div>
-
-{% include "quality/inspection_plan/components/change_log.html" %}
-{% include "quality/inspection_plan/components/marker_modal.html" %}
-
-</div>
-
-<script src="{{ url_for('static', filename='js/qm_builder.js') }}"></script>
-
+<section class="qm-module" id="section-{{ section.id }}">
+<header class="qm-module-header"><h2>{{ modules.get(section.section_type,('Modul',''))[1] }} {{ section.title }}</h2>
+{% if editable %}<div class="qm-module-actions"><form method="post" action="{{ url_for('inspection.quality_move_module',section_id=section.id) }}">{{ fields.security() }}<button name="direction" value="up" aria-label="Modul nach oben">↑</button><button name="direction" value="down" aria-label="Modul nach unten">↓</button></form>
+<form method="post" action="{{ url_for('inspection.quality_delete_section',section_id=section.id) }}" onsubmit="return confirm('Modul und seine Prüfmerkmale entfernen?')">{{ fields.security() }}<button class="btn-danger">Modul entfernen</button></form></div>{% endif %}</header>
+{% set settings=section.inspection_settings or {} %}
+{% if editable %}{% set group='settings-' ~ section.id %}
+<details class="qm-module-settings" {% if not settings or form_id==group %}open{% endif %}><summary>Prüfumfang und Anweisung</summary>
+<form method="post" action="{{ url_for('inspection.quality_module_settings',section_id=section.id) }}" id="{{ group }}">{{ fields.security() }}<div class="qm-field-grid">
+{{ fields.field('title','Modulbezeichnung',section.title,true,group=group) }}
+{{ fields.field('frequency','Prüfintervall / Anlass',settings.get('frequency'),true,group=group,hint='Zum Beispiel: Anfahren, alle 2 Stunden, nach Störung.') }}
+{{ fields.field('sample_size','Stichprobenumfang',settings.get('sample_size'),true,group=group,hint='Zum Beispiel: 3 Teile je Nest.') }}
+{{ fields.field('responsible','Verantwortung',settings.get('responsible'),true,group=group,hint='Zum Beispiel: Einrichter / Qualitätssicherung.') }}
+{{ fields.field('instructions','Prüfanweisung / Vorgehen bei Abweichung',settings.get('instructions'),false,true,group) }}
+</div><button class="btn-secondary">Prüfumfang speichern</button></form></details>
+{% else %}<dl class="qm-settings-view"><div><dt>Prüfintervall</dt><dd>{{ settings.get('frequency','Nicht angegeben') }}</dd></div><div><dt>Stichprobe</dt><dd>{{ settings.get('sample_size','Nicht angegeben') }}</dd></div><div><dt>Verantwortung</dt><dd>{{ settings.get('responsible','Nicht angegeben') }}</dd></div></dl><p class="qm-multiline">{{ settings.get('instructions','') }}</p>{% endif %}
+{% if section.section_type=='dimension' %}<div class="qm-dimension-legacy">{% include 'quality/inspection_plan/sections/dimension.html' %}</div>{% include 'quality/inspection_plan/sections/measurement_editor.html' %}
+{% elif section.section_type=='gauge' %}{% include 'quality/inspection_plan/sections/gauge.html' %}
+{% else %}
+{% if section.section_type=='identification' %}{% include 'quality/inspection_plan/sections/identification.html' %}{% endif %}
+{% include 'quality/inspection_plan/sections/checklist.html' %}
+{% endif %}</section>{% endfor %}
+{% include 'quality/inspection_plan/components/change_log.html' %}
+{% include 'quality/inspection_plan/components/marker_modal.html' %}
+</div><script src="{{ url_for('static',filename='js/qm_builder.js') }}"></script>
 {% endblock %}
