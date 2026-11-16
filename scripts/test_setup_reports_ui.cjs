@@ -13,7 +13,7 @@ class Element{
  querySelector(selector){return this.querySelectorAll(selector)[0];}
  focus(){this.focused=true;}
 }
-function setup(editable=true,external=false){
+function setup(editable=true,external=false,cylinder=false){
  const ids=['sr-wizard','sr-boot','sr-csrf','sr-status','sr-errors','sr-state','sr-identities','sr-selectors','sr-context','sr-context-confirm','sr-steps','sr-entry-mode','sr-review','sr-step-title','sr-scanner','sr-parameters','sr-back','sr-next','sr-save','sr-manual','sr-open-scan','sr-profile','sr-camera','sr-file','sr-scan-result','sr-gaps','sr-release','sr-provider','sr-external-warning','sr-external-consent'];
  const nodes=Object.fromEntries(ids.map(id=>[id,new Element()]));
  nodes['sr-wizard'].append(...ids.filter(id=>id!=='sr-wizard').map(id=>nodes[id]));
@@ -21,6 +21,11 @@ function setup(editable=true,external=false){
  const values=Object.fromEntries(Object.keys(fields).map(key=>[key,{value:key==='cycle_target'?'42':'TEST',unit:fields[key].unit,status:'open',origin:'master',reason:''}]));
  const boot={editable,external_vision:{enabled:external,allowed:external,steps:['injection','movement','temperature']},version:1,report_id:1,fields,profiles:{injection_profile:{label:'Einspritzprofil',step:'injection',columns:[['position','Position','cm³']]}},units:{'cm³':['cm³','mm']},origins:{master:'Stammdatenvorschlag',manual:'Handeingabe'},
   steps:[['identity','Identität'],['injection','Spritzen'],['review','Prüfen']],data:{values,profiles:{},context_confirmed:false},context:{tool_id:1,machine_id:1,article_id:1,material_id:1},choices:{machines:[{id:1,label:'M1'}],articles:[{id:1,label:'A1'}],materials:[{id:1,label:'R1',category:'plastic'}]},save_url:'/save',photo_url:'/scan',context_url:'/context',photo_base:'/photos/0'};
+ if(cylinder){
+  boot.steps.splice(2,0,['temperature','Temperaturen']);
+  boot.profiles.cylinder={label:'Zylindertemperaturen',step:'temperature',columns:[['set','Soll','°C'],['actual','Ist','°C'],['plus','Toleranz +','°C'],['minus','Toleranz -','°C']]};
+  boot.profile_defaults={cylinder:{rows:['DH','MH 3','MH 2','MH 1','Einzug'].map(label=>({label,active:'yes',values:Object.fromEntries(boot.profiles.cylinder.columns.map(([key,_,unit])=>[key,{value:'',unit}]))})),status:'open',origin:'manual',reason:'',photo_id:null}};
+ }
  nodes['sr-boot'].textContent=JSON.stringify(boot);nodes['sr-csrf'].value='csrf';
  const calls=[];let photoData,failureResponse;
  const context={document:{getElementById:id=>nodes[id],createElement:tag=>new Element(tag)},window:new Element(),location:{reload(){}},structuredClone,FormData,Option:class extends Element{constructor(label,value){super('option');this.textContent=label;this.value=value;}},confirm:()=>true,prompt:()=> 'Im Test nicht zutreffend',
@@ -118,4 +123,26 @@ function all(node){const out=[];function walk(n){out.push(n);n.children.forEach(
  assert.equal(profileCell['aria-invalid'],'true');assert.equal(profileCell.focused,true);
  console.log('PASS: immediate visible field/profile adoption before save, edits after adoption, unconfirmed status and photo evidence, invalid 00 has no apply action, scanner preserved, no automatic overwrite, wizard navigation.');
  console.log('PASS: hidden-step error navigation, exact scalar/profile-cell highlighting and focus, accessible hints/summary, input retention, clear after edit and successful save.');
+ const standard=setup(true,false,true),s=standard.nodes;
+ await s['sr-steps'].children[2].fire('click');
+ const insert=all(s['sr-parameters']).find(n=>n.textContent==='Standardzonen einfügen');assert.ok(insert);
+ await insert.fire('click');
+ const labels=()=>all(s['sr-parameters']).filter(n=>n.className==='sr-profile-label');
+ assert.deepEqual(labels().map(n=>n.value),['DH','MH 3','MH 2','MH 1','Einzug']);
+ assert.ok(!all(s['sr-parameters']).some(n=>n.textContent==='Standardzonen einfügen'),'No replace button over existing zones');
+ const down=all(s['sr-parameters']).find(n=>n.textContent==='↓');await down.fire('click');
+ assert.deepEqual(labels().map(n=>n.value),['MH 3','DH','MH 2','MH 1','Einzug']);
+ const up=all(s['sr-parameters']).filter(n=>n.textContent==='↑')[1];await up.fire('click');
+ assert.deepEqual(labels().map(n=>n.value),['DH','MH 3','MH 2','MH 1','Einzug']);
+ await all(s['sr-parameters']).find(n=>n.textContent==='+ Stufe / Zone hinzufügen').fire('click');
+ const added=labels().at(-1);added.value='MH 4';await added.fire('input');
+ await s['sr-save'].fire('click');
+ assert.equal(standard.calls.at(-1).payload.data.profiles.cylinder.rows.at(-1).label,'MH 4');
+ assert.equal(standard.calls.at(-1).payload.data.profiles.cylinder.status,'open');
+ while(all(s['sr-parameters']).some(n=>n.textContent==='Entfernen'))await all(s['sr-parameters']).find(n=>n.textContent==='Entfernen').fire('click');
+ await s['sr-steps'].children[0].fire('click');await s['sr-steps'].children[2].fire('click');
+ assert.equal(labels().length,0,'Deliberately deleted zones are not recreated automatically');
+ const readonly=setup(false,false,true);await readonly.nodes['sr-steps'].children[2].fire('click');
+ assert.ok(!all(readonly.nodes['sr-parameters']).some(n=>n.textContent==='Standardzonen einfügen'));
+ console.log('PASS: cylinder template insertion, blank values, add/rename/reorder both directions/delete, no overwrites or reset on navigation, readonly protection.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

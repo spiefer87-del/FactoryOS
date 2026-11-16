@@ -12,7 +12,7 @@ from factoryos.core.auth import permission_required, has_permission
 from factoryos.core.access_control import valid_csrf
 from factoryos.modules.masterdata.tools.models import Tool
 from ..models import SetupReport, SetupReportPhoto, SetupReportRevision
-from ..schema import FIELDS, PROFILES, STEPS, UNITS, ORIGINS
+from ..schema import FIELDS, PROFILES, STEPS, UNITS, ORIGINS, profile_defaults
 from ..service import choices, make_context, initial_data, clean_data, gaps, snapshot
 from ..validation import ReportValidationError, error_payload
 
@@ -85,7 +85,7 @@ def detail(tool_id,report_id):
     is_editable=report.state=="draft" and has_permission(current_user,"setup_reports.edit")
     from ..external_vision import public_status
     boot=dict(report_id=report.id,version=report.version,context=report.context,context_token=context_token(report,report.context),data=report.data,
-        fields=FIELDS,profiles=PROFILES,steps=STEPS,units=UNITS,origins=ORIGINS,
+        fields=FIELDS,profiles=PROFILES,steps=STEPS,units=UNITS,origins=ORIGINS,profile_defaults=profile_defaults(),
         editable=is_editable,choices=choices(report.tool) if is_editable else {},
         external_vision={**public_status(),"allowed":is_editable and has_permission(current_user,"setup_reports.external_ocr")},
         context_url=url_for("setup_reports.context",tool_id=tool_id,report_id=report.id),
@@ -197,9 +197,9 @@ def photo(tool_id,report_id,photo_id):
 @permission_required("setup_reports.pdf_export")
 def pdf(tool_id,report_id):
     report=get_report(tool_id,report_id)
-    from ..pdf_service import build_pdf
+    from ..pdf_service import build_pdf, download_name
     return send_file(BytesIO(build_pdf(report)),mimetype="application/pdf",as_attachment=True,
-        download_name=f"Einstellbericht_{report.id}_Stand_{report.version}.pdf",max_age=0)
+        download_name=download_name(report),max_age=0)
 
 
 @bp.route("/<int:report_id>/history/<int:revision>")

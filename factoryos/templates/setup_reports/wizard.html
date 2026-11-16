@@ -1,5 +1,5 @@
 {% extends "layout/base.html" %}
-{% block styles %}{{ super() }}<link rel="stylesheet" href="{{ url_for('static',filename='css/setup_reports.css',v='20261116-field-errors') }}"><script src="{{ url_for('static',filename='js/setup_reports.js',v='20261116-field-errors') }}" defer></script>{% endblock %}
+{% block styles %}{{ super() }}<link rel="stylesheet" href="{{ url_for('static',filename='css/setup_reports.css',v='20261116-field-errors') }}"><script src="{{ url_for('static',filename='js/setup_reports.js',v='20261116-cylinder-template') }}" defer></script>{% endblock %}
 {% block content %}
 <div class="sr-wrap" id="sr-wizard"><p class="sr-eyebrow">WERKZEUG {{ report.context.tool_no }} / EINSTELLBERICHT {{ report.id }}</p>
 <h1>Einstellungen Schritt für Schritt</h1>

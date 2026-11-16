@@ -219,6 +219,12 @@
   function renderProfile(name,spec,parent){
     const item=profiles[name],section=node('section',null,parent,'sr-card');node('h2',spec.label,section);
     section.dataset.profile=name;
+    if(name==='cylinder'){
+      node('p','Standardaufbau: DH → MH 3 → MH 2 → MH 1 → Einzug. Aktivierung, Soll-/Istwerte und Toleranzen an der Maschine prüfen. Zonen können umbenannt, ergänzt, verschoben oder entfernt werden.',section,'sr-note');
+      if(editable&&!item.rows.length&&boot.profile_defaults?.cylinder)action(section,'Standardzonen einfügen',()=>{
+        Object.assign(item,structuredClone(boot.profile_defaults.cylinder));changed();render();
+      });
+    }
     section.tabIndex=-1;bindTarget(section,section,{profile:name});
     node('p','Eine Zeile je Stufe / Zone. Reihenfolge ist die tatsächliche Ausführungsreihenfolge, nicht zwingend die Anordnung auf dem Bildschirm. Aktivierung ausdrücklich prüfen.',section,'sr-note');
     origin(section,item);statusControl(section,item,spec.label,{profile:name});
@@ -240,6 +246,7 @@
       }
       const tools=td();
       action(tools,'↑',()=>{if(index){[item.rows[index-1],item.rows[index]]=[item.rows[index],item.rows[index-1]];modified();changed();render();}}).setAttribute('aria-label','Stufe nach oben');
+      action(tools,'↓',()=>{if(index<item.rows.length-1){[item.rows[index],item.rows[index+1]]=[item.rows[index+1],item.rows[index]];modified();changed();render();}}).setAttribute('aria-label','Stufe nach unten');
       action(tools,'Entfernen',()=>{if(confirm('Diese Stufe aus dem Entwurf entfernen?')){item.rows.splice(index,1);modified();changed();render();}});
     });
     action(section,'+ Stufe / Zone hinzufügen',()=>{if(item.rows.length>=32){msg('Maximal 32 Stufen je Profil.',true);return;}item.rows.push({label:String(item.rows.length+1),active:'unknown',values:Object.fromEntries(spec.columns.map(([key,label,unit])=>[key,{value:'',unit}]))});item.status='open';changed();render();});

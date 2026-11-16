@@ -98,6 +98,16 @@ PROFILES = {
 }
 UNITS = {"bar_spez": ["bar_spez", "bar"], "cm³": ["cm³", "mm"],
          "cm³/s": ["cm³/s", "mm/s"], "mm/s": ["mm/s", "U/min"]}
+CYLINDER_ZONE_LABELS = ("DH", "MH 3", "MH 2", "MH 1", "Einzug")
+
+
+def profile_defaults():
+    """Fresh structures only: no process temperatures/tolerances are guessed."""
+    return {"cylinder": dict(rows=[dict(label=label, active="yes", values={
+        key:dict(value="",unit=unit) for key,_,unit in PROFILES["cylinder"]["columns"]
+    }) for label in CYLINDER_ZONE_LABELS], status="open", reason="", origin="manual", photo_id=None)}
+
+
 ORIGINS = {"manual": "Handeingabe", "master": "Stammdatenvorschlag", "recommendation": "Materialvorgabe - Verwendung bestätigen", "photo": "Foto-Vorschlag", "previous": "Früherer Bericht - erneut prüfen"}
 PERMISSIONS = {
     "view": "Einstellberichte, Historie und zugehörige Fotos am Werkzeug ansehen.",

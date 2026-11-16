@@ -8,6 +8,17 @@ from reportlab.platypus import BaseDocTemplate, PageTemplate, Frame, NextPageTem
 from factoryos.modules.sampling.pdf_service import _register_fonts
 from .schema import FIELDS, PROFILES, STEPS, ORIGINS
 from .service import gaps
+from werkzeug.utils import secure_filename
+
+
+def tool_number(report):
+    return str(report.context.get('tool_no') or report.tool.tool_no or f'Werkzeug_{report.tool_id}')
+
+
+def download_name(report):
+    # Never allow path separators, control characters or header injection in downloads.
+    prefix=secure_filename(tool_number(report))[:100].strip('._') or f'Werkzeug_{report.tool_id}'
+    return f'{prefix}_Einstellbericht_{report.id}_Stand_{report.version}.pdf'
 
 
 def build_pdf(report):
@@ -69,7 +80,7 @@ def build_pdf(report):
         canvas.drawString(16*mm,12*mm,f"FactoryOS | Einstellbericht {report.id} | Stand {report.version}")
         canvas.drawRightString(194*mm,12*mm,f"Seite {doc.page}");canvas.restoreState()
     from .fb18_cover import draw_cover
-    doc=BaseDocTemplate(stream,pagesize=A4,title=f'Einstellbericht {report.id}')
+    doc=BaseDocTemplate(stream,pagesize=A4,title=f'{tool_number(report)} – Einstellbericht {report.id} / Stand {report.version}')
     doc.addPageTemplates([
         PageTemplate(id='cover',pagesize=landscape(A4),frames=[Frame(8*mm,16*mm,281*mm,176*mm,leftPadding=0,rightPadding=0,topPadding=0,bottomPadding=0)],onPage=lambda canvas,doc:draw_cover(canvas,report)),
         PageTemplate(id='detail',pagesize=A4,frames=[Frame(16*mm,20*mm,178*mm,262*mm,leftPadding=0,rightPadding=0,topPadding=0,bottomPadding=0)],onPage=footer),

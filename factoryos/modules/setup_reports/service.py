@@ -12,7 +12,7 @@ from factoryos.modules.masterdata.articles.models import Article
 from factoryos.modules.masterdata.machines.models import Machine
 from factoryos.modules.masterdata.materials.models import Material
 from .models import SetupReportRevision, SetupReportPhoto
-from .schema import FIELDS, PROFILES, UNITS
+from .schema import FIELDS, PROFILES, UNITS, profile_defaults
 from .screen_numbers import safe_scalar
 from .validation import ReportValidationError as Invalid
 
@@ -89,7 +89,7 @@ def make_context(tool, ids):
 
 
 def initial_data(values):
-    data=dict(values=values, profiles={}, context_confirmed=False)
+    data=dict(values=values, profiles=profile_defaults(), context_confirmed=False)
     data["values"].setdefault("record_date",entry(date.today().isoformat(),"manual","Vorgeschlagenes Tagesdatum - prüfen"))
     data["values"].setdefault("operator",entry(current_user.username,"manual","Angemeldeter Benutzer - Einrichter bestätigen"))
     return data
