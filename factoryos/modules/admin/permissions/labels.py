@@ -82,6 +82,7 @@ for _action, _title, _description in (
     ('edit','Wizard und Entwürfe bearbeiten','Offene Einstellberichte manuell erfassen, Stammdatenvorschläge bestätigen und Maschinenfotos lokal auslesen. Stammdatenänderungen benötigen eigene Rechte.'),
     ('release','Geprüft abschließen','Vollständig geprüfte Einstellberichte schreibgeschützt abschließen. Dies ist keine Maschinen- oder Sicherheitsfreigabe.'),
     ('pdf_export','PDF und Ausdruck','Einstellberichte als PDF mit Prüfstatus und Quellen herunterladen und ausdrucken.'),
+    ('external_ocr','Externe Fotoerkennung (Groq)','Maschinenfotos nach Einzelbestätigung an Groq senden. Zusätzlich wird das Recht zum Bearbeiten des Einstellberichts benötigt.'),
 ):
     add('setup_reports', _action, _title, _description)
 

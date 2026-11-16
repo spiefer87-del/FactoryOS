@@ -105,4 +105,5 @@ PERMISSIONS = {
     "edit": "Offene Einstellberichte manuell bearbeiten, Stammdatenvorschläge prüfen und Maschinenfotos lokal auslesen.",
     "release": "Vollständig geprüfte Einstellberichte abschließen. Keine Maschinen- oder Sicherheitsfreigabe.",
     "pdf_export": "Einstellberichte als PDF herunterladen und ausdrucken.",
+    "external_ocr": "Maschinenfotos nach ausdrücklicher Bestätigung extern mit Groq auslesen. Benötigt zusätzlich Bearbeitungsrecht.",
 }

@@ -13,18 +13,18 @@ class Element{
  querySelector(selector){return this.querySelectorAll(selector)[0];}
  focus(){this.focused=true;}
 }
-function setup(editable=true){
- const ids=['sr-wizard','sr-boot','sr-csrf','sr-status','sr-state','sr-identities','sr-selectors','sr-context','sr-context-confirm','sr-steps','sr-entry-mode','sr-review','sr-step-title','sr-scanner','sr-parameters','sr-back','sr-next','sr-save','sr-manual','sr-open-scan','sr-profile','sr-camera','sr-file','sr-scan-result','sr-gaps','sr-release'];
+function setup(editable=true,external=false){
+ const ids=['sr-wizard','sr-boot','sr-csrf','sr-status','sr-state','sr-identities','sr-selectors','sr-context','sr-context-confirm','sr-steps','sr-entry-mode','sr-review','sr-step-title','sr-scanner','sr-parameters','sr-back','sr-next','sr-save','sr-manual','sr-open-scan','sr-profile','sr-camera','sr-file','sr-scan-result','sr-gaps','sr-release','sr-provider','sr-external-warning','sr-external-consent'];
  const nodes=Object.fromEntries(ids.map(id=>[id,new Element()]));
  nodes['sr-wizard'].append(...ids.filter(id=>id!=='sr-wizard').map(id=>nodes[id]));
  const fields=Object.fromEntries(['tool_no','machine_no','article_no','material_no','cycle_target','record_date','operator','controller'].map(key=>[key,{label:key,step:key==='cycle_target'?'injection':'identity',unit:key==='cycle_target'?'s':'',kind:key==='cycle_target'?'number':'text'}]));
  const values=Object.fromEntries(Object.keys(fields).map(key=>[key,{value:key==='cycle_target'?'42':'TEST',unit:fields[key].unit,status:'open',origin:'master',reason:''}]));
- const boot={editable,version:1,report_id:1,fields,profiles:{injection_profile:{label:'Einspritzprofil',step:'injection',columns:[['position','Position','cm³']]}},units:{'cm³':['cm³','mm']},origins:{master:'Stammdatenvorschlag',manual:'Handeingabe'},
+ const boot={editable,external_vision:{enabled:external,allowed:external,steps:['injection','movement','temperature']},version:1,report_id:1,fields,profiles:{injection_profile:{label:'Einspritzprofil',step:'injection',columns:[['position','Position','cm³']]}},units:{'cm³':['cm³','mm']},origins:{master:'Stammdatenvorschlag',manual:'Handeingabe'},
   steps:[['identity','Identität'],['injection','Spritzen'],['review','Prüfen']],data:{values,profiles:{},context_confirmed:false},context:{tool_id:1,machine_id:1,article_id:1,material_id:1},choices:{machines:[{id:1,label:'M1'}],articles:[{id:1,label:'A1'}],materials:[{id:1,label:'R1',category:'plastic'}]},save_url:'/save',photo_url:'/scan',context_url:'/context',photo_base:'/photos/0'};
  nodes['sr-boot'].textContent=JSON.stringify(boot);nodes['sr-csrf'].value='csrf';
  const calls=[];let photoData;
  const context={document:{getElementById:id=>nodes[id],createElement:tag=>new Element(tag)},window:new Element(),location:{reload(){}},structuredClone,FormData,Option:class extends Element{constructor(label,value){super('option');this.textContent=label;this.value=value;}},confirm:()=>true,prompt:()=> 'Im Test nicht zutreffend',
-  fetch:async(url,options)=>{let payload=options.body instanceof FormData?null:JSON.parse(options.body);calls.push({url,payload});let response;
+  fetch:async(url,options)=>{let payload=options.body instanceof FormData?null:JSON.parse(options.body);calls.push({url,payload,form:options.body instanceof FormData?options.body:null});let response;
    if(url==='/save')response={version:calls.length+1,data:payload.data,context:payload.ids,state:'draft',gaps:[]};
    else if(url==='/context')response={context:boot.context,values:boot.data.values,choices:boot.choices};
    else response=photoData;
@@ -80,5 +80,18 @@ function all(node){const out=[];function walk(n){out.push(n);n.children.forEach(
  const add=all(nodes['sr-parameters']).find(n=>n.textContent==='+ Stufe / Zone hinzufügen');await add.fire('click');
  await nodes['sr-save'].fire('click');assert.equal(calls.at(-1).payload.data.profiles.injection_profile.rows[0].active,'unknown');
  await nodes['sr-steps'].children[2].fire('click');assert.equal(nodes['sr-review'].hidden,false);
+ const cloud=setup(true,true),n=cloud.nodes;
+ await n['sr-steps'].children[1].fire('click');
+ n['sr-provider'].value='groq';await n['sr-provider'].fire('change');
+ assert.equal(n['sr-external-warning'].hidden,false);assert.equal(n['sr-external-consent'].checked,false);
+ n['sr-file'].files=[new Blob(['image'],{type:'image/jpeg'})];await n['sr-file'].fire('change');
+ assert.equal(cloud.calls.length,0,'No save or upload before per-photo consent');
+ cloud.setPhoto({version:2,photo_id:1,url:'/photos/1',result:{page:'injection',proposals:[],profiles:{},notes:[],text:''}});
+ n['sr-external-consent'].checked=true;await n['sr-file'].fire('change');
+ assert.equal(cloud.calls.at(-1).form.get('provider'),'groq');
+ assert.equal(cloud.calls.at(-1).form.get('step'),'injection');
+ assert.equal(cloud.calls.at(-1).form.get('external_consent'),'yes');
+ assert.equal(n['sr-external-consent'].checked,false,'Consent is consumed, not remembered for next photo');
+ const previousCalls=cloud.calls.length;await n['sr-file'].fire('change');assert.equal(cloud.calls.length,previousCalls);
  console.log('PASS: immediate visible field/profile adoption before save, edits after adoption, unconfirmed status and photo evidence, invalid 00 has no apply action, scanner preserved, no automatic overwrite, wizard navigation.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

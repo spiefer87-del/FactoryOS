@@ -45,7 +45,7 @@ assert not parse_words(damaged,'nc5')['profiles']
 with app.app_context():
     for model in (SetupReportPhoto,SetupReportRevision,SetupReport):model.__table__.drop(db.engine,checkfirst=True)
     before=Tool.query.count();run_upgrade(True);run_upgrade();run_upgrade();assert Tool.query.count()==before
-    assert Permission.query.filter(Permission.name.like('setup_reports.%')).count()==5
+    assert Permission.query.filter(Permission.name.like('setup_reports.%')).count()==6
     tool=Tool.query.filter_by(tool_no='W001').one();article=Article.query.filter_by(article_no='A001').one()
     material=Material.query.filter_by(material_no='R001').one();machine=Machine.query.filter_by(machine_no='M001').one()
     article.tools=[tool];article.material=material;article.cycle_time_s=42;article.shot_weight_g=50

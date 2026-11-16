@@ -82,9 +82,11 @@ def create(tool_id):
 def detail(tool_id,report_id):
     report=get_report(tool_id,report_id)
     is_editable=report.state=="draft" and has_permission(current_user,"setup_reports.edit")
+    from ..external_vision import public_status
     boot=dict(report_id=report.id,version=report.version,context=report.context,context_token=context_token(report,report.context),data=report.data,
         fields=FIELDS,profiles=PROFILES,steps=STEPS,units=UNITS,origins=ORIGINS,
         editable=is_editable,choices=choices(report.tool) if is_editable else {},
+        external_vision={**public_status(),"allowed":is_editable and has_permission(current_user,"setup_reports.external_ocr")},
         context_url=url_for("setup_reports.context",tool_id=tool_id,report_id=report.id),
         photo_url=url_for("setup_reports.scan",tool_id=tool_id,report_id=report.id),
         photo_base=url_for("setup_reports.photo",tool_id=tool_id,report_id=report.id,photo_id=0),
@@ -148,7 +150,12 @@ def save(tool_id,report_id):
 def scan(tool_id,report_id):
     csrf();report=get_report(tool_id,report_id);editable(report)
     version(report,request.form.get("version"))
-    if SetupReportPhoto.query.filter_by(report_id=report.id).count()>=12:return jsonify(error="Maximal 12 Fotos je Bericht. Weitere Angaben manuell ergänzen oder neue Fassung anlegen."),400
+    provider=request.form.get("provider","local")
+    if provider not in ("local","groq"):abort(400)
+    if provider=="groq":
+        if not has_permission(current_user,"setup_reports.external_ocr"):abort(403)
+        if request.form.get("external_consent")!="yes":return jsonify(error="Fotoübertragung an Groq bitte für dieses Foto ausdrücklich bestätigen."),400
+    elif SetupReportPhoto.query.filter_by(report_id=report.id).count()>=12:return jsonify(error="Maximal 12 Fotos je Bericht. Weitere Angaben manuell ergänzen oder neue Fassung anlegen."),400
     if request.content_length and request.content_length>11*1024*1024:abort(413)
     upload=request.files.get("photo")
     if not upload:return jsonify(error="Bitte ein Foto aufnehmen oder auswählen."),400
@@ -157,7 +164,13 @@ def scan(tool_id,report_id):
     from ..ocr import read_screen
     from factoryos.modules.masterdata.materials.services.material_scan_service import ScanUnavailable,ScanBusy
     try:
-        image,result=read_screen(upload.stream.read(10*1024*1024+1),profile)
+        raw=upload.stream.read(10*1024*1024+1)
+        if provider=="groq":
+            from ..external_vision import read_external
+            image,result,cached=read_external(raw,request.form.get("step"),profile,report)
+            if cached:
+                return jsonify(result=result,photo_id=cached.id,version=report.version,cached=True,url=url_for("setup_reports.photo",tool_id=tool_id,report_id=report.id,photo_id=cached.id))
+        else:image,result=read_screen(raw,profile)
         photo=SetupReportPhoto(report_id=report.id,actor_id=current_user.id,image=image,text=result["text"],result=result)
         # Serialize photo additions with saves using the report's optimistic version.
         report.updated_at=datetime.utcnow();db.session.add(photo)

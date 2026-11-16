@@ -212,13 +212,26 @@
   byId('sr-manual').addEventListener('click',()=>byId('sr-parameters').querySelector('input,textarea')?.focus());
   byId('sr-open-scan').addEventListener('click',()=>{byId('sr-scanner').hidden=false;});
   if(/NC\s*5/i.test(values.controller?.value||''))byId('sr-profile').value='nc5';
+  byId('sr-provider').addEventListener('change',()=>{
+    byId('sr-external-warning').hidden=byId('sr-provider').value!=='groq';
+    byId('sr-external-consent').checked=false;
+  });
   async function scan(event){
     const file=event.target.files[0];event.target.value='';if(!file||busy||!editable)return;
     if(file.size>10*1024*1024){msg('Foto ist größer als 10 MB.',true);return;}
+    const provider=byId('sr-provider').value||'local',scanStep=boot.steps[step][0];
+    if(provider==='groq'){
+      if(!boot.external_vision?.enabled||!boot.external_vision?.allowed){msg('Externe Erkennung ist nicht freigeschaltet.',true);return;}
+      if(!boot.external_vision.steps.includes(scanStep)){msg('Groq bitte in Spritz-, Werkzeug- oder Temperaturparametern verwenden.',true);return;}
+      if(!byId('sr-external-consent').checked){msg('Bitte die Übertragung dieses Fotos an Groq zuerst bewusst bestätigen.',true);return;}
+      byId('sr-external-consent').checked=false;
+    }
     if(!await save())return;
-    setBusy(true);msg('Foto wird lokal ausgelesen. Es werden keine Parameter ungefragt geändert.');
+    setBusy(true);msg(provider==='groq'?'Foto wird extern mit Groq ausgelesen. Angaben bleiben ungeprüfte Vorschläge.':'Foto wird lokal ausgelesen. Es werden keine Parameter ungefragt geändert.');
     try{
       const payload=new FormData();payload.append('photo',file,file.name);payload.append('version',String(version));payload.append('profile',byId('sr-profile').value);
+      payload.append('provider',provider);payload.append('step',scanStep);
+      if(provider==='groq')payload.append('external_consent','yes');
       const result=await api(boot.photo_url,payload,true);version=result.version;
       byId('sr-state').textContent='Entwurf · Stand '+version;
       renderScan(result);msg('Foto gespeichert. Vorschläge prüfen und einzeln übernehmen; die Handeingabe bleibt verfügbar.');

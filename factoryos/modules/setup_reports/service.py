@@ -140,7 +140,8 @@ def clean_data(report, payload, suggestions):
         if photo and any(p.get("field")==key and p.get("value")==value and p.get("unit")==unit for p in photo.result.get("proposals",[])):
             if not safe_scalar(key,value):
                 raise ValueError(spec['label']+': unsicherer Foto-Wert. Bitte am Bildschirm prüfen und von Hand korrigieren oder entfernen.')
-            source=entry(value,"photo","Foto #"+str(photo.id)+" - lokal erkannt und vom Benutzer geprüft");source["photo_id"]=photo.id
+            provider="extern mit Groq" if photo.result.get("provider")=="groq" else "lokal"
+            source=entry(value,"photo","Foto #"+str(photo.id)+" - "+provider+" erkannt; Prüfstatus separat beachten");source["photo_id"]=photo.id
         source.update(value=value,unit=unit,status=status,reason=reason)
         result["values"][key]=source
     for key,spec in PROFILES.items():
