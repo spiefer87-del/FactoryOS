@@ -22,7 +22,11 @@ def edit(order_id):
             return render_template("orders/edit.html",**form_context(order,request.form))
         try:
             acquire_control_lock()
+            if order.completion or (order.status or '').lower() in ('finished','fertig','abgeschlossen'):
+                raise ValueError('Abgeschlossene Aufträge sind schreibgeschützt. Ein Wiederöffnen benötigt einen gesonderten, protokollierten Ablauf.')
             data=validate_form(request.form,order)
+            if not order.is_project and str(data.get('status','')).lower() in ('finished','fertig','abgeschlossen'):
+                raise ValueError('Bitte den eigenen Button „Auftrag abschließen“ verwenden. Dort werden die tatsächlichen Endmengen bestätigt.')
             occupied=(TimeBooking.query.filter(TimeBooking.end_time.is_(None),or_(TimeBooking.order_id==order.id,TimeBooking.prev_order_id==order.id)).first() or
                 MachineControlState.query.filter_by(resume_order_id=order.id).first() or
                 ProductionPlanEntry.query.filter_by(order_id=order.id,state="queued").first())

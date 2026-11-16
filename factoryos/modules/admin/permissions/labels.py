@@ -21,6 +21,10 @@ def add(group, action, title, description):
     PERMISSION_TEXT[group + "." + action] = {"title": title, "description": description}
 
 
+add('orders','complete','Aufträge im Büro abschließen','Fertigungsaufträge auch ohne laufende Maschine mit bestätigten Endmengen abschließen. Keine Musterungsfreigabe und kein Wiederöffnen.')
+add('production','complete_order','Aufträge an der Maschine abschließen','Den aktuell zugeordneten Fertigungsauftrag mit Endmengen abschließen und die Produktion ausbuchen. Störungen/Wartungen werden nicht automatisch quittiert.')
+
+
 for group, noun in (("articles", "Artikel"), ("customers", "Kunden"),
                     ("machines", "Maschinen"), ("materials", "Materialien"),
                     ("orders", "Aufträge"), ("tools", "Werkzeuge")):

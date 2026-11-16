@@ -23,6 +23,7 @@ LABELS = {"FREI":"Bereit / frei", "PROD":"Produktion", "MUSTER":"Musterung",
           "RUEST":"Rüsten", "ABRUEST":"Abrüsten", "PAUSE":"Unterbrochen / bereit zum Fortsetzen",
           "STOERUNG":"Störung", "WARTUNG":"Wartung", "SONSTIG":"Sonstiger Vorgang"}
 ACTIONS = {
+    "complete_order":"Auftrag abschließen",
     "start":"Auftrag starten", "pause":"Produktion pausieren", "resume":"Vorgang fortsetzen",
     "stop":"Vorgang stoppen", "setup":"Rüsten starten", "unsetup":"Abrüsten starten",
     "finish_setup":"Rüsten beenden", "fault":"Störung melden", "clear_fault":"Entstören",
@@ -30,6 +31,7 @@ ACTIONS = {
     "other":"Sonstigen Vorgang starten", "finish_other":"Sonstigen Vorgang beenden",
 }
 PERMISSIONS = {"start":"production.start", "pause":"production.stop", "resume":"production.view",
+    "complete_order":"production.complete_order",
     "stop":"production.stop", "setup":"production.setup", "unsetup":"production.setup",
     "finish_setup":"production.setup", "fault":"production.stop", "clear_fault":"production.clear_fault",
     "maintenance":"production.maintenance", "finish_maintenance":"production.maintenance",
@@ -96,6 +98,7 @@ def _order(order_id, machine_id, ignore_booking_id=None):
     order = db.session.get(Order, int(order_id)) if order_id else None
     if not order or order.is_project or (order.status or "").lower() in TERMINAL:
         raise ValueError("Bitte einen offenen Fertigungs- oder Musterungsauftrag auswählen.")
+    if order.completion:raise ValueError('Auftrag ist mit bestätigten Endmengen abgeschlossen und kann nicht erneut gestartet werden.')
     if order.sampling:
         if order.sampling.state not in ("in_progress","review") or order.sampling.machine_id!=machine_id:
             raise ValueError("Musterung muss in Bearbeitung/Prüfung und dieser Maschine zugeordnet sein.")

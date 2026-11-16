@@ -9,7 +9,7 @@ from factoryos.extensions import db
 from factoryos.modules.orders.services.cycle_time import valid_cycle_time
 from factoryos.modules.masterdata.articles.models import Article
 from factoryos.modules.masterdata.tools.models import Tool
-from factoryos.modules.production.models import TimeBooking, QuantityReport, ProductionCalendarSettings
+from factoryos.modules.production.models import TimeBooking, QuantityReport, ProductionCalendarSettings, OrderCompletion
 from .calendar_service import calculate_production_finish, get_calendar_exceptions, get_non_working_periods
 
 LOCAL_ZONE = ZoneInfo("Europe/Berlin")
@@ -104,6 +104,10 @@ def order_statistics(order, now=None, settings=None, exceptions=None):
     reports, good, scrap, last_report = quantities
     good, scrap = count(good), count(scrap)
     target = count(order.target_qty)
+    completion=OrderCompletion.query.filter_by(order_id=order.id).first()
+    if completion:
+        complete=True
+        good=completion.good_qty;scrap=completion.scrap_qty;last_report=completion.closed_at;reports+=1
     article = order.sampling.article if order.sampling else Article.query.options(joinedload(Article.tools),joinedload(Article.masterbatch)).filter_by(article_no=order.article or "").first()
     number = ((active[0].tool_no if len(active)==1 else None) or order.tool_no or "").strip()
     tool = Tool.query.filter_by(tool_no=number).first() if number else None

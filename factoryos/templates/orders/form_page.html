@@ -16,11 +16,15 @@
 </section>
 <section class="order-form-card"><h2>{{ 'Projektangaben' if order and order.is_project else 'Menge und Produktionsvorgaben' }}</h2><div class="order-form-grid">
 {% if not order or not order.is_project %}<label>Stückzahl *<input type="number" name="target_qty" min="1" max="2147483647" step="1" inputmode="numeric" required value="{{ values.target_qty if values.target_qty is not none else '' }}"><small>Positive ganze Stückzahl; keine leere oder automatische Nullmenge.</small></label>{% include 'orders/cycle_field.html' %}{% endif %}
-{% if order %}<label>Status<select name="status">{% for key,label in status_options %}<option value="{{ key }}" {% if values.status==key %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>{% endif %}
+{% if order %}<label>Status<select name="status">{% for key,label in status_options %}{% if order.is_project or key not in ['fertig','finished','abgeschlossen'] or order.status==key %}<option value="{{ key }}" {% if values.status==key %}selected{% endif %}>{{ label }}</option>{% endif %}{% endfor %}</select><small>Fertigungsaufträge bitte über „Auftrag abschließen“ mit bestätigten Endmengen beenden.</small></label>{% endif %}
 <label>Standort<input name="location" maxlength="100" value="{{ values.location or '' }}"></label>
 <label class="order-form-wide">Beschreibung<textarea name="description" maxlength="255" rows="3">{{ values.description or '' }}</textarea></label>
 </div></section>
 <div class="order-form-actions"><button class="btn-primary" type="submit" name="intent" value="save">{{ 'Änderungen speichern' if order else 'Auftrag erstellen' }}</button><a class="btn-secondary" href="{{ url_for('orders.detail',order_id=order.id) if order else url_for('orders.overview') }}">Abbrechen</a></div>
 </form>
+{% if order and not order.is_project and not order.sampling %}<section class="order-form-card"><h2>Auftrag abschließen</h2>
+{% if order.completion or order.status|lower in ['finished','fertig','abgeschlossen'] %}<p>Dieser Auftrag ist bereits abgeschlossen. Abschluss und Endmengen sind in der Auftragsansicht dokumentiert.</p>
+{% elif can_access('orders.complete') %}<p>Auch ohne laufende Maschine möglich. Endgutmenge und Ausschuss ausdrücklich bestätigen. Nicht gespeicherte Änderungen bitte vorher speichern.</p><a class="btn-primary" href="{{ url_for('orders.complete',order_id=order.id) }}">Auftrag abschließen · Endmengen erfassen</a>
+{% else %}<p>Für den manuellen Büroabschluss fehlt die Berechtigung „Aufträge im Büro abschließen“.</p>{% endif %}</section>{% endif %}
 {% if not order or not order.is_project %}<script type="application/json" id="order-master-data">{{ {'articles':article_catalog,'selected_tool':values.tool_no or '', 'cycle_explicit':cycle_explicit}|tojson }}</script>{% endif %}
 </main>{% endblock %}

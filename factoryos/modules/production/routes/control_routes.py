@@ -76,6 +76,49 @@ def machine_control(machine_id):
     return response,status,{"Cache-Control":"no-store","X-Frame-Options":"SAMEORIGIN"}
 
 
+@bp.route('/machine/<int:machine_id>/control/stop',methods=['GET','POST'])
+@login_required
+@permission_required('production.view')
+def machine_stop(machine_id):
+    machine=Machine.query.get_or_404(machine_id);embedded=request.args.get('embedded')=='1'
+    error=None;status=200
+    if request.method=='POST':
+        if not valid_csrf():abort(400,'Formular abgelaufen. Bitte neu laden.')
+        try:
+            execute(machine_id,current_user.id,'stop',request.form.get('command_id'),request.form.get('revision'),comment=request.form.get('comment',''))
+            flash('Vorgang gestoppt. Der Auftrag bleibt offen.','success')
+            return redirect(url_for('production.machine_control',machine_id=machine_id,embedded='1' if embedded else None,changed='1'),303)
+        except ControlDenied as exc:db.session.rollback();abort(403,str(exc))
+        except ValueError as exc:db.session.rollback();error=str(exc);status=409 if isinstance(exc,ControlConflict) else 400
+        except SQLAlchemyError:db.session.rollback();error='Maschinenstand wurde parallel geändert. Bitte neu laden.';status=409
+    state=snapshot(machine_id);active=current_booking(machine_id)
+    expected=request.form.get('revision','') if request.method=='POST' else request.args.get('revision',state['revision'])
+    blocked=len(state['active'])>1 or expected!=state['revision'] or 'stop' not in available_actions(active.process if active else 'FREI')
+    if blocked:error='Maschinenstand passt nicht mehr. Bitte zur Maschinenbedienung zurückkehren und neu laden.';status=409
+    response=render_template('production/control/stop.html',machine=machine,active=active,embedded=embedded,
+        error=error,blocked=blocked,expected_revision=expected,command_id=str(uuid4()),
+        can_stop=has_permission(current_user,'production.stop'),
+        can_complete=has_permission(current_user,'production.complete_order') and active and active.order and not active.order.sampling and active.process in ('PROD','PAUSE'))
+    return response,status,{'Cache-Control':'no-store','X-Frame-Options':'SAMEORIGIN'}
+
+
+@bp.route('/machine/<int:machine_id>/control/complete-order',methods=['GET','POST'])
+@login_required
+@permission_required('production.complete_order')
+def machine_complete_order(machine_id):
+    if not has_permission(current_user,'production.view'):abort(403)
+    machine=Machine.query.get_or_404(machine_id);active=current_booking(machine_id)
+    order_id=request.form.get('order_id',type=int) if request.method=='POST' else active.order_id if active else None
+    if not order_id:abort(409,'Kein aktiver Auftrag auf dieser Maschine. Bitte neu laden.')
+    if request.method=='POST' and (not active or active.order_id!=order_id):
+        from factoryos.modules.production.models import OrderCompletion
+        receipt=OrderCompletion.query.filter_by(command_id=request.form.get('command_id'),order_id=order_id,
+            machine_id=machine.id,user_id=current_user.id,source='machine').first()
+        if not receipt:abort(409,'Auftragszuordnung an der Maschine wurde geändert. Bitte neu laden.')
+    from factoryos.modules.orders.routes.completion_routes import completion_page
+    return completion_page(Order.query.get_or_404(order_id),'machine',machine=machine,embedded=request.args.get('embedded')=='1')
+
+
 @bp.route("/machine/<int:machine_id>/control/fault",methods=["GET","POST"])
 @login_required
 @permission_required("production.view")
