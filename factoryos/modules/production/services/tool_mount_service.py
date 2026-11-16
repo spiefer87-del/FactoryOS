@@ -125,6 +125,8 @@ def confirm_tool_state(machine_id,user_id,command_id,revision,*,status,tool_no='
     if before['revision']!=revision:raise ControlConflict('Maschinenstand geändert. Bitte neu laden und Bestand erneut prüfen.')
     if len(before['active'])>1 or SetupOperation.query.filter_by(machine_id=machine_id,outcome='active').first():raise ControlConflict('Laufenden Rüstvorgang oder mehrdeutige Buchungen zuerst klären.')
     active=current_booking(machine_id)
+    if not active and (before['resume_process'] or before['resume_order_id'] or before['resume_tool_no']):
+        raise ControlConflict('Bestehende Maschinenreservierung ohne aktive Buchung zuerst klären. Es wird keine Leerlaufbuchung darübergelegt.')
     if active and active.process!='FREI':
         expected_tool=active.tool_no or (active.order.tool_no if active.order else None)
         if active.process not in ('PROD','MUSTER') or status!='mounted' or tool_no!=expected_tool:
@@ -134,13 +136,18 @@ def confirm_tool_state(machine_id,user_id,command_id,revision,*,status,tool_no='
         assert_tool_available(tool_no,machine_id)
     state=db.session.get(MachineToolState,machine_id)
     if not state:state=MachineToolState(machine_id=machine_id,updated_by_id=user_id);db.session.add(state)
-    state.status=status;state.tool_no=tool_no;state.requires_confirmation=False;state.updated_by_id=user_id;state.updated_at=datetime.utcnow()
+    now=datetime.utcnow()
+    state.status=status;state.tool_no=tool_no;state.requires_confirmation=False;state.updated_by_id=user_id;state.updated_at=now
+    from .idle_recording_service import start_idle_if_unbooked
+    initial_idle=start_idle_if_unbooked(machine_id,user_id,now,tool_no=tool_no)
     control=db.session.get(MachineControlState,machine_id)
     if not control:control=MachineControlState(machine_id=machine_id,version=0);db.session.add(control)
     control.version+=1;db.session.flush()
     after=snapshot(machine_id)
     receipt=MachineControlCommand(command_id=command_id,machine_id=machine_id,user_id=user_id,source='app',action='confirm_tool',
         payload_hash=digest,comment=reason,before_state=before,after_state=after);db.session.add(receipt)
+    changes={'tool_mount':{'old':before['tool_mount'],'new':after['tool_mount']},'reason':{'old':None,'new':reason}}
+    if initial_idle:changes['initial_idle_recording']={'old':None,'new':dict(booking_id=initial_idle.id,start_at_utc=now.isoformat(),process='FREI')}
     db.session.add(ChangeLog(entity_type='machine',entity_id=machine_id,entity_name=machine.machine_no,action='update',
-        category='tool_mount',user_id=user_id,changes={'tool_mount':{'old':before['tool_mount'],'new':after['tool_mount']},'reason':{'old':None,'new':reason}}))
+        category='tool_mount',user_id=user_id,changes=changes))
     db.session.commit();return receipt,False

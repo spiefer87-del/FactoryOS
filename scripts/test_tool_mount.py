@@ -48,7 +48,12 @@ with app.app_context():
         except ValueError:db.session.rollback()
         assert snapshot(m.id)==before and SetupOperation.query.count()==count
     assert tool_snapshot(m.id)['status']=='unknown'
-    n=TimeBooking.query.count();confirm('empty');assert TimeBooking.query.count()==n
+    n=TimeBooking.query.count()
+    with patch('factoryos.modules.production.services.tool_mount_service.datetime') as clock:
+        clock.utcnow.return_value=datetime.utcnow()-timedelta(hours=3)
+        confirm('empty')
+    assert TimeBooking.query.count()==n+1
+    assert current_booking(m.id).process=='FREI' and current_booking(m.id).order_id is None
     reject(lambda:run('start',order_id=oa.id))
     # A late audit failure must roll inventory, operation and booking back together.
     from sqlalchemy import event
