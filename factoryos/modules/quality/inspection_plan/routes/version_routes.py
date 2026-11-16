@@ -9,6 +9,7 @@ from ..services.revision_service import create_new_revision
 from ..services.builder_service import revision_token, workflow, readiness_errors, PlanValidation
 from factoryos.modules.quality.gauges.models import Gauge
 from . import bp
+from ..visual_presets import visual_presets
 
 
 def render_editor(version, errors=None, form_data=None, form_id=None, status=200):
@@ -22,7 +23,7 @@ def render_editor(version, errors=None, form_data=None, form_id=None, status=200
         else:targets[key]=key
     return render_template('quality/inspection_plan/version_editor.html', version=version,
         gauges=Gauge.query.filter_by(status='active').order_by(Gauge.gauge_no).all(),
-        modules=MODULES, status_labels=STATUS_LABELS, editable=editable, is_current=latest.id==version.id,
+        modules=MODULES, visual_presets=visual_presets(), status_labels=STATUS_LABELS, editable=editable, is_current=latest.id==version.id,
         revision_token=revision_token(version), readiness=readiness_errors(version),
         errors=errors or {}, error_targets=targets, form_data=form_data or {}, form_id=form_id,
         can_workflow=latest.id==version.id and allowed('quality.inspect')),status

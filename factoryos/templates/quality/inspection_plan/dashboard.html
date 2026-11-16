@@ -1,13 +1,26 @@
 {% extends 'layout/base.html' %}
-{% block styles %}<link rel="stylesheet" href="{{ url_for('static',filename='css/quality_plan.css') }}">{% endblock %}
-{% block content %}<div class="qm-builder qm-plan"><nav class="qm-top-actions"><h1>Prüfpläne</h1>{% if can_access('inspection.quality_create') %}<a class="btn-primary" href="{{ url_for('inspection.quality_create') }}">+ Prüfplan erstellen</a>{% endif %}</nav>
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static',filename='css/quality_plan.css') }}"><link rel="stylesheet" href="{{ url_for('static',filename='css/quality_plan_list.css') }}">{% endblock %}
+{% block content %}<div class="quality-plan-list">
+<div class="page-header"><div><h2>Prüfpläne</h2><div class="page-subtitle">Werkzeug- und Artikelzuordnung, Revisionen und Statusübersicht</div></div>{% if can_access('inspection.quality_create') %}<a class="btn-primary" href="{{ url_for('inspection.quality_create') }}">+ Prüfplan erstellen</a>{% endif %}</div>
 {% set labels={'draft':'Entwurf','review':'In Prüfung','released':'Freigegeben','closed':'Geschlossen'} %}
 {% set counts={'draft':0,'review':0,'released':0,'closed':0} %}
 {% for plan in plans %}{% if plan.versions %}{% set latest=plan.versions|sort(attribute='id',reverse=true)|first %}{% if latest.status in counts %}{% set _=counts.update({latest.status:counts[latest.status]+1}) %}{% endif %}{% endif %}{% endfor %}
-<div class="qm-overview-status">{% for key,label in labels.items() %}<div><strong>{{ counts[key] }}</strong><span>{{ label }}</span></div>{% endfor %}</div>
-<p class="qm-muted">Status der jeweils neuesten Revision. Frühere Freigaben bleiben in der Revisionshistorie erhalten.</p>
-<div class="qm-module-grid">{% for plan in plans %}{% set latest=plan.versions|sort(attribute='id',reverse=true)|first if plan.versions else none %}
-<article class="qm-module"><h2>{{ plan.tool.tool_no if plan.tool else 'Ohne Werkzeug' }}</h2><p><a href="{{ url_for('articles.detail',article_id=plan.article_id) }}">{{ plan.article.article_no }}</a> · {{ plan.article.article_name }}</p>
-{% if latest %}<p>Revision {{ latest.revision }} · <strong>{{ labels.get(latest.status,latest.status) }}</strong></p><a class="btn-primary" href="{{ url_for('inspection.quality_version_edit',plan_id=plan.id,version_id=latest.id) }}">Prüfplan öffnen</a>{% else %}<p>Noch keine Revision vorhanden.</p>{% endif %}
-{% if can_access('inspection.quality_delete_plan') and not plan.versions|rejectattr('status','equalto','draft')|list %}<form method="post" action="{{ url_for('inspection.quality_delete_plan',plan_id=plan.id) }}" onsubmit="return confirm('Diesen Entwurfsplan mit allen Modulen entfernen?')"><input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}"><button class="btn-danger">Entwurfsplan löschen</button></form>{% endif %}
-</article>{% else %}<p>Noch keine Prüfpläne vorhanden.</p>{% endfor %}</div></div>{% endblock %}
+<div class="quality-status-summary">{% for key,label in labels.items() %}<span><strong>{{ counts[key] }}</strong> {{ label }}</span>{% endfor %}</div>
+<p class="page-subtitle">Je Prüfplan wird die neueste Revision angezeigt. Frühere Fassungen bleiben in der Historie erhalten.</p>
+{% set columns=[('tool_no','Werkzeugnr.'),('article_no','Artikelnummer'),('article_name','Artikelbezeichnung'),('revision','Revision'),('status','Status'),('modules','Module'),('created','Erstellt'),('actions','Aktionen')] %}
+<div class="fos-table-wrapper" id="quality-plan-list-wrapper" data-user="{{ current_user.id }}">
+<div class="fos-table-toolbar"><label class="quality-search-label" for="quality-plan-search">Prüfpläne suchen<input id="quality-plan-search" type="search" class="fos-search" placeholder="Werkzeug, Artikel, Bezeichnung, Status …" data-table-search="quality-plans-table"></label>
+<details class="column-picker"><summary>Spalten auswählen</summary><div class="column-picker-panel">{% for key,label in columns %}<label><input type="checkbox" value="{{ key }}" data-quality-column {% if key not in ['modules','created'] %}checked{% endif %} {% if key in ['tool_no','actions'] %}disabled{% endif %}> {{ label }}</label>{% endfor %}<button type="button" class="btn-secondary" id="reset-quality-columns">Standard</button><small>Auswahl gilt für diesen Browser-Tab und dieses Benutzerkonto.</small></div></details></div>
+<p id="quality-plan-results" role="status" aria-live="polite"></p>
+<div class="fos-table-container" tabindex="0" role="region" aria-label="Prüfplantabelle, seitlich scrollbar"><table class="fos-table" id="quality-plans-table"><thead><tr>{% for key,label in columns %}<th data-col="{{ key }}" scope="col">{{ label }}</th>{% endfor %}</tr></thead><tbody>
+{% for plan in plans %}{% set latest=plan.versions|sort(attribute='id',reverse=true)|first if plan.versions else none %}
+<tr data-search-text="{{ plan.tool.tool_no if plan.tool else '' }} {{ plan.article.article_no if plan.article else '' }} {{ plan.article.article_name if plan.article else '' }} {{ latest.revision if latest else '' }} {{ labels.get(latest.status,latest.status) if latest else 'Ohne Revision' }}">
+<td data-col="tool_no">{% if latest %}<a class="quality-link-chip" href="{{ url_for('inspection.quality_version_edit',plan_id=plan.id,version_id=latest.id) }}">{{ plan.tool.tool_no if plan.tool else 'Ohne Werkzeug' }}</a>{% else %}{{ plan.tool.tool_no if plan.tool else '–' }}{% endif %}</td>
+<td data-col="article_no">{% if plan.article %}<a href="{{ url_for('articles.detail',article_id=plan.article_id) }}">{{ plan.article.article_no }}</a>{% else %}–{% endif %}</td>
+<td data-col="article_name">{{ plan.article.article_name if plan.article else '–' }}</td><td data-col="revision">{{ latest.revision if latest else '–' }}</td>
+<td data-col="status"><span class="quality-status quality-status-{{ latest.status if latest else 'unknown' }}">{{ labels.get(latest.status,latest.status) if latest else 'Ohne Revision' }}</span></td>
+<td data-col="modules">{{ latest.sections|length if latest else 0 }}</td><td data-col="created">{{ latest.created_at.strftime('%d.%m.%Y %H:%M') if latest and latest.created_at else '–' }}</td>
+<td data-col="actions"><div class="quality-row-actions">{% if latest %}<a class="btn-small btn-edit" href="{{ url_for('inspection.quality_version_edit',plan_id=plan.id,version_id=latest.id) }}">Öffnen</a>{% endif %}
+{% if can_access('inspection.quality_delete_plan') and not plan.versions|rejectattr('status','equalto','draft')|list %}<form method="post" action="{{ url_for('inspection.quality_delete_plan',plan_id=plan.id) }}" onsubmit="return confirm('Diesen Entwurfsplan mit allen Modulen entfernen?')"><input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}"><button class="btn-small btn-delete">Löschen</button></form>{% endif %}</div></td></tr>{% endfor %}
+</tbody></table></div><div class="fos-pagination" data-table="quality-plans-table"></div><noscript>Ohne JavaScript werden alle Prüfpläne angezeigt. Suche, Sortierung und Spaltenauswahl benötigen JavaScript.</noscript></div></div>
+<script src="{{ url_for('static',filename='js/quality_plan_list.js') }}"></script>{% endblock %}

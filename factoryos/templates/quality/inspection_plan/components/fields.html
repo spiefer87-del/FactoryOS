@@ -14,6 +14,12 @@
 {% set group='check-' ~ (check.id if check else 'new-' ~ section.id) %}
 <form method="post" action="{{ url_for('inspection.quality_save_check',section_id=section.id) }}" class="qm-edit-form" id="{{ group }}">
 {{ security() }}{% if check %}<input type="hidden" name="check_id" value="{{ check.id }}">{% endif %}
+{% if section.section_type=='visual' and not check %}
+<div class="qm-visual-presets"><label for="{{ group }}-preset">Typischen Kunststofffehler vorauswählen (optional)</label>
+<select id="{{ group }}-preset" data-visual-preset><option value="">Eigene Sichtprüfung / bitte auswählen</option>{% for preset in visual_presets %}<option value="{{ preset.key }}" data-values="{{ preset|tojson|forceescape }}">{{ preset.name }}</option>{% endfor %}</select>
+<button type="button" class="btn-secondary" data-apply-visual-preset>Vorlage in Eingabefelder übernehmen</button>
+<p><small>Nur eine Ausfüllhilfe: Kriterien, Prüfflächen und Grenzmuster prüfen und anpassen. Erst „Prüfmerkmal hinzufügen“ speichert den Eintrag.</small></p><span data-preset-status role="status" aria-live="polite"></span><noscript>Die Felder unten können jederzeit manuell ausgefüllt werden.</noscript></div>
+{% endif %}
 <div class="qm-field-grid">
 {{ field('name','Prüfmerkmal',check.name if check else '',true,group=group) }}
 {{ field('method','Prüfmethode / Hilfsmittel',check.method if check else '',true,group=group) }}

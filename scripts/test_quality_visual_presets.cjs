@@ -1,0 +1,15 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert'),path=require('path');
+const source=fs.readFileSync(path.join(__dirname,'../factoryos/static/js/quality_visual_presets.js'),'utf8');
+let handler,confirmed=false,focus=false;
+const fields=Object.fromEntries(['name','method','requirement'].map(key=>[key,{value:'',dispatchEvent(){},focus(){focus=true;}}]));
+const values={name:'Grat',method:'Sichtvergleich',requirement:'Kante A ohne Grat gemäß Grenzmuster'};
+const select={selectedOptions:[{dataset:{values:JSON.stringify(values)}}],focus(){focus=true;}};
+const status={textContent:''};const form={elements:fields,querySelector(selector){return selector==='[data-visual-preset]'?select:status;}};
+const button={closest(){return form;},addEventListener(_,callback){handler=callback;}};
+vm.runInNewContext(source,{document:{addEventListener(_,callback){callback();},querySelectorAll(){return [button];}},window:{confirm(){return confirmed;}},Event:class Event{}});
+handler();assert.equal(fields.name.value,'Grat');assert.match(status.textContent,/noch nicht gespeichert/);assert(focus);
+fields.name.value='Eigene Prüfung';handler();assert.equal(fields.name.value,'Eigene Prüfung');
+confirmed=true;handler();assert.equal(fields.name.value,'Grat');
+select.selectedOptions=[{dataset:{}}];handler();assert.match(status.textContent,/zuerst/);
+assert(!source.includes('fetch('));
+console.log('PASS: explicit application only; existing input protected by confirmation; cancel preserves input; no selection hint; no automatic network/save.');

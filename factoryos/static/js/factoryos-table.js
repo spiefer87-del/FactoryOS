@@ -86,41 +86,41 @@ document.addEventListener("DOMContentLoaded", function () {
                 .trim()
                 .replace(/\s*(kg|g|mm|cm|m|stück|st\.?|%)$/i, "")
                 .trim();
-        
+
             /*
              * Nur Werte behandeln, die vollständig numerisch sind.
              *
              * ATH001, COR063 usw. bleiben dadurch Text und werden
              * über localeCompare natürlich sortiert.
              */
-        
+
             // Deutsche Ganzzahl oder Dezimalzahl: 1234 / 1234,50
             if (/^-?\d+(?:,\d+)?$/.test(cleaned)) {
-        
+
                 return Number(
                     cleaned.replace(",", ".")
                 );
-        
+
             }
-        
+
             // Deutsche Tausenderdarstellung: 1.234 / 1.234,50
             if (/^-?\d{1,3}(?:\.\d{3})+(?:,\d+)?$/.test(cleaned)) {
-        
+
                 return Number(
                     cleaned
                         .replace(/\./g, "")
                         .replace(",", ".")
                 );
-        
+
             }
-        
+
             // Technische Dezimalwerte: 1234.5
             if (/^-?\d+\.\d+$/.test(cleaned)) {
-        
+
                 return Number(cleaned);
-        
+
             }
-        
+
             return null;
         }
 
@@ -129,37 +129,37 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const emptyA = valueA === "" || valueA === "-";
             const emptyB = valueB === "" || valueB === "-";
-        
+
             // Leere Werte immer ans Ende
             if (emptyA && !emptyB) {
                 return 1;
             }
-        
+
             if (!emptyA && emptyB) {
                 return -1;
             }
-        
+
             if (emptyA && emptyB) {
                 return 0;
             }
-        
-        
+
+
             const dateA = normalizeDate(valueA);
             const dateB = normalizeDate(valueB);
-        
+
             if (dateA !== null && dateB !== null) {
                 return dateA - dateB;
             }
-        
-        
+
+
             const numberA = normalizeNumber(valueA);
             const numberB = normalizeNumber(valueB);
-        
+
             if (numberA !== null && numberB !== null) {
                 return numberA - numberB;
             }
-        
-        
+
+
             /*
              * Natürliche Textsortierung:
              *
@@ -198,7 +198,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             filteredRows = allRows.filter(row => {
 
-                const text = row.innerText
+                const text = (row.dataset.searchText || row.innerText)
                     .replace(/\s+/g, " ")
                     .trim()
                     .toLowerCase();
