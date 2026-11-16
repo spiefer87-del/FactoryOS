@@ -13,6 +13,12 @@ def delete(tool_id):
 
     tool = Tool.query.get_or_404(tool_id)
 
+    from factoryos.modules.setup_reports.models import SetupReport
+    from sqlalchemy import inspect
+    if inspect(db.engine).has_table('setup_reports') and SetupReport.query.filter_by(tool_id=tool.id).first():
+        flash("Werkzeug besitzt Einstellberichte. Bitte nicht löschen, sondern den Werkzeugstatus ändern.", "warning")
+        return redirect(url_for("tools.detail", tool_id=tool.id))
+
     from factoryos.modules.sampling.models import SamplingOrder
     if SamplingOrder.query.filter_by(tool_id=tool.id).first():
         flash("Dieser Stammdatensatz wird von einem Musterungsauftrag verwendet und kann nicht gelöscht werden.", "warning")

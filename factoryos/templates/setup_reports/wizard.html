@@ -1,0 +1,36 @@
+{% extends "layout/base.html" %}
+{% block styles %}{{ super() }}<link rel="stylesheet" href="{{ url_for('static',filename='css/setup_reports.css',v='1') }}"><script src="{{ url_for('static',filename='js/setup_reports.js',v='1') }}" defer></script>{% endblock %}
+{% block content %}
+<div class="sr-wrap" id="sr-wizard"><p class="sr-eyebrow">WERKZEUG {{ report.context.tool_no }} / EINSTELLBERICHT {{ report.id }}</p>
+<h1>Einstellungen Schritt für Schritt</h1>
+<div class="sr-toolbar"><a class="sr-link" href="{{ url_for('setup_reports.overview',tool_id=report.tool_id) }}">Alle Einstellberichte</a><span id="sr-state">{{ 'Geprüft abgeschlossen' if report.state=='released' else 'Entwurf' }} · Stand {{ report.version }}</span>
+{% if can_access('setup_reports.pdf') %}<a class="btn-secondary" href="{{ url_for('setup_reports.pdf',tool_id=report.tool_id,report_id=report.id) }}">PDF / Drucken</a>{% endif %}
+{% if can_access('setup_reports.create') %}<form method="post" action="{{ url_for('setup_reports.create',tool_id=report.tool_id) }}"><input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}"><input type="hidden" name="previous_id" value="{{ report.id }}"><button class="btn-secondary">Neue Fassung als Vorlage</button></form>{% endif %}</div>
+<p class="sr-note">Stammdaten und Fotos liefern Vorschläge, keine geprüften Maschinenfreigaben. Sollwerte und Messwerte bleiben getrennt. Änderungen hier schreiben keine Stammdaten zurück.</p>
+<nav id="sr-steps" aria-label="Schritte des Einstellberichts"></nav>
+<p id="sr-status" role="status" aria-live="polite"></p>
+<section id="sr-identities" class="sr-card"><h2>Werkzeug, Maschine und Stammdaten zuordnen</h2>
+<p>Vorhandene Daten werden vorgeschlagen, niemals als bereits bestätigt übernommen. Bei mehreren Artikeln bitte bewusst auswählen.</p>
+<div id="sr-selectors" class="sr-grid"></div><button type="button" id="sr-context" class="btn-primary">Stammdatenvorschläge laden / aktualisieren</button>
+<label class="sr-check"><input type="checkbox" id="sr-context-confirm">Werkzeug, Maschine, Artikel und Materialzuordnungen geprüft und bestätigt</label>
+<details><summary>Stammdatensatz fehlt oder Zuordnung stimmt nicht?</summary><p>Entwurf zuerst speichern. Stammdaten öffnen sich separat; anschließend Vorschläge neu laden. Änderungen werden nicht automatisch übernommen.</p><div class="sr-toolbar">
+{% for endpoint,label in [('articles.create','Artikel anlegen'),('customers.create','Kunde anlegen'),('machines.create','Maschine anlegen'),('materials.create','Rohstoff / Farbbatch anlegen'),('tools.edit','Werkzeug bearbeiten')] %}{% if can_access(endpoint) %}<a class="sr-link" target="_blank" rel="noopener" href="{{ url_for(endpoint,tool_id=report.tool_id) if endpoint=='tools.edit' else url_for(endpoint) }}">{{ label }} ↗</a>{% endif %}{% endfor %}</div><p>Fehlt die Berechtigung zur Stammdatenpflege, bitte eine berechtigte Person hinzuziehen. Neue Artikel bitte dem Werkzeug zuordnen und Kunden/Rohstoffe am Artikel pflegen. Danach Vorschläge neu laden, auswählen und bestätigen.</p></details>
+</section>
+<section class="sr-card" id="sr-entry-mode"><h2 id="sr-step-title"></h2><p>Wie möchtest du diesen Bereich erfassen?</p><div class="sr-toolbar"><button type="button" class="btn-primary" id="sr-manual">Manuell eingeben</button><button type="button" class="btn-secondary" id="sr-open-scan">Foto-Erkennung versuchen</button></div>
+<div id="sr-scanner" hidden><p>Nur die relevante Bildschirmseite gerade und gut lesbar fotografieren. Pro Bericht bis zu 12 Fotos; jedes Foto einzeln auslesen. Fotos werden geschützt mit dem Bericht gespeichert.</p>
+<label>Erkennungsprofil<select id="sr-profile"><option value="unknown">Unbekannte Steuerung - Text als Eingabehilfe</option><option value="nc5">Sumitomo Demag NC5 - Zuordnung versuchen</option></select></label>
+<div class="sr-toolbar"><label class="btn-primary" role="button" tabindex="0">Foto aufnehmen<input type="file" id="sr-camera" accept="image/*" capture="environment" hidden></label><label class="btn-secondary" role="button" tabindex="0">Vorhandenes Foto<input type="file" id="sr-file" accept="image/jpeg,image/png,image/webp" hidden></label></div>
+<p class="sr-note">JPEG/PNG/WebP, maximal 10 MB / 24 MP. Lokal auf eurem Server, kein Cloud-Upload. Unbekannte Layouts und nicht sichere Stufen werden nicht geraten.</p><div id="sr-scan-result"></div></div>
+</section>
+<section id="sr-parameters"></section>
+<section class="sr-card" id="sr-review" hidden><h2>Was fehlt noch?</h2><p>Jeder Wert muss bestätigt oder begründet als nicht zutreffend markiert sein. Vorschläge zu Trocknung und Temperaturen sind keine Nachweise der tatsächlich verwendeten Einstellung.</p><div id="sr-gaps"></div>
+{% if can_access('setup_reports.save') and can_access('setup_reports.pdf') %}<p>Entwurf bei Bedarf speichern und als PDF prüfen.</p>{% endif %}
+{% if can_release and boot.editable %}<button id="sr-release" type="button" class="btn-primary">Geprüft abschließen</button>{% endif %}
+</section>
+<div class="sr-footer"><button type="button" id="sr-back" class="btn-secondary">← Zurück</button><button type="button" id="sr-save" class="btn-secondary">Entwurf speichern</button><button type="button" id="sr-next" class="btn-primary">Speichern und weiter →</button></div>
+<details class="sr-card"><summary>Fotos und Erkennungsquellen ({{ photos|length }})</summary><div class="sr-photo-grid">{% for photo in photos %}<a target="_blank" rel="noopener" href="{{ url_for('setup_reports.photo',tool_id=report.tool_id,report_id=report.id,photo_id=photo.id) }}"><img loading="lazy" alt="Bildschirmfoto {{ photo.id }}" src="{{ url_for('setup_reports.photo',tool_id=report.tool_id,report_id=report.id,photo_id=photo.id) }}">Foto {{ photo.id }} · {{ photo.result.get('page','') }}</a>{% endfor %}</div></details>
+<details class="sr-card"><summary>Historie / gespeicherte Stände</summary><ul>{% for r in revisions %}<li><a href="{{ url_for('setup_reports.history',tool_id=report.tool_id,report_id=report.id,revision=r.version) }}">Stand {{ r.version }}</a> · {{ r.created_at.strftime('%d.%m.%Y %H:%M') }} UTC · Benutzer-ID {{ r.actor_id }}</li>{% endfor %}</ul></details>
+<input id="sr-csrf" type="hidden" value="{{ security_csrf_token() }}"><script id="sr-boot" type="application/json">{{ boot|tojson }}</script>
+<noscript>Der Wizard benötigt JavaScript. Bitte aktivieren; vorhandene Berichte können über PDF gelesen werden.</noscript>
+</div>
+{% endblock %}

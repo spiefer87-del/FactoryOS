@@ -6,6 +6,7 @@ GROUP_LABELS = {
     "projects": "Projekte", "quality": "Qualitätssicherung",
     "sampling": "Musterungsaufträge", "tool_error": "Werkzeugfehlermeldungen",
     "tools": "Werkzeuge", "users": "Benutzerverwaltung",
+    "setup_reports": "Werkzeug-Einstellberichte",
 }
 ROLE_LABELS = {"admin": "Systemadministration", "production": "Produktion",
                "quality": "Qualitätssicherung", "qm": "Qualitätsmanagement",
@@ -73,6 +74,16 @@ add("users", "view", "Benutzer ansehen", "Die Benutzerübersicht mit Namen, zuge
 add("users", "create", "Benutzer anlegen", "Neue Benutzerkonten mit einer zulässigen Rolle anlegen. Nichtadministrative Nutzer dürfen keine weitergehenden Rollenrechte vergeben.")
 add("users", "edit", "Benutzer bearbeiten", "Zulässige Benutzerkonten umbenennen, umstufen, aktivieren oder deaktivieren und deren Passwort zurücksetzen. Höher privilegierte Konten bleiben geschützt; das eigene Passwort wird im Profil geändert.")
 add("users", "delete", "Benutzer löschen", "Unbenutzte Konten im zulässigen Verwaltungsbereich löschen. Konten mit zugeordneten Vorgängen stattdessen deaktivieren; das eigene Konto bleibt geschützt.")
+
+
+for _action, _title, _description in (
+    ('view','Einstellberichte ansehen','Einstellberichte mit Historie und zugehörigen Bildschirmfotos am Werkzeug öffnen.'),
+    ('create','Einstellberichte beginnen','Einen neuen Einstellbericht oder eine neue Fassung als ungeprüfte Vorlage am Werkzeug anlegen.'),
+    ('edit','Wizard und Entwürfe bearbeiten','Offene Einstellberichte manuell erfassen, Stammdatenvorschläge bestätigen und Maschinenfotos lokal auslesen. Stammdatenänderungen benötigen eigene Rechte.'),
+    ('release','Geprüft abschließen','Vollständig geprüfte Einstellberichte schreibgeschützt abschließen. Dies ist keine Maschinen- oder Sicherheitsfreigabe.'),
+    ('pdf_export','PDF und Ausdruck','Einstellberichte als PDF mit Prüfstatus und Quellen herunterladen und ausdrucken.'),
+):
+    add('setup_reports', _action, _title, _description)
 
 
 def group_label(name):

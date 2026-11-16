@@ -12,6 +12,9 @@
     </div>
 
     <div class="page-actions">
+        {% if can_access('setup_reports.overview') %}
+        <a class="btn-small btn-edit" href="{{ url_for('setup_reports.overview', tool_id=tool.id) }}">Einstellberichte / Wizard</a>
+        {% endif %}
         <a class="btn-small btn-edit"
            href="{{ url_for('tools.edit', tool_id=tool.id) }}">
            ✏ Bearbeiten

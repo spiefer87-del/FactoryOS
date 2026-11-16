@@ -1,0 +1,12 @@
+{% extends "layout/base.html" %}
+{% block styles %}{{ super() }}<link rel="stylesheet" href="{{ url_for('static',filename='css/setup_reports.css',v='1') }}">{% endblock %}
+{% block content %}
+<div class="sr-wrap"><p class="sr-eyebrow">WERKZEUG / EINSTELLBERICHTE</p><h1>{{ tool.tool_no }} · {{ tool.name or '' }}</h1>
+<div class="sr-toolbar"><a class="btn-secondary" href="{{ url_for('tools.detail',tool_id=tool.id) }}">Zum Werkzeug</a>
+{% if can_access('setup_reports.create') %}<form method="post" action="{{ url_for('setup_reports.create',tool_id=tool.id) }}"><input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}"><button class="btn-primary">Einstellbericht beginnen</button></form>{% endif %}</div>
+<p>Schrittweise erfassen: Handeingabe oder lokale Foto-Ausfüllhilfe. Stammdaten sind Vorschläge und müssen bestätigt werden. Keine Steuerung oder Freigabe der Maschine.</p>
+<div class="sr-card sr-table-wrap"><table class="sr-table"><thead><tr><th>Bericht</th><th>Maschine</th><th>Artikel</th><th>Status</th><th>Stand</th><th>Geändert (UTC)</th></tr></thead><tbody>
+{% for r in reports %}<tr><td><a class="sr-link" href="{{ url_for('setup_reports.detail',tool_id=tool.id,report_id=r.id) }}">Bericht {{ r.id }} →</a></td><td>{{ r.context.get('machine_no') or 'Noch offen' }}</td><td>{{ r.context.get('article_no') or 'Noch offen' }}</td><td>{{ 'Geprüft abgeschlossen' if r.state=='released' else 'Entwurf' }}</td><td>{{ r.version }}</td><td>{{ r.updated_at.strftime('%d.%m.%Y %H:%M') }}</td></tr>
+{% else %}<tr><td colspan="6">Noch kein Einstellbericht. Auch ohne Fotos vollständig von Hand erfassbar.</td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}
