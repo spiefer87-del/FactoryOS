@@ -14,6 +14,7 @@ from factoryos.modules.masterdata.tools.models import Tool
 from ..models import SetupReport, SetupReportPhoto, SetupReportRevision
 from ..schema import FIELDS, PROFILES, STEPS, UNITS, ORIGINS
 from ..service import choices, make_context, initial_data, clean_data, gaps, snapshot
+from ..validation import ReportValidationError, error_payload
 
 bp=Blueprint("setup_reports",__name__,url_prefix="/masterdata/tools/<int:tool_id>/setup-reports")
 
@@ -105,7 +106,7 @@ def context(tool_id,report_id):
     try:
         ids=request.get_json().get("ids",{});context,values=make_context(report.tool,ids)
         return jsonify(context=context,context_token=context_token(report,context),values=values,choices=choices(report.tool))
-    except (ValueError,AttributeError) as error:return jsonify(error=str(error)),400
+    except (ValueError,AttributeError) as error:return jsonify(error_payload(error)),400
 
 
 @bp.route("/<int:report_id>/save",methods=["POST"])
@@ -125,9 +126,9 @@ def save(tool_id,report_id):
             serializer=URLSafeSerializer(current_app.secret_key,salt='setup-context-v1')
             preview=serializer.loads(payload.get('context_token',''))
             if preview!=serializer.loads(context_token(report,context)):
-                raise ValueError('Zuordnungen wurden geändert. Bitte Stammdatenvorschläge laden und erneut bestätigen.')
+                raise ReportValidationError('Zuordnungen wurden geändert. Bitte Stammdatenvorschläge laden und erneut bestätigen.',context='context_confirmed')
         except BadSignature:
-            raise ValueError('Stammdatenvorschläge bitte zuerst laden und Zuordnungen bestätigen.')
+            raise ReportValidationError('Stammdatenvorschläge bitte zuerst laden und Zuordnungen bestätigen.',context='context_confirmed')
         data=clean_data(report,payload.get("data"),suggestions)
         report.context=context;report.data=data;report.updated_at=datetime.utcnow()
         if payload.get("release"):
@@ -139,7 +140,7 @@ def save(tool_id,report_id):
         db.session.commit()
         return jsonify(version=report.version,data=report.data,context=report.context,state=report.state,gaps=gaps(report))
     except ValueError as error:
-        db.session.rollback();return jsonify(error=str(error)),400
+        db.session.rollback();return jsonify(error_payload(error)),400
     except (IntegrityError,StaleDataError):
         db.session.rollback();return jsonify(error="Zwischenzeitliche Änderung. Eigene Eingaben sichern, dann neu laden."),409
 

@@ -1,5 +1,5 @@
 {% extends "layout/base.html" %}
-{% block styles %}{{ super() }}<link rel="stylesheet" href="{{ url_for('static',filename='css/setup_reports.css',v='20261116-checks') }}"><script src="{{ url_for('static',filename='js/setup_reports.js',v='20261116-groq-1') }}" defer></script>{% endblock %}
+{% block styles %}{{ super() }}<link rel="stylesheet" href="{{ url_for('static',filename='css/setup_reports.css',v='20261116-field-errors') }}"><script src="{{ url_for('static',filename='js/setup_reports.js',v='20261116-field-errors') }}" defer></script>{% endblock %}
 {% block content %}
 <div class="sr-wrap" id="sr-wizard"><p class="sr-eyebrow">WERKZEUG {{ report.context.tool_no }} / EINSTELLBERICHT {{ report.id }}</p>
 <h1>Einstellungen Schritt für Schritt</h1>
@@ -9,6 +9,7 @@
 <p class="sr-note">Stammdaten und Fotos liefern Vorschläge, keine geprüften Maschinenfreigaben. Sollwerte und Messwerte bleiben getrennt. Änderungen hier schreiben keine Stammdaten zurück.</p>
 <nav id="sr-steps" aria-label="Schritte des Einstellberichts"></nav>
 <p id="sr-status" role="status" aria-live="polite"></p>
+<section id="sr-errors" class="sr-error-summary" role="alert" tabindex="-1" hidden></section>
 <section id="sr-identities" class="sr-card"><h2>Werkzeug, Maschine und Stammdaten zuordnen</h2>
 <p>Vorhandene Daten werden vorgeschlagen, niemals als bereits bestätigt übernommen. Bei mehreren Artikeln bitte bewusst auswählen.</p>
 <div id="sr-selectors" class="sr-grid"></div><button type="button" id="sr-context" class="btn-primary">Stammdatenvorschläge laden / aktualisieren</button>

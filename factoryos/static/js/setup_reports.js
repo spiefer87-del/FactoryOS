@@ -9,6 +9,57 @@
   const byId=id=>document.getElementById(id);
   const values=data.values||(data.values={}),profiles=data.profiles||(data.profiles={});
   const selectors={};
+  let issues=[];
+  const fieldTargets=new Map(),contextTargets=new Map();
+  const targetKey=g=>JSON.stringify([g.field||null,g.profile||null,g.row??null,g.column||null,g.context||null]);
+  function bindTarget(control,container,location){
+    const hint=node('p',null,container,'sr-field-error');hint.hidden=true;
+    hint.id='sr-error-'+[location.field||location.profile||location.context,location.row??'',location.column||''].join('-');
+    const map=location.context?contextTargets:fieldTargets;
+    map.set(targetKey(location),{control,hint});
+    for(const event of ['input','change'])control.addEventListener(event,()=>{
+      issues=issues.filter(g=>targetKey(g)!==targetKey(location));paintErrors();
+    });
+  }
+  function locate(g){
+    const map=g.context?contextTargets:fieldTargets;
+    return map.get(targetKey(g))||map.get(targetKey({...g,column:null}))||map.get(targetKey({...g,row:null,column:null}));
+  }
+  function goToIssue(g){
+    step=Math.max(0,boot.steps.findIndex(s=>s[0]===g.step));render();
+    const target=locate(g)?.control;
+    (target||byId('sr-errors')).scrollIntoView?.({behavior:'smooth',block:'center',inline:'center'});
+    target?.focus({preventScroll:true});
+  }
+  function paintErrors(){
+    for(const {control,hint} of [...fieldTargets.values(),...contextTargets.values()]){
+      control.removeAttribute('aria-invalid');control.removeAttribute('aria-describedby');hint.hidden=true;
+    }
+    for(const g of issues){const entry=locate(g);if(!entry)continue;
+      entry.control.setAttribute('aria-invalid','true');entry.control.setAttribute('aria-describedby',entry.hint.id);
+      entry.hint.textContent=g.message||g.label;entry.hint.hidden=false;
+    }
+    const box=byId('sr-errors');box.replaceChildren();box.hidden=!issues.length;
+    if(issues.length){
+      node('h2','Bitte Angaben prüfen – nicht gespeichert',box);
+      node('p','Deine Eingaben bleiben erhalten. Klicke auf den Hinweis, um zum betroffenen Feld zu springen.',box);
+      const list=node('ul',null,box);
+      for(const g of issues){const title=g.step_label||boot.steps.find(s=>s[0]===g.step)?.[1]||'Einstellbericht';
+        action(node('li',null,list),title+' → '+g.label+(g.message?' – '+g.message:''),()=>goToIssue(g));
+      }
+    }
+    [...byId('sr-steps').children].forEach((button,i)=>{
+      const count=issues.filter(g=>g.step===boot.steps[i][0]).length;
+      button.dataset.errors=String(count);button.setAttribute('aria-label',boot.steps[i][1]+(count?' – '+count+' Fehler':''));
+    });
+  }
+  function failure(error){
+    issues=error.issues||[];
+    if(issues.length)goToIssue(issues[0]);
+    paintErrors();
+    msg(error.message,true);
+    if(!issues.length)byId('sr-status').scrollIntoView?.({behavior:'smooth',block:'center'});
+  }
   const statusViews=new WeakMap();
   const syncStatus=item=>statusViews.get(item)?.();
   const fresh=unit=>({value:'',unit,status:'open',origin:'manual',reason:'',photo_id:null});
@@ -21,7 +72,7 @@
   async function api(url,payload,form=false){
     const response=await fetch(url,{method:'POST',credentials:'same-origin',cache:'no-store',headers:form?{'X-Access-CSRF':csrf}:{'Content-Type':'application/json','X-Access-CSRF':csrf},body:form?payload:JSON.stringify(payload)});
     if(!response.headers.get('content-type')?.includes('application/json'))throw new Error('Anmeldung, Berechtigung oder Formular prüfen. Eingaben bleiben hier erhalten; vor Neuladen sichern.');
-    const result=await response.json();if(!response.ok){if(result.gaps)showGaps(result.gaps);throw new Error(result.error||'Vorgang fehlgeschlagen. Eingaben bleiben erhalten.');}return result;
+    const result=await response.json();if(!response.ok){const error=new Error(result.error||'Vorgang fehlgeschlagen. Eingaben bleiben erhalten.');error.issues=result.errors||result.gaps||[];throw error;}return result;
   }
   function ids(){return Object.fromEntries(Object.entries(selectors).map(([key,n])=>[key,n.value]));}
   function select(parent,options,value,callback){
@@ -35,18 +86,20 @@
   function action(parent,label,callback,cls='btn-secondary'){
     const b=node('button',label,parent,cls);b.type='button';b.addEventListener('click',callback);return b;
   }
-  function statusControl(parent,item,label='Angabe'){
+  function statusControl(parent,item,label='Angabe',location={}){
     const tools=node('div',null,parent,'sr-confirm-controls');
     const checkedLabel=node('label',null,tools,'sr-check');
     const checked=node('input',null,checkedLabel);checked.type='checkbox';checked.dataset.status='confirmed';checked.setAttribute('aria-label',label+' geprüft');node('span','Geprüft',checkedLabel);
     const naLabel=node('label',null,tools,'sr-check');
     const na=node('input',null,naLabel);na.type='checkbox';na.dataset.status='na';na.setAttribute('aria-label',label+' nicht zutreffend');node('span','Nicht zutreffend',naLabel);
     const reason=input(parent,item.reason||'',v=>item.reason=v);reason.placeholder='Begründung für nicht zutreffend';reason.maxLength=800;
+    if(location.field||location.profile)bindTarget(reason,parent,{...location,column:'reason'});
     function refresh(){checked.checked=item.status==='confirmed';na.checked=item.status==='na';reason.hidden=item.status!=='na';if(parent.dataset.parameter)parent.className=checked.checked?'sr-confirmed':'sr-pending';}
     statusViews.set(item,refresh);refresh();
     checked.addEventListener('change',()=>{
       if(checked.checked&&('rows' in item?!item.rows.length:!String(item.value||'').trim())){
-        checked.checked=false;msg('Bitte zuerst einen Wert bzw. Profilstufen erfassen. Für nicht verwendete Angaben „Nicht zutreffend“ wählen und begründen.',true);return;
+        checked.checked=false;const message='Bitte zuerst einen Wert bzw. Profilstufen erfassen. Für nicht verwendete Angaben „Nicht zutreffend“ wählen und begründen.';
+        failure({message:label+': '+message,issues:[{...location,label,message,step:(boot.fields[location.field]||boot.profiles[location.profile])?.step||boot.steps[step][0]}]});return;
       }
       item.status=checked.checked?'confirmed':'open';if(checked.checked){item.reason='';reason.value='';}refresh();changed();
     });
@@ -62,6 +115,8 @@
     if(item.photo_id){const a=node('a','Quellfoto '+item.photo_id,parent,'sr-link');a.href=boot.photo_base.replace(/\/0$/, '/'+item.photo_id);a.target='_blank';a.rel='noopener';}
   }
   function renderSelectors(){
+    for(const {control,hint} of contextTargets.values()){control.removeAttribute('aria-invalid');control.removeAttribute('aria-describedby');hint.remove?.();}
+    contextTargets.clear();
     const box=byId('sr-selectors');box.replaceChildren();
     const definitions=[['machine_id','Maschine','machines'],['article_id','Artikel dieses Werkzeugs','articles'],['material_id','Hauptrohstoff','materials'],['masterbatch_id','Farbbatch (optional)','materials']];
     for(const [key,label,collection] of definitions){
@@ -75,7 +130,9 @@
         data.context_confirmed=false;byId('sr-context-confirm').checked=false;
         msg('Zuordnung geändert. Bitte „Stammdatenvorschläge laden“ drücken und anschließend bestätigen.',true);
       });
+      bindTarget(selectors[key],wrap,{context:key});
     }
+    bindTarget(byId('sr-context-confirm'),byId('sr-identities'),{context:'context_confirmed'});
     selectors.article_id.addEventListener('change',()=>{selectors.material_id.value='';selectors.masterbatch_id.value='';articleDefaults=true;});
     selectors.material_id.addEventListener('change',()=>{articleDefaults=false;});
     selectors.masterbatch_id.addEventListener('change',()=>{articleDefaults=false;});
@@ -92,6 +149,7 @@
       const result=await api(boot.context_url,{ids:selected});
       const associationChanged=['machine_id','article_id','material_id','masterbatch_id'].some(key=>context[key]!==result.context[key]);
       context=result.context;contextToken=result.context_token;boot.choices=result.choices;articleDefaults=false;
+      issues=issues.filter(g=>!g.context);
       for(const [key,item] of Object.entries(values)){
         if(['master','recommendation'].includes(item.origin))values[key]=result.values[key]||fresh(boot.fields[key].unit);
       }
@@ -104,11 +162,12 @@
       }
       data.context_confirmed=false;byId('sr-context-confirm').checked=false;changed();renderSelectors();render();
       msg('Stammdatenvorschläge geladen. Jeden übernommenen Wert und die Zuordnungen bitte bestätigen. Eigene abweichende Werte bleiben zur Prüfung stehen.');
-    }catch(error){msg(error.message,true);}finally{setBusy(false);}
+    }catch(error){setBusy(false);failure(error);}finally{setBusy(false);}
   });
   const nav=byId('sr-steps');
   boot.steps.forEach(([key,title],index)=>action(nav,`${index+1}. ${title}`,()=>{step=index;render();}));
   function render(){
+    fieldTargets.clear();
     const key=boot.steps[step][0];
     [...nav.children].forEach((b,i)=>{if(i===step)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current');});
     byId('sr-identities').hidden=key!=='identity';byId('sr-entry-mode').hidden=['identity','review'].includes(key);
@@ -142,7 +201,9 @@
         if(['notes','packaging','mold_safety','core_sequence'].includes(name)){
           n=node('textarea',null,label);n.value=item.value;n.addEventListener('input',()=>{edit(n.value);changed();});n.maxLength=4000;
         }else{n=input(label,item.value,edit,spec.kind);n.maxLength=300;}
-        n.dataset.field=name;unitControl(wrap,item,spec.unit);origin(wrap,item);statusControl(wrap,item,spec.label);
+        n.dataset.field=name;bindTarget(n,wrap,{field:name});
+        if(name==='nozzle_radius')node('small','Düsenradius in mm: 40, 40,5 oder R40 / R 40 eingeben. R wird beim Speichern entfernt.',wrap,'sr-note');
+        unitControl(wrap,item,spec.unit);origin(wrap,item);statusControl(wrap,item,spec.label,{field:name});
       }
       for(const [name,spec] of Object.entries(boot.profiles))if(spec.step===key)renderProfile(name,spec,box);
     }
@@ -153,23 +214,29 @@
       byId('sr-parameters').querySelectorAll('input,select,textarea,button').forEach(n=>n.disabled=true);
       byId('sr-identities').querySelectorAll('input,select,textarea,button').forEach(n=>n.disabled=true);
     }
+    paintErrors();
   }
   function renderProfile(name,spec,parent){
     const item=profiles[name],section=node('section',null,parent,'sr-card');node('h2',spec.label,section);
     section.dataset.profile=name;
+    section.tabIndex=-1;bindTarget(section,section,{profile:name});
     node('p','Eine Zeile je Stufe / Zone. Reihenfolge ist die tatsächliche Ausführungsreihenfolge, nicht zwingend die Anordnung auf dem Bildschirm. Aktivierung ausdrücklich prüfen.',section,'sr-note');
-    origin(section,item);statusControl(section,item,spec.label);
+    origin(section,item);statusControl(section,item,spec.label,{profile:name});
     const scroll=node('div',null,section,'sr-table-wrap');const table=node('table',null,scroll,'sr-table');
     const head=node('tr',null,node('thead',null,table));['Stufe / Zone','Aktiv',...spec.columns.map(c=>c[1]),'Aktion'].forEach(label=>node('th',label,head));
     const body=node('tbody',null,table);
     item.rows.forEach((row,index)=>{
       const tr=node('tr',null,body);const td=()=>node('td',null,tr);
+      tr.tabIndex=-1;
       const modified=()=>{item.status='open';item.origin='manual';item.photo_id=null;syncStatus(item);};
-      input(td(),row.label,v=>{row.label=v;modified();}).className='sr-profile-label';
-      select(td(),[['unknown','Bitte prüfen'],['yes','Ja'],['no','Nein / inaktiv']],row.active,v=>{row.active=v;item.status='open';syncStatus(item);});
+      const labelBox=td(),labelInput=input(labelBox,row.label,v=>{row.label=v;modified();});labelInput.className='sr-profile-label';bindTarget(labelInput,labelBox,{profile:name,row:index,column:'label'});
+      bindTarget(labelInput,labelBox,{profile:name,row:index});
+      const activeBox=td(),activeInput=select(activeBox,[['unknown','Bitte prüfen'],['yes','Ja'],['no','Nein / inaktiv']],row.active,v=>{row.active=v;item.status='open';syncStatus(item);});bindTarget(activeInput,activeBox,{profile:name,row:index,column:'active'});
       for(const [column,label,unit] of spec.columns){
         const cell=row.values[column]||(row.values[column]={value:'',unit});const box=td();
-        input(box,cell.value,v=>{cell.value=v;modified();},unit?'number':'text');unitControl(box,cell,unit,modified);
+        const control=input(box,cell.value,v=>{cell.value=v;modified();},unit?'number':'text');
+        control.setAttribute('aria-label',spec.label+' · Zeile '+(index+1)+' · '+label);
+        bindTarget(control,box,{profile:name,row:index,column});unitControl(box,cell,unit,modified);
       }
       const tools=td();
       action(tools,'↑',()=>{if(index){[item.rows[index-1],item.rows[index]]=[item.rows[index],item.rows[index-1]];modified();changed();render();}}).setAttribute('aria-label','Stufe nach oben');
@@ -199,11 +266,12 @@
       version=result.version;context=result.context;
       Object.assign(values,result.data.values);Object.assign(profiles,result.data.profiles);
       dirty=false;byId('sr-state').textContent=(result.state==='released'?'Geprüft abgeschlossen':'Entwurf')+' · Stand '+version;
+      issues=[];
       const scannerWasOpen=!byId('sr-scanner').hidden;render();if(scannerWasOpen)byId('sr-scanner').hidden=false;
       showGaps(result.gaps);msg('Stand '+version+' gespeichert. '+(result.gaps.length?result.gaps.length+' Prüfpunkte sind noch offen.':'Alle Angaben geprüft.'));
       if(result.state==='released'){editable=false;location.reload();}
       return true;
-    }catch(error){msg(error.message,true);return false;}finally{setBusy(false);}
+    }catch(error){setBusy(false);failure(error);return false;}finally{setBusy(false);}
   }
   byId('sr-back').addEventListener('click',()=>{if(step>0){step--;render();}});
   byId('sr-next').addEventListener('click',async()=>{if(!editable||await save()){step++;render();}});
@@ -235,7 +303,7 @@
       const result=await api(boot.photo_url,payload,true);version=result.version;
       byId('sr-state').textContent='Entwurf · Stand '+version;
       renderScan(result);msg('Foto gespeichert. Vorschläge prüfen und einzeln übernehmen; die Handeingabe bleibt verfügbar.');
-    }catch(error){msg(error.message,true);}finally{setBusy(false);}
+    }catch(error){setBusy(false);failure(error);}finally{setBusy(false);}
   }
   function renderScan(scan){
     const box=byId('sr-scan-result');box.replaceChildren();const image=node('img',null,box,'sr-scan-image');image.src=scan.url;image.alt='Quellfoto '+scan.photo_id;

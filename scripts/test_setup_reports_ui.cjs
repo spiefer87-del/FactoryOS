@@ -14,7 +14,7 @@ class Element{
  focus(){this.focused=true;}
 }
 function setup(editable=true,external=false){
- const ids=['sr-wizard','sr-boot','sr-csrf','sr-status','sr-state','sr-identities','sr-selectors','sr-context','sr-context-confirm','sr-steps','sr-entry-mode','sr-review','sr-step-title','sr-scanner','sr-parameters','sr-back','sr-next','sr-save','sr-manual','sr-open-scan','sr-profile','sr-camera','sr-file','sr-scan-result','sr-gaps','sr-release','sr-provider','sr-external-warning','sr-external-consent'];
+ const ids=['sr-wizard','sr-boot','sr-csrf','sr-status','sr-errors','sr-state','sr-identities','sr-selectors','sr-context','sr-context-confirm','sr-steps','sr-entry-mode','sr-review','sr-step-title','sr-scanner','sr-parameters','sr-back','sr-next','sr-save','sr-manual','sr-open-scan','sr-profile','sr-camera','sr-file','sr-scan-result','sr-gaps','sr-release','sr-provider','sr-external-warning','sr-external-consent'];
  const nodes=Object.fromEntries(ids.map(id=>[id,new Element()]));
  nodes['sr-wizard'].append(...ids.filter(id=>id!=='sr-wizard').map(id=>nodes[id]));
  const fields=Object.fromEntries(['tool_no','machine_no','article_no','material_no','cycle_target','record_date','operator','controller'].map(key=>[key,{label:key,step:key==='cycle_target'?'injection':'identity',unit:key==='cycle_target'?'s':'',kind:key==='cycle_target'?'number':'text'}]));
@@ -22,16 +22,17 @@ function setup(editable=true,external=false){
  const boot={editable,external_vision:{enabled:external,allowed:external,steps:['injection','movement','temperature']},version:1,report_id:1,fields,profiles:{injection_profile:{label:'Einspritzprofil',step:'injection',columns:[['position','Position','cm³']]}},units:{'cm³':['cm³','mm']},origins:{master:'Stammdatenvorschlag',manual:'Handeingabe'},
   steps:[['identity','Identität'],['injection','Spritzen'],['review','Prüfen']],data:{values,profiles:{},context_confirmed:false},context:{tool_id:1,machine_id:1,article_id:1,material_id:1},choices:{machines:[{id:1,label:'M1'}],articles:[{id:1,label:'A1'}],materials:[{id:1,label:'R1',category:'plastic'}]},save_url:'/save',photo_url:'/scan',context_url:'/context',photo_base:'/photos/0'};
  nodes['sr-boot'].textContent=JSON.stringify(boot);nodes['sr-csrf'].value='csrf';
- const calls=[];let photoData;
+ const calls=[];let photoData,failureResponse;
  const context={document:{getElementById:id=>nodes[id],createElement:tag=>new Element(tag)},window:new Element(),location:{reload(){}},structuredClone,FormData,Option:class extends Element{constructor(label,value){super('option');this.textContent=label;this.value=value;}},confirm:()=>true,prompt:()=> 'Im Test nicht zutreffend',
   fetch:async(url,options)=>{let payload=options.body instanceof FormData?null:JSON.parse(options.body);calls.push({url,payload,form:options.body instanceof FormData?options.body:null});let response;
+   if(failureResponse&&url==='/save')return {ok:false,headers:{get:()=> 'application/json'},json:async()=>failureResponse};
    if(url==='/save')response={version:calls.length+1,data:payload.data,context:payload.ids,state:'draft',gaps:[]};
    else if(url==='/context')response={context:boot.context,values:boot.data.values,choices:boot.choices};
    else response=photoData;
    return {ok:true,headers:{get:()=> 'application/json'},json:async()=>response};
   }};
  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../factoryos/static/js/setup_reports.js'),'utf8'),context);
- return {nodes,calls,setPhoto:v=>photoData=v};
+ return {nodes,calls,setPhoto:v=>photoData=v,setError:v=>failureResponse=v};
 }
 function all(node){const out=[];function walk(n){out.push(n);n.children.forEach(walk);}walk(node);return out;}
 (async()=>{
@@ -93,5 +94,28 @@ function all(node){const out=[];function walk(n){out.push(n);n.children.forEach(
  assert.equal(cloud.calls.at(-1).form.get('external_consent'),'yes');
  assert.equal(n['sr-external-consent'].checked,false,'Consent is consumed, not remembered for next photo');
  const previousCalls=cloud.calls.length;await n['sr-file'].fire('change');assert.equal(cloud.calls.length,previousCalls);
+ const validation=setup(),v=validation.nodes;
+ await v['sr-steps'].children[1].fire('click');
+ let invalid=all(v['sr-parameters']).find(n=>n.dataset.field==='cycle_target');invalid.value='58/59';await invalid.fire('input');
+ await v['sr-steps'].children[0].fire('click');
+ validation.setError({error:'Soll-Zykluszeit: Eine einzelne Zahl eingeben.',errors:[{field:'cycle_target',step:'injection',label:'Soll-Zykluszeit',message:'Eine einzelne Zahl eingeben.'}]});
+ await v['sr-save'].fire('click');
+ assert.equal(v['sr-steps'].children[1]['aria-current'],'step','Failure in hidden step must navigate to that step');
+ invalid=all(v['sr-parameters']).find(n=>n.dataset.field==='cycle_target');
+ assert.equal(invalid.value,'58/59','Failed save must retain the actual typed input');
+ assert.equal(invalid['aria-invalid'],'true');assert.equal(invalid.focused,true);assert.equal(invalid.disabled,false);
+ assert.equal(v['sr-errors'].hidden,false);
+ assert.ok(all(v['sr-errors']).some(n=>String(n.textContent).includes('Soll-Zykluszeit')));
+ invalid.value='58,5';await invalid.fire('input');assert.equal(v['sr-errors'].hidden,true,'Editing the offending value clears its outdated error');
+ validation.setError(null);await v['sr-save'].fire('click');assert.equal(v['sr-errors'].hidden,true);
+ // Profile cell targeting is exact, not just the containing wizard step.
+ validation.setPhoto({version:8,photo_id:5,url:'/photos/5',result:{page:'injection',notes:[],text:'',proposals:[],profiles:{injection_profile:{rows:[{label:'Stufe 1',active:'unknown',values:{position:{value:'130.00',unit:'cm³'}}}],status:'open'}}}});
+ v['sr-file'].files=[new Blob(['image'],{type:'image/jpeg'})];await v['sr-file'].fire('change');
+ await all(v['sr-scan-result']).find(n=>n.textContent==='Profil als ungeprüften Vorschlag übernehmen').fire('click');
+ validation.setError({error:'Einspritzprofil · Zeile 1 · Position: Eine einzelne Zahl eingeben.',errors:[{profile:'injection_profile',row:0,column:'position',step:'injection',label:'Einspritzprofil · Zeile 1 · Position',message:'Eine einzelne Zahl eingeben.'}]});
+ await v['sr-save'].fire('click');
+ const profileCell=all(v['sr-parameters']).find(n=>n.tagName==='input'&&n.value==='130.00');
+ assert.equal(profileCell['aria-invalid'],'true');assert.equal(profileCell.focused,true);
  console.log('PASS: immediate visible field/profile adoption before save, edits after adoption, unconfirmed status and photo evidence, invalid 00 has no apply action, scanner preserved, no automatic overwrite, wizard navigation.');
+ console.log('PASS: hidden-step error navigation, exact scalar/profile-cell highlighting and focus, accessible hints/summary, input retention, clear after edit and successful save.');
 })().catch(e=>{console.error(e);process.exitCode=1;});
