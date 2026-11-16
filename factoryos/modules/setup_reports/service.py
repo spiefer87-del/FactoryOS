@@ -12,6 +12,7 @@ from factoryos.modules.masterdata.machines.models import Machine
 from factoryos.modules.masterdata.materials.models import Material
 from .models import SetupReportRevision, SetupReportPhoto
 from .schema import FIELDS, PROFILES, UNITS
+from .screen_numbers import safe_scalar
 
 
 def entry(value, origin="master", evidence=""):
@@ -137,6 +138,8 @@ def clean_data(report, payload, suggestions):
             source=copy.deepcopy(suggestions[key])
         photo=photos.get(item.get("photo_id")) if isinstance(item.get("photo_id"),int) else None
         if photo and any(p.get("field")==key and p.get("value")==value and p.get("unit")==unit for p in photo.result.get("proposals",[])):
+            if not safe_scalar(key,value):
+                raise ValueError(spec['label']+': unsicherer Foto-Wert. Bitte am Bildschirm prüfen und von Hand korrigieren oder entfernen.')
             source=entry(value,"photo","Foto #"+str(photo.id)+" - lokal erkannt und vom Benutzer geprüft");source["photo_id"]=photo.id
         source.update(value=value,unit=unit,status=status,reason=reason)
         result["values"][key]=source
@@ -186,6 +189,8 @@ def gaps(report):
     if report.context.get('masterbatch_id'):required.update(('batch_no','batch_name','batch_percent'))
     for key,spec in FIELDS.items():
         item=data.get("values",{}).get(key,{})
+        if item.get('origin')=='photo' and spec['kind']=='number' and item.get('value') and not safe_scalar(key,item['value']):
+            out.append(dict(step=spec['step'],label='Unsicherer alter Foto-Wert: '+spec['label']))
         if item.get("status") not in ("confirmed","na"):
             out.append(dict(step=spec["step"],label=spec["label"]))
         if key in required and (item.get("status")!="confirmed" or not item.get("value")):

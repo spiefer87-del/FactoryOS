@@ -29,6 +29,14 @@
 
 <div class="dashboard-grid">
 
+    {% if can_access('setup_report_entry.start') %}
+    <a href="{{ url_for('setup_report_entry.start') }}" class="dashboard-card">
+        <div class="card-icon">📋</div>
+        <div class="card-title">Einstellbericht starten</div>
+        <div class="card-desc">Werkzeug auswählen und direkt durch den Einstellbericht-Wizard führen lassen</div>
+    </a>
+    {% endif %}
+
     <a
         href="{{ url_for('tools.list_tools') }}"
         class="dashboard-card"

@@ -1,10 +1,10 @@
 from io import BytesIO
 from xml.sax.saxutils import escape
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import A4,landscape
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import mm
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, LongTable, TableStyle, KeepTogether
+from reportlab.platypus import BaseDocTemplate, PageTemplate, Frame, NextPageTemplate, PageBreak, Paragraph, Spacer, LongTable, TableStyle, KeepTogether
 from factoryos.modules.sampling.pdf_service import _register_fonts
 from .schema import FIELDS, PROFILES, STEPS, ORIGINS
 from .service import gaps
@@ -22,9 +22,10 @@ def build_pdf(report):
         t.setStyle(TableStyle([("VALIGN",(0,0),(-1,-1),"TOP"),("BACKGROUND",(0,0),(-1,0),colors.HexColor("#eaf1fa")),("ROWBACKGROUNDS",(0,1),(-1,-1),[colors.white,colors.HexColor("#f7f9fc")]),("LINEBELOW",(0,0),(-1,-1),.3,colors.HexColor("#dbe4ef")),("LEFTPADDING",(0,0),(-1,-1),7),("RIGHTPADDING",(0,0),(-1,-1),7),("TOPPADDING",(0,0),(-1,-1),6),("BOTTOMPADDING",(0,0),(-1,-1),6)]))
         return t
     data=report.data;missing=gaps(report)
-    story=[p("FACTORYOS / FB-18 EINSTELLBERICHT"),p("Einstellbericht",title),
+    state_label=('GESPEICHERTER ABSCHLUSS - '+str(len(missing))+' Prüfpunkte' if missing else 'GEPRÜFT ABGESCHLOSSEN') if report.state=='released' else f'ENTWURF - {len(missing)} offene Prüfpunkte'
+    story=[NextPageTemplate('detail'),Spacer(1,1),PageBreak(),p("FACTORYOS / ANLAGE ZUM FB-18"),p("Vollständige Angaben",title),
         p(f"Werkzeug {report.context.get('tool_no','-')} | Maschine {report.context.get('machine_no') or 'offen'} | Artikel {report.context.get('article_no') or 'offen'}"),
-        p(f"Bericht {report.id} / Stand {report.version} / "+("GEPRÜFT ABGESCHLOSSEN" if report.state=="released" else f"ENTWURF - {len(missing)} offene Prüfpunkte")),
+        p(f"Bericht {report.id} / Stand {report.version} / "+state_label),
         p("Dokumentation, keine Maschinen- oder Sicherheitsfreigabe. Materialvorgaben sind erst nach Bestätigung verwendete Einstellungen. Soll- und Messwerte getrennt beachten."),Spacer(1,4*mm)]
     for step,label in STEPS:
         if step=="review":continue
@@ -67,5 +68,11 @@ def build_pdf(report):
         canvas.saveState();canvas.setFont("Sampling",7);canvas.setFillColor(colors.HexColor("#607087"))
         canvas.drawString(16*mm,12*mm,f"FactoryOS | Einstellbericht {report.id} | Stand {report.version}")
         canvas.drawRightString(194*mm,12*mm,f"Seite {doc.page}");canvas.restoreState()
-    SimpleDocTemplate(stream,pagesize=A4,rightMargin=16*mm,leftMargin=16*mm,topMargin=15*mm,bottomMargin=20*mm,title=f"Einstellbericht {report.id}").build(story,onFirstPage=footer,onLaterPages=footer)
+    from .fb18_cover import draw_cover
+    doc=BaseDocTemplate(stream,pagesize=A4,title=f'Einstellbericht {report.id}')
+    doc.addPageTemplates([
+        PageTemplate(id='cover',pagesize=landscape(A4),frames=[Frame(8*mm,16*mm,281*mm,176*mm,leftPadding=0,rightPadding=0,topPadding=0,bottomPadding=0)],onPage=lambda canvas,doc:draw_cover(canvas,report)),
+        PageTemplate(id='detail',pagesize=A4,frames=[Frame(16*mm,20*mm,178*mm,262*mm,leftPadding=0,rightPadding=0,topPadding=0,bottomPadding=0)],onPage=footer),
+    ])
+    doc.build(story)
     return stream.getvalue()

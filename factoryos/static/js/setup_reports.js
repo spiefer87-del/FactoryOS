@@ -9,6 +9,8 @@
   const byId=id=>document.getElementById(id);
   const values=data.values||(data.values={}),profiles=data.profiles||(data.profiles={});
   const selectors={};
+  const statusViews=new WeakMap();
+  const syncStatus=item=>statusViews.get(item)?.();
   const fresh=unit=>({value:'',unit,status:'open',origin:'manual',reason:'',photo_id:null});
   for(const [key,spec] of Object.entries(boot.fields))values[key]||=fresh(spec.unit);
   for(const key of Object.keys(boot.profiles))profiles[key]||={rows:[],status:'open',reason:'',origin:'manual'};
@@ -33,13 +35,26 @@
   function action(parent,label,callback,cls='btn-secondary'){
     const b=node('button',label,parent,cls);b.type='button';b.addEventListener('click',callback);return b;
   }
-  function statusControl(parent,item){
-    const reason=input(parent,item.reason||'',v=>item.reason=v);reason.placeholder='Begründung für nicht zutreffend';reason.hidden=item.status!=='na';reason.maxLength=800;
-    select(parent,[['open','Noch zu prüfen'],['confirmed','Geprüft und bestätigt'],['na','Nicht zutreffend']],item.status||'open',v=>{item.status=v;reason.hidden=v!=='na';});
+  function statusControl(parent,item,label='Angabe'){
+    const tools=node('div',null,parent,'sr-confirm-controls');
+    const checkedLabel=node('label',null,tools,'sr-check');
+    const checked=node('input',null,checkedLabel);checked.type='checkbox';checked.dataset.status='confirmed';checked.setAttribute('aria-label',label+' geprüft');node('span','Geprüft',checkedLabel);
+    const naLabel=node('label',null,tools,'sr-check');
+    const na=node('input',null,naLabel);na.type='checkbox';na.dataset.status='na';na.setAttribute('aria-label',label+' nicht zutreffend');node('span','Nicht zutreffend',naLabel);
+    const reason=input(parent,item.reason||'',v=>item.reason=v);reason.placeholder='Begründung für nicht zutreffend';reason.maxLength=800;
+    function refresh(){checked.checked=item.status==='confirmed';na.checked=item.status==='na';reason.hidden=item.status!=='na';if(parent.dataset.parameter)parent.className=checked.checked?'sr-confirmed':'sr-pending';}
+    statusViews.set(item,refresh);refresh();
+    checked.addEventListener('change',()=>{
+      if(checked.checked&&('rows' in item?!item.rows.length:!String(item.value||'').trim())){
+        checked.checked=false;msg('Bitte zuerst einen Wert bzw. Profilstufen erfassen. Für nicht verwendete Angaben „Nicht zutreffend“ wählen und begründen.',true);return;
+      }
+      item.status=checked.checked?'confirmed':'open';if(checked.checked){item.reason='';reason.value='';}refresh();changed();
+    });
+    na.addEventListener('change',()=>{item.status=na.checked?'na':'open';refresh();changed();if(na.checked)reason.focus();});
   }
   function unitControl(parent,item,unit,onChange=()=>{}){
     if(!unit)return;
-    if(boot.units[unit])select(parent,boot.units[unit].map(v=>[v,v]),item.unit||unit,v=>{item.unit=v;item.status='open';onChange();});
+    if(boot.units[unit])select(parent,boot.units[unit].map(v=>[v,v]),item.unit||unit,v=>{item.unit=v;item.status='open';syncStatus(item);onChange();});
     else node('span',unit,parent,'sr-note');
   }
   function origin(parent,item){
@@ -120,14 +135,14 @@
       const grid=node('div',null,section,'sr-grid');
       for(const [name,spec] of Object.entries(boot.fields)){
         if(spec.step!==key)continue;
-        const item=values[name];const wrap=node('div',null,grid,item.status==='confirmed'?'sr-confirmed':'sr-pending');
+        const item=values[name];const wrap=node('div',null,grid,item.status==='confirmed'?'sr-confirmed':'sr-pending');wrap.dataset.parameter=name;
         const label=node('label',spec.label,wrap);
         let n;
-        const edit=v=>{item.value=v;item.status='open';item.origin='manual';item.photo_id=null;item.evidence='Bewusste Handeingabe / Korrektur';};
+        const edit=v=>{item.value=v;item.status='open';item.origin='manual';item.photo_id=null;item.evidence='Bewusste Handeingabe / Korrektur';syncStatus(item);};
         if(['notes','packaging','mold_safety','core_sequence'].includes(name)){
           n=node('textarea',null,label);n.value=item.value;n.addEventListener('input',()=>{edit(n.value);changed();});n.maxLength=4000;
         }else{n=input(label,item.value,edit,spec.kind);n.maxLength=300;}
-        n.dataset.field=name;unitControl(wrap,item,spec.unit);origin(wrap,item);statusControl(wrap,item);
+        n.dataset.field=name;unitControl(wrap,item,spec.unit);origin(wrap,item);statusControl(wrap,item,spec.label);
       }
       for(const [name,spec] of Object.entries(boot.profiles))if(spec.step===key)renderProfile(name,spec,box);
     }
@@ -141,16 +156,17 @@
   }
   function renderProfile(name,spec,parent){
     const item=profiles[name],section=node('section',null,parent,'sr-card');node('h2',spec.label,section);
+    section.dataset.profile=name;
     node('p','Eine Zeile je Stufe / Zone. Reihenfolge ist die tatsächliche Ausführungsreihenfolge, nicht zwingend die Anordnung auf dem Bildschirm. Aktivierung ausdrücklich prüfen.',section,'sr-note');
-    origin(section,item);statusControl(section,item);
+    origin(section,item);statusControl(section,item,spec.label);
     const scroll=node('div',null,section,'sr-table-wrap');const table=node('table',null,scroll,'sr-table');
     const head=node('tr',null,node('thead',null,table));['Stufe / Zone','Aktiv',...spec.columns.map(c=>c[1]),'Aktion'].forEach(label=>node('th',label,head));
     const body=node('tbody',null,table);
     item.rows.forEach((row,index)=>{
       const tr=node('tr',null,body);const td=()=>node('td',null,tr);
-      const modified=()=>{item.status='open';item.origin='manual';item.photo_id=null;};
+      const modified=()=>{item.status='open';item.origin='manual';item.photo_id=null;syncStatus(item);};
       input(td(),row.label,v=>{row.label=v;modified();}).className='sr-profile-label';
-      select(td(),[['unknown','Bitte prüfen'],['yes','Ja'],['no','Nein / inaktiv']],row.active,v=>{row.active=v;item.status='open';});
+      select(td(),[['unknown','Bitte prüfen'],['yes','Ja'],['no','Nein / inaktiv']],row.active,v=>{row.active=v;item.status='open';syncStatus(item);});
       for(const [column,label,unit] of spec.columns){
         const cell=row.values[column]||(row.values[column]={value:'',unit});const box=td();
         input(box,cell.value,v=>{cell.value=v;modified();},unit?'number':'text');unitControl(box,cell,unit,modified);
@@ -215,21 +231,41 @@
     for(const proposal of scan.result.proposals||[]){
       if(!boot.fields[proposal.field])continue;
       const card=node('div',null,box,'sr-proposal');node('strong',proposal.label+': '+proposal.value+' '+proposal.unit,card);node('p','Quelle: '+proposal.evidence,card);
-      action(card,'Als ungeprüften Vorschlag übernehmen',()=>{
+      const raw=String(proposal.value).trim().replace(',','.');
+      if(!/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(raw)||!Number.isFinite(Number(raw))||(proposal.field==='dosing_position'&&Number(raw)<=0)){
+        node('p','Unvollständige oder unplausible OCR-Zahl. Bitte am Foto prüfen und manuell eingeben; dieser Vorschlag wird nicht übernommen.',card,'sr-error');continue;
+      }
+      const apply=action(card,'Als ungeprüften Vorschlag übernehmen',()=>{
         const old=values[proposal.field];if(old.value&&!confirm('Vorhandenen Wert '+old.value+' ausdrücklich durch '+proposal.value+' ersetzen?'))return;
-        values[proposal.field]={...proposal,origin:'photo',status:'open',reason:'',photo_id:scan.photo_id};changed();msg('Vorschlag übernommen. Wert und Einheit im passenden Schritt bestätigen.');
+        Object.assign(values[proposal.field],proposal,{origin:'photo',status:'open',reason:'',photo_id:scan.photo_id});
+        refreshedProposal(apply,proposal.field,false);
       });
+      action(card,'Wert im Formular anzeigen',()=>showTarget(proposal.field,false));
     }
     for(const [key,profile] of Object.entries(scan.result.profiles||{})){
       if(!boot.profiles[key])continue;
       const card=node('div',null,box,'sr-proposal');node('h4',boot.profiles[key].label,card);
       profile.rows.forEach(row=>node('p',row.label+': '+Object.entries(row.values).map(([key,v])=>key+' '+v.value+' '+v.unit).join(' · '),card));
-      action(card,'Profil als ungeprüften Vorschlag übernehmen',()=>{
+      const apply=action(card,'Profil als ungeprüften Vorschlag übernehmen',()=>{
         if(profiles[key].rows.length&&!confirm('Vorhandenes Profil vollständig durch dieses Foto-Profil ersetzen?'))return;
-        profiles[key]={...structuredClone(profile),photo_id:scan.photo_id,status:'open',origin:'photo'};changed();msg('Profil übernommen. Jede Zone und Aktivierung im Temperaturschritt prüfen.');
+        Object.assign(profiles[key],structuredClone(profile),{photo_id:scan.photo_id,status:'open',origin:'photo',reason:''});
+        refreshedProposal(apply,key,true);
       });
+      action(card,'Profil im Formular anzeigen',()=>showTarget(key,true));
     }
     const details=node('details',null,box);node('summary','Erkannten Text zur manuellen Zuordnung ansehen',details);const raw=node('textarea',null,details);raw.value=scan.result.text;raw.readOnly=true;raw.rows=12;
+  }
+  function refreshedProposal(button,key,isProfile){
+    changed();const scannerWasOpen=!byId('sr-scanner').hidden;
+    render();if(scannerWasOpen)byId('sr-scanner').hidden=false;
+    button.textContent='Übernommen – noch unbestätigt';
+    msg((isProfile?'Profil':'Wert')+' im Formular aktualisiert. Bitte prüfen und den Entwurf speichern.');
+  }
+  function showTarget(key,isProfile){
+    const spec=isProfile?boot.profiles[key]:boot.fields[key];
+    step=Math.max(0,boot.steps.findIndex(s=>s[0]===spec.step));render();
+    const target=byId('sr-parameters').querySelector(isProfile?`[data-profile="${key}"]`:`[data-field="${key}"]`);
+    target?.scrollIntoView({behavior:'smooth',block:'center'});if(!isProfile)target?.focus();
   }
   byId('sr-camera').addEventListener('change',scan);byId('sr-file').addEventListener('change',scan);
   host.querySelectorAll('label[role=button]').forEach(label=>label.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();label.querySelector('input').click();}}));

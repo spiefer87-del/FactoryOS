@@ -1,0 +1,8 @@
+{% extends 'layout/base.html' %}
+{% block styles %}{{ super() }}<link rel="stylesheet" href="{{ url_for('static',filename='css/setup_reports.css',v='20261116-checks') }}">{% endblock %}
+{% block content %}<div class="sr-wrap"><p class="sr-eyebrow">STAMMDATEN / WERKZEUGE / EINSTELLBERICHT</p><h1>Einstellbericht starten</h1>
+<section class="sr-card"><h2>1. Werkzeug auswählen</h2><p>Der Wizard startet direkt hier. Wähle das Werkzeug, zu dem dieser Bericht gespeichert werden soll. Anschließend führt er dich durch Maschine, Stammdaten und Parameter.</p>
+<form method="post"><input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}"><label>Werkzeugnummer<input name="tool_no" list="sr-tools" maxlength="100" placeholder="Werkzeugnummer eingeben oder auswählen" required autocomplete="off" autofocus></label><datalist id="sr-tools">{% for tool in tools %}<option value="{{ tool.tool_no }}">{{ tool.name or '' }}</option>{% endfor %}</datalist>
+<div class="sr-toolbar"><button class="btn-primary">Wizard für dieses Werkzeug starten →</button><a class="btn-secondary" href="{{ url_for('tools.dashboard') }}">Zurück zu Werkzeuge</a></div></form>
+{% if can_access('tools.create') %}<p>Werkzeug fehlt? <a target="_blank" rel="noopener" href="{{ url_for('tools.create') }}">Werkzeug anlegen ↗</a>, danach diese Seite neu laden.</p>{% endif %}
+</section></div>{% endblock %}

@@ -11,13 +11,13 @@ from PIL import Image, ImageOps, ImageFilter
 from factoryos.modules.masterdata.materials.services.material_scan_service import (
     engine_info, normalized_image, scan_slot, MAX_UPLOAD, ScanUnavailable)
 from .schema import FIELDS
+from .screen_numbers import screen_number, safe_scalar, equivalent
 
 PAGES={"temperature":"TEMPERATUREN", "injection":"PROZESSOPTIMIERUNG", "movement":"WERKZEUG", "ejector":"AUSWERFER", "statistics":"PDE STATISTIK"}
 
 
 def number(text):
-    text=text.strip().replace(",",".")
-    return text if re.fullmatch(r"-?\d+(?:\.\d+)?",text) else None
+    return screen_number(text)
 
 
 def blue_background(image,word):
@@ -46,7 +46,7 @@ def parse_words(words, profile):
         return result
     def add(key,word,label):
         val=number(word["text"])
-        if val is not None and word.get("confidence",0)>=55:
+        if val is not None and safe_scalar(key,val) and word.get("confidence",0)>=55:
             result["proposals"].append(dict(field=key,label=FIELDS[key]["label"],value=val,unit=FIELDS[key]["unit"],evidence=label+" / "+word["text"],status="open"))
     if page=="temperature":
         # Locate row labels and individual zone headers, never fixed image pixels.
@@ -93,10 +93,16 @@ def parse_words(words, profile):
         def cell(column,row_kind,half,field):
             if not column or len(row_anchors[row_kind])<2:return
             row=row_anchors[row_kind][half]
-            candidates=[w for w in words if number(w["text"]) is not None and not w.get("blue")
-                and w.get("confidence",0)>=55 and abs(w["y"]-row["y"])<max(w["h"],row["h"])*.8
-                and abs((w["x"]+w["w"]/2)-(column["x"]+column["w"]/2))<max(column["w"]*.7,25)]
-            if len(candidates)==1:add(field,candidates[0],column["text"]+" / "+row["text"])
+            # Inspect a full neighbourhood before choosing a number. The earlier
+            # centre-only filter could discard "130." and keep the suffix "00".
+            nearby=[w for w in words if not w.get('blue')
+                and abs(w['y']-row['y'])<max(w['h'],row['h'])*.8
+                and abs((w['x']+w['w']/2)-(column['x']+column['w']/2))<max(column['w']*1.15,row['h']*3.5,40)]
+            fragments=[w for w in nearby if re.search(r'\d',w['text'])]
+            if len(fragments)==1 and number(fragments[0]['text']) is not None:
+                add(field,fragments[0],column['text']+' / '+row['text'])
+            elif fragments:
+                result['notes'].append(FIELDS[field]['label']+': Zahl zerlegt oder uneindeutig gelesen. Bitte manuell prüfen, keine Übernahme.')
         for column,kind,half,key in ((dose,"position",0,"dosing_position"),(dose,"pressure",0,"back_pressure"),
                 (dose,"speed",0,"screw_speed"),(delay,"time",0,"dosing_delay"),(cool,"time",1,"cooling_time"),
                 (inject,"pressure",1,"injection_pressure"),(hold,"speed",1,"holding_speed")):
@@ -104,6 +110,28 @@ def parse_words(words, profile):
         result["notes"].append("Nur eindeutig lokalisierte Einstellfelder werden vorgeschlagen. Mehrstufige Spritz-/Nachdruckprofile bitte über die jeweilige Profilseite ergänzen. Blaue Messwerte werden nicht als Einstellungen übernommen.")
     if page in ("movement","ejector"):
         result["notes"].append("Bewegungsseite erkannt. Stufenaktivierung, Vor-/Rücklauf und Werkzeugschutz müssen anhand des Fotos zugeordnet werden. Bitte Profilzeilen manuell erfassen; keine ungeprüfte Übernahme ausgegrauter Stufen.")
+    return result
+
+
+def reconcile_passes(results):
+    """Scalar values need agreement between both layouts, not 'more is better'."""
+    if not results:return None
+    rank=lambda r:(r['page']!='unknown',sum(len(p['rows']) for p in r['profiles'].values()),len(r['text']))
+    best=max(results,key=rank)
+    result={**best,'notes':list(dict.fromkeys(note for r in results for note in r['notes'])),'proposals':[]}
+    if len(results)!=2 or results[0]['page']!=results[1]['page']:
+        result['notes'].append('Einzelwerte nicht durch zwei passende Leseversuche bestätigt. Bitte manuell erfassen.')
+        return result
+    for proposal in results[0]['proposals']:
+        if not safe_scalar(proposal['field'],proposal['value']):continue
+        matches=[p for p in results[1]['proposals'] if p['field']==proposal['field'] and p['unit']==proposal['unit']]
+        if len(matches)==1 and safe_scalar(matches[0]['field'],matches[0]['value']) and equivalent(proposal['value'],matches[0]['value']):
+            result['proposals'].append({**proposal,'evidence':proposal['evidence']+' / Beide OCR-Leseversuche stimmen überein; am Foto prüfen.'})
+    if any(r['proposals'] for r in results) and not result['proposals']:
+        result['notes'].append('Zahlen wurden nur teilweise oder widersprüchlich erkannt. Kein verlässlicher Einzelwert-Vorschlag; Handeingabe verwenden.')
+    accepted={p['field'] for p in result['proposals']}
+    rejected={p['field'] for r in results for p in r['proposals']}-accepted
+    if rejected:result['notes'].append('Nicht übereinstimmend gelesen: '+', '.join(FIELDS[key]['label'] for key in sorted(rejected))+'. Bitte manuell prüfen.')
     return result
 
 
@@ -143,16 +171,16 @@ def read_screen(raw, profile):
         source=Path(folder)/"screen.png"
         ImageOps.autocontrast(ImageOps.grayscale(image)).filter(ImageFilter.UnsharpMask(radius=1,percent=140,threshold=3)).save(source)
         output=Path(folder)/"screen.tsv"
-        best=None
+        results=[]
         for mode,timeout in ((11,10),(6,8)):
             try:
                 with output.open("wb") as target:
                     subprocess.run([executable,str(source),"stdout","-l",languages,"--psm",str(mode),"tsv"],stdout=target,stderr=subprocess.DEVNULL,check=True,timeout=timeout,env=dict(os.environ,OMP_THREAD_LIMIT="1"))
             except subprocess.TimeoutExpired:
-                if best:break
+                if results:break
                 raise ValueError("Foto-Erkennung hat zu lange gedauert. Entwurf bleibt erhalten; Handeingabe ist jederzeit möglich.")
             except (OSError,subprocess.CalledProcessError):
-                if best:break
+                if results:break
                 raise ScanUnavailable("Lokale Bildschirm-Erkennung fehlgeschlagen. Handeingabe bleibt verfügbar.")
             if output.stat().st_size>2*1024*1024:raise ValueError("Zu viele Bildinformationen. Bitte nur den Bildschirm fotografieren.")
             words=[]
@@ -165,8 +193,7 @@ def read_screen(raw, profile):
                 if len(words)>3000:raise ValueError("Zu viel Text. Bitte Bildausschnitt begrenzen.")
             if not words:continue
             current=parse_words(words,profile)
-            rank=lambda r:(len(r['proposals'])+sum(len(p['rows']) for p in r['profiles'].values()),r['page']!='unknown',len(r['text']))
-            if best is None or rank(current)>rank(best):best=current
+            results.append(current)
     image.close()
-    if not best:raise ValueError("Kein lesbarer Bildschirmtext. Bitte näher, gerade und ohne Spiegelungen fotografieren.")
-    return stream.getvalue(),best
+    if not results:raise ValueError("Kein lesbarer Bildschirmtext. Bitte näher, gerade und ohne Spiegelungen fotografieren.")
+    return stream.getvalue(),reconcile_passes(results)
