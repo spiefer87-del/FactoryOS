@@ -81,7 +81,7 @@ def create_tool(
         document_files,
         category=document_category
     )
-    
+
 
     # ==========================================
     # CHANGELOG
@@ -108,6 +108,17 @@ def create_tool(
 # UPDATE
 # =====================================================
 
+def _guard_tool_history(tool):
+    from sqlalchemy import inspect
+    from factoryos.modules.production.models import MachineToolState,SetupOperation
+    from factoryos.modules.production.services.machine_control_service import acquire_control_lock
+    inspector=inspect(db.engine)
+    if not inspector.has_table('machine_tool_states') or not inspector.has_table('setup_operations'):return
+    acquire_control_lock()
+    if MachineToolState.query.filter_by(tool_no=tool.tool_no).first() or SetupOperation.query.filter_by(tool_no=tool.tool_no).first():
+        raise ValueError('Werkzeug hat einen Maschinenbestand oder eine Rüsthistorie. Werkzeugnummer unverändert lassen und Werkzeug nicht löschen; Bezeichnung/Status können weiter gepflegt werden.')
+
+
 def update_tool(
         tool,
         data,
@@ -116,7 +127,7 @@ def update_tool(
         document_files=None,
         document_category="documents"
     ):
-
+    if data.get('tool_no')!=tool.tool_no:_guard_tool_history(tool)
     validate_tool_documents(
         document_files,
         document_category
@@ -160,7 +171,7 @@ def update_tool(
         "has_conversion_kit": True if data.get("has_conversion_kit") else False,
     }
 
-    
+
     old_tool_no = tool.tool_no
 
     changes = build_changes(tool, new_data, new_data.keys())
@@ -196,6 +207,7 @@ def update_tool(
 # =====================================================
 
 def delete_tool(tool):
+    _guard_tool_history(tool)
 
     tool_name = tool.tool_no
 

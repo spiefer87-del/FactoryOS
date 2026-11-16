@@ -56,7 +56,7 @@
             <strong>{{ counters.other }}</strong>
         </div>
         <div class="booking-kpi booking-kpi-free">
-            <span class="booking-kpi-label">Frei / ohne Buchung</span>
+            <span class="booking-kpi-label">Ohne aktive Tätigkeit (nicht zwingend abgerüstet)</span>
             <strong>{{ counters.free }}</strong>
         </div>
     </div>
@@ -106,7 +106,7 @@
             <span><i class="legend-swatch setup"></i>Rüsten</span>
             <span><i class="legend-swatch downtime"></i>Störung</span>
             <span><i class="legend-swatch pause"></i>Pause</span>
-            <span><i class="legend-swatch free"></i>Frei</span>
+            <span><i class="legend-swatch free"></i>Ohne aktive Tätigkeit</span>
             <span><i class="legend-swatch forecast"></i>Prognose</span>
             <span><i class="legend-swatch planned-production"></i>Geplanter Auftrag</span>
             <span><i class="legend-swatch planned-setup"></i>Geplantes Rüsten</span>
@@ -144,6 +144,7 @@
                 <div class="timeline-row">
                     <div class="timeline-machine-cell">
                         <button type="button" class="machine-control-open" data-machine-control-url="{{ url_for('production.machine_control',machine_id=lane.machine.id,embedded='1') }}" aria-haspopup="dialog"><strong>{{ lane.machine.machine_no }}</strong><span>{{ lane.machine.name or 'Ohne Bezeichnung' }}</span><span>Maschine bedienen ›</span></button>
+                        <small>Aktuell: {{ tool_mounts[lane.machine.id] }}</small>
                         {% if lane.machine.machine_status != 'aktiv' %}
                         <small>{{ lane.machine.machine_status }}</small>
                         {% endif %}
@@ -222,6 +223,7 @@
                     </div>
                     <span class="machine-status-badge">{{ lane.active_process_label }}</span>
                 </div>
+                <p><strong>{{ tool_mounts[lane.machine.id] }}</strong></p>
 
                 {% if lane.active_count>1 %}<p class="timeline-range-error">Mehrere aktive Altbuchungen. Bitte in der Maschinenbedienung prüfen; automatische Änderungen sind gesperrt.</p>{% endif %}
                 {% if lane.active_booking %}

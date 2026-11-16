@@ -102,6 +102,10 @@ def complete_order(order_id,user_id,command_id,revision,*,good_qty,scrap_qty,rea
     db.session.add(completion);order.status='finished';order.updated_at=now
     if active:
         active.end_time=now
+        from ..models import MachineToolState
+        if not db.session.get(MachineToolState,mid):
+            db.session.add(MachineToolState(machine_id=mid,status='unknown',tool_no=active.tool_no,
+                requires_confirmation=False,updated_at=now,updated_by_id=user_id))
         if not state:state=MachineControlState(machine_id=mid,version=0);db.session.add(state)
         state.resume_process=None;state.resume_order_id=None;state.resume_tool_no=None;state.version+=1
         db.session.add(TimeBooking(user_id=user_id,machine_id=mid,order_id=None,process='FREI',type='START',

@@ -32,9 +32,12 @@ def booking_dashboard():
         error=str(exc)+" Angezeigt werden vorläufig 24 Stunden um jetzt; bitte Eingabe korrigieren."
         timeline=get_machine_timeline()
     if selected not in HORIZONS and selected!="custom":selected="24h"
+    from factoryos.modules.production.services.tool_mount_service import tool_snapshot,tool_label
+    tool_mounts={lane['machine'].id:tool_label(tool_snapshot(lane['machine'].id)) for lane in timeline['lanes']}
     return render_template(
         "production/booking/dashboard.html",
         **timeline,
+        tool_mounts=tool_mounts,
         can_correct_time=has_permission(current_user,"production.edit_booking_time"),
         local_label=local_label,
         selected_horizon=selected,range_error=error,

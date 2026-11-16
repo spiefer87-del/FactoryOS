@@ -19,10 +19,11 @@ from factoryos.modules.production.models import (
     TimeBooking, DowntimeReason, MachineControlLock, MachineControlState, MachineControlCommand,
 )
 
-LABELS = {"FREI":"Bereit / frei", "PROD":"Produktion", "MUSTER":"Musterung",
+LABELS = {"FREI":"Keine aktive Tätigkeit", "PROD":"Produktion", "MUSTER":"Musterung",
           "RUEST":"Rüsten", "ABRUEST":"Abrüsten", "PAUSE":"Unterbrochen / bereit zum Fortsetzen",
           "STOERUNG":"Störung", "WARTUNG":"Wartung", "SONSTIG":"Sonstiger Vorgang"}
 ACTIONS = {
+    "confirm_tool":"Werkzeugbestand bestätigt",
     "complete_order":"Auftrag abschließen",
     "start":"Auftrag starten", "pause":"Produktion pausieren", "resume":"Vorgang fortsetzen",
     "stop":"Vorgang stoppen", "setup":"Rüsten starten", "unsetup":"Abrüsten starten",
@@ -31,6 +32,7 @@ ACTIONS = {
     "other":"Sonstigen Vorgang starten", "finish_other":"Sonstigen Vorgang beenden",
 }
 PERMISSIONS = {"start":"production.start", "pause":"production.stop", "resume":"production.view",
+    "confirm_tool":"production.setup",
     "complete_order":"production.complete_order",
     "stop":"production.stop", "setup":"production.setup", "unsetup":"production.setup",
     "finish_setup":"production.setup", "fault":"production.stop", "clear_fault":"production.clear_fault",
@@ -75,6 +77,8 @@ def snapshot(machine_id):
     from factoryos.modules.production.models import ProductionPlanEntry
     value["plan_queue"]=[(e.id,e.order_id,e.position) for e in ProductionPlanEntry.query.filter_by(
         machine_id=machine_id,state="queued").order_by(ProductionPlanEntry.position,ProductionPlanEntry.id).all()]
+    from .tool_mount_service import tool_snapshot
+    value['tool_mount']=tool_snapshot(machine_id)
     value["revision"] = hashlib.sha256(json.dumps(value,sort_keys=True).encode()).hexdigest()
     return value
 
@@ -88,7 +92,7 @@ def available_actions(process, state=None):
     if process in ("PROD","MUSTER"): return ["pause","fault","stop"]
     if process == "STOERUNG": return ["clear_fault"]
     if process == "PAUSE": return ["resume","fault","stop"]
-    if process in ("RUEST","ABRUEST"): return ["finish_setup","fault","stop"]
+    if process in ("RUEST","ABRUEST"): return ["finish_setup","pause","fault","stop"]
     if process == "WARTUNG": return ["finish_maintenance","fault","stop"]
     if process == "SONSTIG": return ["finish_other","fault","stop"]
     return ["stop"]  # Legacy unknown process: explicitly end, never silently replace.
@@ -178,12 +182,14 @@ def execute(machine_id, user_id, action, command_id, expected_revision, *, order
         state.resume_process=p;state.resume_order_id=o;state.resume_tool_no=t
     def forget(): remember(None,None,None)
     if action in ("start","setup","unsetup"):
-        order=_order(order_id,machine_id) if order_id else None
+        # Dismounting concerns the physically mounted tool, not the next plan order.
+        order=_order(order_id,machine_id) if order_id and action!='unsetup' else None
         if action=="start" and not order: raise ValueError("Bitte Auftrag auswählen.")
         if action=="start":
             from .planning_service import assert_start_allowed
             assert_start_allowed(machine_id,order)
         next_tool=tool_no or (order.tool_no if order else None)
+        if action=='unsetup':next_tool=tool_no or before['tool_mount']['tool_no']
         if action in ("setup","unsetup") and not next_tool:
             raise ValueError("Bitte Werkzeugnummer für den Rüstvorgang auswählen.")
         if next_tool and not Tool.query.filter_by(tool_no=next_tool).first():
@@ -246,6 +252,9 @@ def execute(machine_id, user_id, action, command_id, expected_revision, *, order
         downtime_reason_id=reason.id if reason else None,
         prev_order_id=state.resume_order_id if next_process=="STOERUNG" else None,comment=comment or None)
     db.session.add(booking);state.version+=1;db.session.flush()
+    from .tool_mount_service import apply_transition
+    apply_transition(machine_id,user_id,action,active,next_process,next_tool,next_order,booking,command_id,comment,now)
+    db.session.flush()
     if action=="start":
         from .planning_service import consume_on_start
         consume_on_start(machine_id,next_order,booking,user_id)
@@ -257,6 +266,7 @@ def execute(machine_id, user_id, action, command_id, expected_revision, *, order
     affected.update(oid for oid in (next_order,before["resume_order_id"],state.resume_order_id) if oid)
     changes={"machine_state":{"old":LABELS.get(process,process),"new":LABELS.get(next_process,next_process)},
              "reason":{"old":None,"new":comment or (reason.name if reason else ACTIONS[action])}}
+    if before['tool_mount']!=after['tool_mount']:changes['tool_mount']={'old':before['tool_mount'],'new':after['tool_mount']}
     def audit(entity_type,entity_id,entity_name):
         db.session.add(ChangeLog(entity_type=entity_type,entity_id=entity_id,entity_name=entity_name,
             action="update",category="production",changes=changes,user_id=user_id))

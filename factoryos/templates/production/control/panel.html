@@ -16,13 +16,18 @@
 <h2>{{ labels.get(process,process) }}</h2>
 {% if active %}<p>Seit {{ local_label(active.start_time) }} · {{ active.user.username if active.user else 'Unbekannt' }}</p>
 {% if active.order %}<p><strong>Auftrag {{ active.order.order_no }}</strong> · {{ active.order.article or '' }}</p>{% endif %}
-{% if active.tool_no %}<p>Werkzeug <strong>{{ active.tool_no }}</strong></p>{% endif %}
+{% if active.tool_no and process!='FREI' %}<p>Werkzeugbezug des Vorgangs <strong>{{ active.tool_no }}</strong></p>{% endif %}
 {% if active.downtime_reason %}<p>Störgrund: {{ active.downtime_reason.name }}</p>{% endif %}
 {% if active.comment %}<p>{{ active.comment }}</p>{% endif %}
 {% else %}<p>Noch keine Zustandsbuchung vorhanden. Kein bestätigter physischer Maschinenzustand.</p>{% endif %}
 {% if state.resume_process %}<p class="control-note">Unterbrochener Vorgang: {{ labels.get(state.resume_process,state.resume_process) }}{% if state.resume_order_id %} · Auftragsbezug gespeichert{% endif %}. Entstören allein setzt ihn nicht fort.</p>{% endif %}
 {% if machine.machine_status!='aktiv' %}<p class="control-error">Maschine ist in den Stammdaten nicht aktiv. Neue Vorgänge und Fortsetzen sind gesperrt.</p>{% endif %}
 </section>
+<section class="control-current"><h2>Werkzeugbestand</h2><p><strong>{{ tool_mount_label }}</strong></p>
+{% if tool_mount_record %}<p class="control-note">Zuletzt erfasst: {{ local_label(tool_mount_record.updated_at) }} · {{ tool_mount_record.updated_by.username }}</p>{% endif %}
+{% if tool_mount.status=='unknown' %}<p class="control-error">Kein bestätigter leerer Maschinenzustand. Produktion stoppen oder Auftrag abschließen bedeutet nicht abrüsten.{% if tool_mount.requires_confirmation and not tool_mount.operation %} Vor dem nächsten Start den tatsächlichen Bestand bestätigen.{% endif %}</p>{% endif %}
+{% if permitted['setup'] %}<a class="control-link" data-control-navigation href="{{ url_for('production.machine_tool_state',machine_id=machine.id,embedded='1' if embedded else None) }}">Bestand vor Ort bestätigen / korrigieren</a>{% endif %}
+<p class="control-note">Ein Bestandseintrag ersetzt keinen Rüstnachweis. Regulär: Rüsten starten → Rüstende bestätigen. Werkzeug bleibt danach montiert. Erst Abrüsten starten → Abrüstende bestätigen setzt „ohne Werkzeug“.</p></section>
 {% if conflict %}<p class="control-error" role="alert">Mehrere aktive Altbuchungen gefunden. Bedienung ist gesperrt; bitte Administration zur fachlichen Klärung informieren. Es wird nichts automatisch geschlossen.</p>
 <ul>{% for item in state.active %}<li>Buchung #{{ item.id }} · {{ labels.get(item.process,item.process) }} · {{ item.start }} UTC</li>{% endfor %}</ul>{% endif %}
 <form method="post" id="control-command-form">
@@ -34,16 +39,22 @@
 {% for order in orders %}<option value="{{ order.id }}" data-tool="{{ order.tool_no or '' }}" {% if selected_order|string==order.id|string %}selected{% endif %}>{{ order.order_no }} · {{ order.article or '' }} · {{ order.article_name or '' }}{% if order.sampling %} · Musterung{% endif %}</option>{% endfor %}</select></label>
 <label>Werkzeug (für Rüsten erforderlich)<select name="tool_no" id="control-tool"><option value="">Aus Auftrag übernehmen</option>
 {% for tool in tools %}<option value="{{ tool.tool_no }}" {% if selected_tool==tool.tool_no %}selected{% endif %}>{{ tool.tool_no }} · {{ tool.name or '' }}</option>{% endfor %}</select></label>
-<p class="control-note">Rüsten beenden gibt die Maschine frei. Produktion wird anschließend mit eigenem Startbefehl gestartet. Kein automatischer Auftragswechsel.</p></section>{% endif %}
+<p class="control-note">Rüsten beenden bestätigt das montierte Werkzeug, nicht eine leere Maschine. Bei Abrüsten zählt das tatsächlich montierte Werkzeug, nicht der ausgewählte Folgeauftrag. Produktion anschließend separat starten.</p></section>{% endif %}
 <label>Beschreibung / Begründung<textarea name="comment" maxlength="255" rows="2" placeholder="Tätigkeit, Behebung oder Grund für das Stoppen">{{ comment }}</textarea></label>
 <p class="control-note">Bei Entstören, Stoppen, Wartung und Sonstiges mindestens 5 Zeichen. Störungen erfasst du im nächsten Schritt separat.</p>
 <div class="control-buttons" aria-label="Maschinenbefehle">
 {% for action in actions %}
+{% set button_label = 'Abrüstende bestätigen' if action=='finish_setup' and process=='ABRUEST' else 'Rüstende bestätigen' if action=='finish_setup' else 'Rüstvorgang pausieren' if action=='pause' and process in ['RUEST','ABRUEST'] else action_labels[action] %}
 {% if action=='fault' and not conflict and permitted[action] %}
 <a class="command-button command-fault" data-control-navigation href="{{ url_for('production.machine_fault',machine_id=machine.id,embedded='1' if embedded else None,revision=state.revision) }}">Störung melden<span class="command-hint">Störgrund auswählen ›</span></a>
 {% elif action=='stop' and not conflict and (permitted[action] or permitted['complete_order']) %}<a class="command-button command-stop" data-control-navigation href="{{ url_for('production.machine_stop',machine_id=machine.id,embedded='1' if embedded else None,revision=state.revision) }}">Vorgang stoppen<span class="command-hint">Stoppen oder Auftrag abschließen ›</span></a>
-{% else %}<button type="submit" name="action" value="{{ action }}" data-label="{{ action_labels[action] }}" class="command-button command-{{ action }}" {% if conflict or not permitted[action] or (machine.machine_status!='aktiv' and action in ['start','setup','unsetup','maintenance','other','resume']) %}disabled{% endif %}>{{ action_labels[action] }}{% if not permitted[action] %}<small>Keine Berechtigung</small>{% endif %}</button>{% endif %}{% endfor %}
+{% else %}<button type="submit" name="action" value="{{ action }}" data-label="{{ button_label }}" class="command-button command-{{ action }}" {% if conflict or not permitted[action] or (machine.machine_status!='aktiv' and action in ['start','setup','unsetup','maintenance','other','resume']) %}disabled{% endif %}>{{ button_label }}{% if not permitted[action] %}<small>Keine Berechtigung</small>{% endif %}</button>{% endif %}{% endfor %}
 </div></form>
+<details class="control-history"><summary>Rüsthistorie · Auf- und Abrüsten (letzte 30)</summary>
+{% for operation in setup_history %}{% set times=operation_times(operation) %}<article><strong>{{ 'Abrüsten' if operation.kind=='ABRUEST' else 'Rüsten / Einrichten' }} · Werkzeug {{ operation.tool_no }} · {{ {'active':'Läuft / unterbrochen','completed':'Abgeschlossen','aborted':'Abgebrochen – Bestand prüfen'}.get(operation.outcome,operation.outcome) }}</strong>
+<p>Beginn {{ local_label(operation.started_at) }} · {{ operation.started_by.username }}{% if operation.order %} · Auftrag {{ operation.order.order_no }}{% endif %}</p>
+<p>{% if operation.ended_at %}Ende {{ local_label(operation.ended_at) }} · {{ operation.ended_by.username }}{% else %}Noch nicht abgeschlossen{% endif %}</p>
+<p>Rüstzeit {{ (times.work/60)|round(1) }} Min · Unterbrechungen {{ (times.interruptions/60)|round(1) }} Min · Gesamt {{ (times.total/60)|round(1) }} Min</p>{% if operation.note %}<p>{{ operation.note }}</p>{% endif %}</article>{% else %}<p>Noch keine Rüstvorgänge mit dem neuen Ablauf. Ältere Buchungen bleiben in Timeline und Befehlsprotokoll erhalten.</p>{% endfor %}</details>
 <details class="control-history"><summary>Maschinenverlauf und Befehlsprotokoll (letzte 30)</summary>
 {% for item in history %}<article><strong>{{ action_labels.get(item.action,item.action) }}</strong><p>{{ local_label(item.created_at) }} · {{ item.user.username if item.user else 'Unbekannt' }} · App</p>
 <p>{{ labels.get(item.before_state.active[0].process,item.before_state.active[0].process) if item.before_state.active else 'Ohne Buchung' }} → {{ labels.get(item.after_state.active[0].process,item.after_state.active[0].process) if item.after_state.active else 'Ohne Buchung' }}</p>

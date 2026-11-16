@@ -87,6 +87,43 @@ class OrderCompletion(db.Model):
     machine = db.relationship("Machine")
 
 
+class MachineToolState(db.Model):
+    __tablename__ = "machine_tool_states"
+    machine_id = db.Column(db.Integer, db.ForeignKey("machines.id"), primary_key=True)
+    status = db.Column(db.String(20), nullable=False, default="unknown")
+    tool_no = db.Column(db.String(50))
+    requires_confirmation = db.Column(db.Boolean, nullable=False, default=False)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    machine = db.relationship("Machine")
+    updated_by = db.relationship("User")
+    __table_args__ = (db.Index("uq_confirmed_mounted_tool", "tool_no", unique=True,
+        sqlite_where=db.text("status = 'mounted'"),postgresql_where=db.text("status = 'mounted'")),)
+
+
+class SetupOperation(db.Model):
+    __tablename__ = "setup_operations"
+    id = db.Column(db.Integer, primary_key=True)
+    machine_id = db.Column(db.Integer, db.ForeignKey("machines.id"), nullable=False,index=True)
+    order_id = db.Column(db.Integer, db.ForeignKey("orders.id"))
+    tool_no = db.Column(db.String(50), nullable=False)
+    kind = db.Column(db.String(20), nullable=False) # RUEST / ABRUEST
+    outcome = db.Column(db.String(20), nullable=False, default="active")
+    started_at = db.Column(db.DateTime, nullable=False)
+    ended_at = db.Column(db.DateTime)
+    started_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    ended_by_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    start_booking_id = db.Column(db.Integer, db.ForeignKey("time_bookings.id"), nullable=False)
+    end_command_id = db.Column(db.String(36))
+    note = db.Column(db.String(255))
+    machine = db.relationship("Machine")
+    order = db.relationship("Order")
+    started_by = db.relationship("User",foreign_keys=[started_by_id])
+    ended_by = db.relationship("User",foreign_keys=[ended_by_id])
+    __table_args__ = (db.Index("uq_active_setup_machine", "machine_id", unique=True,
+        sqlite_where=db.text("outcome = 'active'"),postgresql_where=db.text("outcome = 'active'")),)
+
+
 class MachineControlLock(db.Model):
     """Serializes commands across machines, including order reservations."""
     __tablename__ = "machine_control_lock"

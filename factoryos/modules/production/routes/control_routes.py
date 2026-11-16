@@ -62,16 +62,22 @@ def machine_control(machine_id):
     from factoryos.modules.production.services.planning_service import queue
     from factoryos.modules.production.models import ProductionPlanEntry
     planned_queue=queue(machine_id)
+    from factoryos.modules.production.services.tool_mount_service import tool_label,operation_times
+    from factoryos.modules.production.models import SetupOperation,MachineToolState
     assignments={e.order_id:e.machine_id for e in ProductionPlanEntry.query.filter_by(state="queued")}
     orders=[o for o in orders if o.id not in assignments or assignments[o.id]==machine_id]
     response=render_template("production/control/panel.html",machine=machine,state=state,active=active,
         process=process,actions=actions,action_labels=ACTIONS,labels=LABELS,permitted=permitted,
+        tool_mount=state['tool_mount'],tool_mount_label=tool_label(state['tool_mount']),
+        tool_mount_record=db.session.get(MachineToolState,machine_id),
+        setup_history=SetupOperation.query.filter_by(machine_id=machine_id).order_by(SetupOperation.id.desc()).limit(30).all(),
+        operation_times=operation_times,
         conflict=conflict,error=error,orders=orders,
         tools=Tool.query.order_by(Tool.tool_no).all(),
         history=MachineControlCommand.query.filter_by(machine_id=machine_id).order_by(MachineControlCommand.id.desc()).limit(30).all(),
         embedded=embedded,command_id=str(uuid4()),local_label=local_label,planned_queue=planned_queue,
         selected_order=request.form.get("order_id",request.args.get("order_id",str(planned_queue[0].order_id) if planned_queue else "")),
-        selected_tool=request.form.get("tool_no",""),
+        selected_tool=request.form.get("tool_no",state['tool_mount']['tool_no'] or ''),
         comment=request.form.get("comment", ""))
     return response,status,{"Cache-Control":"no-store","X-Frame-Options":"SAMEORIGIN"}
 
@@ -96,6 +102,7 @@ def machine_stop(machine_id):
     blocked=len(state['active'])>1 or expected!=state['revision'] or 'stop' not in available_actions(active.process if active else 'FREI')
     if blocked:error='Maschinenstand passt nicht mehr. Bitte zur Maschinenbedienung zurückkehren und neu laden.';status=409
     response=render_template('production/control/stop.html',machine=machine,active=active,embedded=embedded,
+        has_open_setup=bool(state['tool_mount']['operation']),
         error=error,blocked=blocked,expected_revision=expected,command_id=str(uuid4()),
         can_stop=has_permission(current_user,'production.stop'),
         can_complete=has_permission(current_user,'production.complete_order') and active and active.order and not active.order.sampling and active.process in ('PROD','PAUSE'))

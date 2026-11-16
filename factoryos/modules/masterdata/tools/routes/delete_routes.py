@@ -23,6 +23,9 @@ def delete(tool_id):
     if SamplingOrder.query.filter_by(tool_id=tool.id).first():
         flash("Dieser Stammdatensatz wird von einem Musterungsauftrag verwendet und kann nicht gelöscht werden.", "warning")
         return redirect(url_for("tools.detail", tool_id=tool.id))
-    delete_tool(tool)
+    try:delete_tool(tool)
+    except ValueError as error:
+        db.session.rollback();flash(str(error),'warning')
+        return redirect(url_for('tools.detail',tool_id=tool.id))
 
     return redirect(url_for("tools.list_tools"))

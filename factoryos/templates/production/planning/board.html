@@ -10,6 +10,7 @@
 <label class="planning-filter">Maschine / Auftrag filtern<input type="search" id="planning-filter" placeholder="Maschinennummer, Auftragsnummer oder Artikel …"></label>
 <div class="planning-board">{% for lane in schedule.machines %}<section class="planning-lane" id="plan-machine-{{ lane.machine.id }}">
 <header><div><h2>{{ lane.machine.machine_no }}</h2><p>{{ lane.machine.name or '' }}</p></div><a class="btn-secondary" href="{{ url_for('production.machine_control',machine_id=lane.machine.id) }}">Bedienung</a></header>
+<p class="planning-note"><strong>Bestand jetzt: {{ lane.tool_mount_label }}</strong></p>
 {% if lane.current %}<p class="planning-note">Aktiv: {{ lane.current.process }}{% if lane.current.order %} · {{ lane.current.order.order_no }}{% endif %}. Laufende Produktion bleibt vor der Warteschlange.</p>{% endif %}
 {% if lane.error %}<p class="planning-error">{{ lane.error }}</p>{% endif %}{% for warning in lane.warnings %}<p class="planning-warning">{{ warning }}</p>{% endfor %}
 {% if can_plan and lane.machine.machine_status=='aktiv' %}<details class="planning-settings"><summary>Verfügbarkeitsannahme der Maschine</summary><p class="planning-note">Für unbekanntes Ende von Rüsten, Störung oder Wartung einen zukünftigen Zeitpunkt mit Begründung schätzen. Das beendet keinen Vorgang. Bei bekanntem Produktionsende zählt der spätere Termin.</p>

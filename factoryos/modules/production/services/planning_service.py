@@ -14,6 +14,8 @@ from factoryos.modules.orders.models import Order
 from factoryos.modules.masterdata.articles.models import Article
 from factoryos.modules.production.models import (ProductionPlanEntry,ProductionPlanningState,
     MachinePlanningSettings,TimeBooking,MachineControlState,ProductionCalendarSettings)
+from factoryos.modules.production.models import MachineToolState
+from .tool_mount_service import tool_snapshot,tool_label
 from .machine_control_service import acquire_control_lock,ControlConflict,ControlDenied,TERMINAL
 from .order_statistics import order_statistics,positive,count,local_label
 from .calendar_service import get_calendar_exceptions,calculate_production_finish
@@ -163,6 +165,7 @@ def build_schedule(now=None,settings=None,exceptions=None):
     for b in TimeBooking.query.filter(TimeBooking.machine_id.isnot(None),TimeBooking.end_time.is_(None)).all():
         active_by.setdefault(b.machine_id,[]).append(b)
     availability={s.machine_id:s for s in MachinePlanningSettings.query.all()}
+    mounted=MachineToolState.query.filter_by(status='mounted').all()
     for machine in machines:
         current=active_by.get(machine.id,[]);manual=availability.get(machine.id)
         cursor=now;block=None;warnings=[]
@@ -189,6 +192,9 @@ def build_schedule(now=None,settings=None,exceptions=None):
                 article=Article.query.options(joinedload(Article.tools)).filter_by(article_no=entry.order.article).first()
                 if article and len(article.tools)==1:tool_no=article.tools[0].tool_no
             row=dict(entry=entry,start=None,end=None,setup_start=None,setup_end=None,error=block,warnings=[],tool_no=tool_no)
+            present=next((s for s in mounted if s.machine_id==machine.id),None)
+            if present and tool_no and present.tool_no!=tool_no:
+                row['warnings'].append('Werkzeug '+present.tool_no+' noch montiert. Abrüsten und Werkzeugwechsel vor Start berücksichtigen; keine automatische Abrüstung.')
             order=entry.order
             if not block:
                 try:
@@ -218,10 +224,13 @@ def build_schedule(now=None,settings=None,exceptions=None):
                     block=str(exc);row.update(start=None,end=None,setup_start=None,setup_end=None,error=block)
             rows.append(row)
         result.append(dict(machine=machine,rows=rows,current=current[0] if len(current)==1 else None,
-            warnings=warnings,error=block,availability=manual))
+            warnings=warnings,error=block,availability=manual,tool_mount_label=tool_label(tool_snapshot(machine.id))))
     # Cross-machine tool occupation is a warning, never silently auto-resolved.
     for i,row in enumerate(scheduled):
         if not row["tool_no"]:continue
+        for mount in mounted:
+            if mount.machine_id!=row['entry'].machine_id and mount.tool_no==row['tool_no']:
+                row['warnings'].append('Werkzeug '+mount.tool_no+' weiterhin auf '+mount.machine.machine_no+' montiert – auch ohne Produktion. Abrüstende dort noch nicht bestätigt.')
         for mid,active_list in active_by.items():
             if mid==row["entry"].machine_id:continue
             for active in active_list:

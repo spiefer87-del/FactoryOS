@@ -72,7 +72,7 @@ PROCESS_META = {
     "ABRUEST": ("Abrüsten", "setup"),
     "STOERUNG": ("Störung", "downtime"),
     "PAUSE": ("Pause", "pause"),
-    "FREI": ("Frei", "free"),
+    "FREI": ("Keine aktive Tätigkeit", "free"),
     "WARTUNG": ("Wartung", "other"),
     "SONSTIG": ("Sonstiger Vorgang", "other"),
 }

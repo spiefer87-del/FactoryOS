@@ -140,6 +140,8 @@ with app.app_context():
     payload={**fields(restricted),"action":"start","order_id":order.id}
     assert restricted.post(path,data=payload).status_code==403
     assert current_booking(machine.id).process=="FREI"
+    # A verified dismount now needs a new setup before production can start.
+    run('setup',tool_no='W001');run('finish_setup')
     payload={**fields(client),"action":"start","order_id":order.id}
     assert client.post(path,data=payload).status_code==303
     assert client.post(path,data=payload).status_code==303  # same command ID = no second booking
@@ -189,4 +191,6 @@ with app.app_context():
         else:raise AssertionError("Injected audit failure did not abort")
     finally:event.remove(ChangeLog,"before_insert",fail_audit)
     assert snapshot(machine.id)==before and TimeBooking.query.count()==total
+    # Release the physical test tool for scripts importing this integration fixture.
+    run('stop',comment='Testauftrag beendet');run('unsetup',tool_no='W001');run('finish_setup')
 print("PASS: atomic state transitions, setup/fault/maintenance recovery, no automatic restart, exact-once UUID replay, stale revisions, order reservations, permissions/CSRF, legacy navigation, audit, timeline popup, interval continuity and non-destructive upgrades.")
