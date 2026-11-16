@@ -15,6 +15,8 @@ from factoryos.modules.production.services.machine_control_service import (
 )
 from factoryos.modules.production.services.order_statistics import local_label
 from . import bp
+from factoryos.modules.production.services.control_selection_service import (
+    visible_order,sampling_ready,tool_proposal,stock_proposal,validate_tool_choice,SAMPLING_STATES)
 
 
 @bp.route("/machine/<int:machine_id>/control",methods=["GET","POST"])
@@ -26,6 +28,8 @@ def machine_control(machine_id):
     error=None;status=200
     if request.method=="POST":
         if not valid_csrf(): abort(400,"Formular abgelaufen. Bitte neu laden.")
+        action=request.form.get('action')
+        if action in PERMISSIONS and not has_permission(current_user,PERMISSIONS[action]):abort(403)
         if request.form.get("action")=="fault":
             if not has_permission(current_user,PERMISSIONS["fault"]): abort(403)
             # Old clients may still submit the former button. Navigation only:
@@ -33,13 +37,19 @@ def machine_control(machine_id):
             return redirect(url_for("production.machine_fault",machine_id=machine_id,
                 embedded="1" if embedded else None,revision=request.form.get("revision","")),code=303)
         try:
-            _,replayed=execute(machine_id,current_user.id,request.form.get("action"),
-                request.form.get("command_id"),request.form.get("revision"),
-                order_id=request.form.get("order_id"),tool_no=request.form.get("tool_no"),
-                reason_id=request.form.get("reason_id"),comment=request.form.get("comment",""))
-            flash("Befehl war bereits verarbeitet – keine Doppelbuchung." if replayed else "Maschinenzustand gespeichert.","success")
-            return redirect(url_for("production.machine_control",machine_id=machine_id,
-                embedded="1" if embedded else None,changed="1"),code=303)
+            if action not in ('preview_selection','preview_tool','preview_stock'):
+                validate_tool_choice(action,request.form)
+                if action in ('start','setup') and request.form.get('order_id'):
+                    selected=Order.query.get(request.form.get('order_id',type=int))
+                    if selected and selected.sampling and not sampling_ready(selected,machine_id):
+                        raise ValueError('Musterungsauftrag zuerst bewusst vorbereiten: Bearbeitungsstatus und Maschinenzuordnung prüfen. Der Vorbereitungslink steht unter der Auftragsauswahl.')
+                _,replayed=execute(machine_id,current_user.id,action,
+                    request.form.get("command_id"),request.form.get("revision"),
+                    order_id=None if action=='unsetup' else request.form.get("order_id"),tool_no=request.form.get("tool_no"),
+                    reason_id=request.form.get("reason_id"),comment=request.form.get("comment",""))
+                flash("Befehl war bereits verarbeitet – keine Doppelbuchung." if replayed else "Maschinenzustand gespeichert.","success")
+                return redirect(url_for("production.machine_control",machine_id=machine_id,
+                    embedded="1" if embedded else None,changed="1"),code=303)
         except ControlDenied as exc:
             db.session.rollback();abort(403,str(exc))
         except ValueError as exc:
@@ -57,15 +67,34 @@ def machine_control(machine_id):
     elif resume=="SONSTIG": permitted["resume"] &= has_permission(current_user,"production.events")
     else: permitted["resume"] &= has_permission(current_user,"production.start")
     orders=Order.query.filter_by(is_project=False).order_by(Order.order_no).all()
-    orders=[o for o in orders if (o.status or "").lower() not in TERMINAL and
-            (not o.sampling or (o.sampling.state in ("in_progress","review") and o.sampling.machine_id==machine_id))]
+    orders=[o for o in orders if visible_order(o,machine_id)]
     from factoryos.modules.production.services.planning_service import queue
     from factoryos.modules.production.models import ProductionPlanEntry
     planned_queue=queue(machine_id)
     from factoryos.modules.production.services.tool_mount_service import tool_label,operation_times
     from factoryos.modules.production.models import SetupOperation,MachineToolState
     assignments={e.order_id:e.machine_id for e in ProductionPlanEntry.query.filter_by(state="queued")}
-    orders=[o for o in orders if o.id not in assignments or assignments[o.id]==machine_id]
+    orders=[o for o in orders if o.sampling or o.id not in assignments or assignments[o.id]==machine_id]
+    machine_names={m.id:m.machine_no for m in Machine.query.all()}
+    tools=Tool.query.order_by(Tool.tool_no).all();tool_map={t.tool_no:t for t in tools}
+    stock=stock_proposal(machine_id,state['tool_mount'],tool_map)
+    catalog={}
+    for order in orders:
+        sampling=order.sampling
+        note=('Musterung · '+SAMPLING_STATES.get(sampling.state,sampling.state)) if sampling else 'Fertigungsauftrag'
+        if sampling and sampling.machine_id not in (None,machine_id):note+=' · ⚠ Für '+machine_names.get(sampling.machine_id,'andere Maschine')+' vorgesehen – Wechsel bestätigen'
+        elif sampling and not sampling.machine_id:note+=' · Maschine noch nicht zugeordnet'
+        if sampling and assignments.get(order.id) not in (None,machine_id):note+=' · Warteschlange auf '+machine_names.get(assignments[order.id],'anderer Maschine')+' – zuerst in Planung umplanen'
+        if sampling and sampling.state in ('in_progress','review') and (order.status or '').lower() in ('gesperrt','locked'):note+=' · Auftrag gesperrt – regulär prüfen'
+        catalog[str(order.id)]=dict(proposal=tool_proposal(order,tool_map),sampling=bool(sampling),
+            ready=(sampling_ready(order,machine_id) and assignments.get(order.id) in (None,machine_id)) if sampling else True,
+            note=note,
+            prepare_url=url_for('production.prepare_sampling',machine_id=machine_id,sampling_id=sampling.id,embedded='1' if embedded else None) if sampling and has_permission(current_user,'sampling.edit') else None)
+    selected_order=request.form.get('order_id',request.args.get('order_id',str(planned_queue[0].order_id) if planned_queue else ''))
+    selected_info=catalog.get(str(selected_order),{})
+    proposal=selected_info.get('proposal') or stock
+    if request.form.get('action')=='preview_stock':proposal=stock
+    selected_tool=(proposal['number'] if proposal else '') if request.form.get('action') in ('preview_selection','preview_stock') else request.form.get('tool_no',proposal['number'] if proposal else '')
     response=render_template("production/control/panel.html",machine=machine,state=state,active=active,
         process=process,actions=actions,action_labels=ACTIONS,labels=LABELS,permitted=permitted,
         tool_mount=state['tool_mount'],tool_mount_label=tool_label(state['tool_mount']),
@@ -73,11 +102,11 @@ def machine_control(machine_id):
         setup_history=SetupOperation.query.filter_by(machine_id=machine_id).order_by(SetupOperation.id.desc()).limit(30).all(),
         operation_times=operation_times,
         conflict=conflict,error=error,orders=orders,
-        tools=Tool.query.order_by(Tool.tool_no).all(),
+        tools=tools,selection_data=dict(orders=catalog,stock=stock,tools=[dict(number=t.tool_no,name=t.name or '') for t in tools]),
+        selected_info=selected_info,proposal=proposal,stock_proposal=stock,
         history=MachineControlCommand.query.filter_by(machine_id=machine_id).order_by(MachineControlCommand.id.desc()).limit(30).all(),
         embedded=embedded,command_id=str(uuid4()),local_label=local_label,planned_queue=planned_queue,
-        selected_order=request.form.get("order_id",request.args.get("order_id",str(planned_queue[0].order_id) if planned_queue else "")),
-        selected_tool=request.form.get("tool_no",state['tool_mount']['tool_no'] or ''),
+        selected_order=selected_order,selected_tool=selected_tool,
         comment=request.form.get("comment", ""))
     return response,status,{"Cache-Control":"no-store","X-Frame-Options":"SAMEORIGIN"}
 

@@ -194,8 +194,10 @@ def execute(machine_id, user_id, action, command_id, expected_revision, *, order
             raise ValueError("Bitte Werkzeugnummer für den Rüstvorgang auswählen.")
         if next_tool and not Tool.query.filter_by(tool_no=next_tool).first():
             raise ValueError("Werkzeugnummer ist nicht in den Stammdaten vorhanden.")
-        if order and action=="start" and tool_no and order.tool_no and tool_no!=order.tool_no:
+        if order and action in ('start','setup') and tool_no and order.tool_no and tool_no!=order.tool_no:
             raise ValueError("Werkzeug widerspricht dem Auftrag. Bitte Zuordnung im Auftrag prüfen.")
+        if order and order.sampling and order.sampling.tool and next_tool!=order.sampling.tool.tool_no:
+            raise ValueError('Werkzeug widerspricht der Werkzeugzuordnung des Musterungsauftrags. Für einen auftragslosen Rüstvorgang bitte ohne Auftrag arbeiten.')
         next_process=("MUSTER" if order.sampling else "PROD") if action=="start" else "RUEST" if action=="setup" else "ABRUEST"
         next_order=order.id if order else None
         forget()

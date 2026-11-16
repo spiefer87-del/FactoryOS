@@ -135,7 +135,8 @@ with app.app_context():
     assert restricted.get(path).status_code==200
     def fields(client):
         html=client.get(path).get_data(as_text=True)
-        return {name:re.search(r'name="'+name+r'" value="([^"]+)"',html)[1] for name in ("access_csrf","command_id","revision")}
+        return {**{name:re.search(r'name="'+name+r'" value="([^"]+)"',html)[1] for name in ("access_csrf","command_id","revision")},
+            'tool_no':'W001','tool_confirmed':'yes','tool_confirmation_no':'W001'}
     assert client.post(path,data={"action":"start"}).status_code==400
     payload={**fields(restricted),"action":"start","order_id":order.id}
     assert restricted.post(path,data=payload).status_code==403

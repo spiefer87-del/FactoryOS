@@ -37,6 +37,8 @@
   });
   let submitting=false;
   form.addEventListener('submit',event=>{
+    if(event.defaultPrevented)return;
+    if(['preview_selection','preview_tool','preview_stock'].includes(event.submitter?.value))return;
     if(submitting){event.preventDefault();return;}
     const label=event.submitter?.dataset.label;
     if(!label || !confirm(`${document.querySelector('h1').textContent}: ${label}?`)){event.preventDefault();return;}

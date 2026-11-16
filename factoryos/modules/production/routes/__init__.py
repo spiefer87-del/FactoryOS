@@ -15,6 +15,7 @@ from . import calendar_routes
 from . import dashboard_routes
 from . import machine_routes
 from . import control_routes
+from . import sampling_prepare_routes
 from . import tool_mount_routes
 from . import planning_routes
 from factoryos.modules.tool_errors.routes import tool_error_routes

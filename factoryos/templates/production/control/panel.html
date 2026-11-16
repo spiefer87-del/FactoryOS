@@ -1,8 +1,9 @@
 <!doctype html>
 <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ machine.machine_no }} · Maschinenbedienung · FactoryOS</title>
-<link rel="stylesheet" href="{{ url_for('static',filename='css/machine_control.css') }}">
-<script src="{{ url_for('static',filename='js/machine_control.js') }}" defer></script></head>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/machine_control.css',v='20261116-selection') }}">
+<script src="{{ url_for('static',filename='js/machine_control_selection.js',v='20261116-selection') }}" defer></script>
+<script src="{{ url_for('static',filename='js/machine_control.js',v='20261116-selection') }}" defer></script></head>
 <body class="machine-control-page" data-revision="{{ state.revision }}" data-state-url="{{ url_for('production.machine_control_state',machine_id=machine.id) }}" data-changed="{{ '1' if request.args.get('changed')=='1' else '0' }}">
 <main class="control-panel">
 <header class="control-heading"><div><p>FactoryOS · {{ current_user.username }} · Manuelle Maschinenbedienung</p><h1>{{ machine.machine_no }}</h1><p>{{ machine.name or 'Maschine' }}</p></div>
@@ -35,10 +36,21 @@
 <input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}"><input type="hidden" name="command_id" value="{{ command_id }}"><input type="hidden" name="revision" value="{{ state.revision }}">
 {% if process=='FREI' %}<section class="control-fields"><h2>Auftrag und Werkzeug zuordnen</h2>
 <label>Auftrag suchen<input type="search" id="control-order-search" placeholder="Auftragsnummer, Artikel …" autocomplete="off"></label>
-<label>Auftrag (für Produktionsstart erforderlich)<select name="order_id" id="control-order"><option value="">Bitte auswählen</option>
-{% for order in orders %}<option value="{{ order.id }}" data-tool="{{ order.tool_no or '' }}" {% if selected_order|string==order.id|string %}selected{% endif %}>{{ order.order_no }} · {{ order.article or '' }} · {{ order.article_name or '' }}{% if order.sampling %} · Musterung{% endif %}</option>{% endfor %}</select></label>
-<label>Werkzeug (für Rüsten erforderlich)<select name="tool_no" id="control-tool"><option value="">Aus Auftrag übernehmen</option>
-{% for tool in tools %}<option value="{{ tool.tool_no }}" {% if selected_tool==tool.tool_no %}selected{% endif %}>{{ tool.tool_no }} · {{ tool.name or '' }}</option>{% endfor %}</select></label>
+<label>Fertigungs- oder Musterungsauftrag (für Produktionsstart erforderlich)<select name="order_id" id="control-order"><option value="">Ohne Auftrag – Werkzeug / Rüstvorgang manuell wählen</option>
+{% for order in orders %}<option value="{{ order.id }}" {% if selected_order|string==order.id|string %}selected{% endif %}>{{ order.order_no }} · {% if order.sampling %}{{ selection_data.orders[order.id|string].note }} · {% endif %}{{ order.article or '' }} · {{ order.article_name or '' }}</option>{% endfor %}</select></label>
+<button type="submit" name="action" value="preview_selection" formnovalidate class="control-link">Auswahl / Werkzeugvorschlag laden</button>
+<p id="control-sampling-note" class="control-note">{{ selected_info.note or 'Auch Entwürfe und unzugeordnete Musterungen werden angezeigt. Sie müssen vor dem Start bewusst vorbereitet werden.' }}</p>
+<a id="control-sampling-prepare" class="control-link" {% if selected_info.sampling and not selected_info.ready and selected_info.prepare_url %}href="{{ selected_info.prepare_url }}"{% else %}hidden{% endif %}>Musterung für diese Maschine vorbereiten ›</a>
+<p id="control-proposal" class="control-note">{% if proposal %}Werkzeugvorschlag: <strong>{{ proposal.number }}</strong> · {{ proposal.name }} · {{ proposal.source }}{% else %}Kein eindeutiger Werkzeugvorschlag. Bitte vorhandene Werkzeugnummer auswählen oder eingeben.{% endif %}</p>
+<label>Werkzeugnummer (nur vorhandene Stammdaten)<input name="tool_no" id="control-tool" list="control-tools" maxlength="50" autocomplete="off" value="{{ selected_tool }}" placeholder="Vorhandene Werkzeugnummer eingeben / auswählen"></label>
+<datalist id="control-tools">{% for tool in tools %}<option value="{{ tool.tool_no }}">{{ tool.name or '' }}</option>{% endfor %}</datalist>
+<label class="completion-check"><input type="checkbox" name="tool_confirmed" id="control-tool-confirmed" value="yes"><span id="control-tool-confirm-label">Werkzeug {{ selected_tool or 'auswählen' }} vor Ort geprüft – diese Nummer bewusst übernehmen.</span></label>
+<input type="hidden" name="tool_confirmation_no" id="control-tool-confirmation-no" value="{{ selected_tool }}">
+<noscript><button type="submit" name="action" value="preview_tool" formnovalidate class="control-link">Eigene Werkzeugwahl laden, dann bestätigen</button></noscript>
+<p id="control-selection-error" class="control-error" role="alert" hidden></p>
+{% if stock_proposal %}<p class="control-note">Zum Abrüsten aus dem aktuellen/letzten Bestand: <strong>{{ stock_proposal.number }}</strong> · {{ stock_proposal.source }}. Auftrag kann leer bleiben.</p><button type="submit" name="action" value="preview_stock" id="control-use-stock" formnovalidate class="control-link">Werkzeug {{ stock_proposal.number }} zum Abrüsten vorausfüllen</button>{% endif %}
+<p class="control-note">Bei einer abweichenden Werkzeugnummer die Eingabe ändern und erneut bestätigen. Für einen Rüstvorgang ohne Auftragsbezug „Ohne Auftrag“ wählen. Unbekannte Nummern werden nicht angelegt.</p>
+<script type="application/json" id="control-selection-data">{{ selection_data|tojson }}</script>
 <p class="control-note">Rüsten beenden bestätigt das montierte Werkzeug, nicht eine leere Maschine. Bei Abrüsten zählt das tatsächlich montierte Werkzeug, nicht der ausgewählte Folgeauftrag. Produktion anschließend separat starten.</p></section>{% endif %}
 <label>Beschreibung / Begründung<textarea name="comment" maxlength="255" rows="2" placeholder="Tätigkeit, Behebung oder Grund für das Stoppen">{{ comment }}</textarea></label>
 <p class="control-note">Bei Entstören, Stoppen, Wartung und Sonstiges mindestens 5 Zeichen. Störungen erfasst du im nächsten Schritt separat.</p>
