@@ -1,94 +1,11 @@
-{% extends "layout/base.html" %}
-
-{% block content %}
-
-<h2>Prüfplan erstellen</h2>
-
-<div class="form-card">
-
-<form method="POST">
+{% extends 'layout/base.html' %}
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static',filename='css/quality_create.css') }}">{% endblock %}
+{% block content %}<div class="quality-create"><h2>Prüfplan erstellen</h2><div class="form-card"><form method="POST">
 <input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}">
-{% if revision_token is defined %}<input type="hidden" name="revision_token" value="{{ revision_token }}">{% endif %}
-
-<div class="form-grid">
-
-<!-- Artikel -->
-<div class="form-group full">
-<label>Artikel</label>
-<select id="article-select" name="article_id" required>
-<option value="">-- Artikel wählen --</option>
-{% for article in articles %}
-<option value="{{ article.id }}">
-{{ article.article_no }} - {{ article.article_name }}
-</option>
-{% endfor %}
-</select>
-</div>
-
-<!-- Werkzeug -->
-<div class="form-group full">
-<label>Werkzeug</label>
-<select id="tool-select" name="tool_id" required>
-<option value="">-- zuerst Artikel wählen --</option>
-</select>
-</div>
-
-</div>
-
-<div class="form-actions">
-
-<button class="btn-primary">
-Prüfplan erstellen
-</button>
-
-<a href="{{ url_for('inspection.dashboard') }}" class="btn-secondary">
-Abbrechen
-</a>
-
-</div>
-
-</form>
-
-</div>
-
-{% block scripts %}
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-
-    const articleSelect = document.getElementById("article-select");
-
-    let toolTom = new TomSelect("#tool-select", {
-        valueField: "id",
-        labelField: "text",
-        searchField: "text",
-        placeholder: "Werkzeug wählen..."
-    });
-
-    articleSelect.addEventListener("change", function() {
-
-        const articleId = this.value;
-
-        toolTom.clear();
-        toolTom.clearOptions();
-
-        if (!articleId) return;
-
-        fetch("/quality/inspection-plans/tools-by-article/" + articleId)
-            .then(res => res.json())
-            .then(data => {
-
-                toolTom.addOptions(data);
-
-                if (data.length === 0) {
-                    toolTom.addOption({
-                        id: "",
-                        text: "Keine Werkzeuge vorhanden"
-                    });
-                }
-            });
-    });
-});
-</script>
-
-{% endblock %}
-{% endblock %}
+<div class="form-grid"><div class="form-group full">
+<label for="article-search">Artikel suchen</label><input id="article-search" type="search" placeholder="Artikelnummer oder Bezeichnung eingeben …" autocomplete="off" aria-controls="article-select" aria-describedby="article-search-status">
+<small id="article-search-status" role="status" aria-live="polite">Ab zwei Zeichen wird die Artikelauswahl gefiltert.</small>
+<label for="article-select">Artikel auswählen</label><select id="article-select" name="article_id" required><option value="">-- Artikel wählen --</option>{% for article in articles %}<option value="{{ article.id }}">{{ article.article_no }} - {{ article.article_name }}</option>{% endfor %}</select>
+</div><div class="form-group full"><label for="tool-select">Werkzeug</label><select id="tool-select" name="tool_id" required><option value="">-- zuerst Artikel wählen --</option></select><small id="tool-selection-status" role="status" aria-live="polite"></small></div></div>
+<div class="form-actions"><button class="btn-primary" type="submit">Prüfplan erstellen</button><a href="{{ url_for('inspection.dashboard') }}" class="btn-secondary">Abbrechen</a></div>
+</form><noscript>Die Artikelsuche und das Laden der zugeordneten Werkzeuge benötigen JavaScript.</noscript></div></div><script src="{{ url_for('static',filename='js/quality_create.js') }}"></script>{% endblock %}
