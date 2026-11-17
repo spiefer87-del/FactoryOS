@@ -6,6 +6,7 @@ from .access_control import allowed,policy
 
 # key, group, title, icon, endpoint, description
 CATALOG=(
+ ('booking_journal','Produktion','Buchungsübersicht','🧾','booking_review.journal','Zeitbuchungen suchen, prüfen und reparieren'),
  ('defect_catalog','Qualität','Fehlerkatalog','📷','article_defects.overview','Produktionsfehler je Artikel mit Fotos'),
  ('complaints','Qualität','Reklamationen','📨','complaints.overview','Eigener Reklamationsbereich'),
  ('production','Hauptbereiche','Produktion','🏭','production.dashboard','Produktionsübersicht'),

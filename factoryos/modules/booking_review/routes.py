@@ -62,3 +62,5 @@ def detail(booking_id):
                 error=Markup('{} <a href="{}">Buchung #{} prüfen</a>').format(error,url_for('booking_review.detail',booking_id=exc.booking_id),exc.booking_id)
         except SQLAlchemyError:db.session.rollback();error='Keine Änderung gespeichert. Daten parallel geändert oder Datenbank belegt.';status=409
     return render_template('production/booking/review.html',booking=row,values=values,blocked=blocked,can_start=can_start and has_permission(current_user,'production.edit_booking_time'),preview=preview,error=error,local_label=local_label,can_move=allowed['move'],can_cancel=allowed['cancel'],can_delete=allowed['delete']),status
+
+from . import repair_routes
