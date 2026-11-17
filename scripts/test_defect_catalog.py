@@ -21,7 +21,11 @@ from factoryos.modules.article_defects.photos import MAX_EDGE,MAX_STORED_BYTES
 
 with app.app_context():
     user=db.session.merge(fixture['user']);article=db.session.merge(fixture['article']);tool=db.session.merge(fixture['tool'])
+    from sqlalchemy import text,inspect
+    db.session.execute(text('ALTER TABLE article_defects DROP COLUMN tool_no'));db.session.commit()
     run_upgrade(True);run_upgrade();run_upgrade()
+    assert 'tool_no' in {c['name'] for c in inspect(db.engine).get_columns('article_defects')}
+    if tool not in article.tools:article.tools.append(tool);db.session.commit()
     plan=QualityInspectionPlan(article_id=article.id,tool_id=tool.id);db.session.add(plan);db.session.flush()
     version=QualityInspectionPlanVersion(plan_id=plan.id,revision='1.0',status='released');db.session.add(version);db.session.flush()
     section=QualityInspectionSection(plan_version_id=version.id,title='Testmodul',section_type='visual');db.session.add(section);db.session.flush()
@@ -52,10 +56,15 @@ with app.app_context():
     assert 'capture="environment"' in page.get_data(as_text=True)
     assert '<option value="">Bitte Fehlerart auswählen</option>' in page.get_data(as_text=True)
     data=dict(access_csrf=csrf,article_id=str(article.id),title='Grat links',defect_type='Grat / Schwimmhaut',description='Grat an der linken Trennkante bei Produktion beobachtet.',remedy='Bisher keine bestätigte Abhilfe.')
+    assert 'defect-article-tools' in page.get_data(as_text=True)
+    assert client.post('/quality/defect-catalog/create',data={**data,'tool_no':'UNKNOWN-TOOL'}).status_code==422
+    data['tool_no']=tool.tool_no
     existing_files=set(photo_root().glob('*'))
     image=BytesIO();Image.new('RGB',(2400,1800),'white').save(image,'PNG');image.seek(0)
     response=client.post('/quality/defect-catalog/create',data={**data,'camera':(image,'photo.png')});assert response.status_code==303,response.get_data(as_text=True)[:1000]
     entry=ArticleDefect.query.one();photo=ArticleDefectPhoto.query.one();assert entry.article_id==article.id
+    assert entry.tool_no==tool.tool_no
+    assert tool.tool_no in client.get(f'/quality/defect-catalog/{entry.id}').get_data(as_text=True)
     saved=photo_root()/photo.filename
     assert saved.stat().st_size<=MAX_STORED_BYTES
     assert set(photo_root().glob('*'))-existing_files=={saved},'Original zusätzlich gespeichert'
@@ -68,6 +77,7 @@ with app.app_context():
     response=client.post(f'/quality/defect-catalog/{entry.id}/edit',data={**data,'version':version,'archived':'yes'});assert response.status_code==303 and entry.archived
     assert client.post(f'/quality/defect-catalog/{entry.id}/edit',data={**data,'version':version}).status_code==409
     assert client.post('/quality/defect-catalog/create',data={}).status_code==400
+    assert client.post('/quality/defect-catalog/create',data={**data,'tool_no':''}).status_code==303
     assert client.get('/quality/complaints/').status_code==200
     assert 'Fehlerkatalog' in client.get('/quality/dashboard').get_data(as_text=True)
     assert '/quality/defect-catalog/?article_id=' in client.get(f'/masterdata/articles/{article.id}').get_data(as_text=True)
@@ -76,9 +86,21 @@ with app.app_context():
     with denied.session_transaction() as session:session['_user_id']=str(reader.id);session['_fresh']=True
     assert denied.get('/quality/defect-catalog/').status_code==403 and denied.get(f'/quality/defect-catalog/photo/{photo.id}').status_code==403
     assert denied.post('/quality/defect-catalog/create',data=data).status_code==403
+    delete_url=f'/quality/defect-catalog/photo/{photo.id}/delete'
+    assert client.get(delete_url).status_code==405
+    assert client.post(delete_url,data={}).status_code==400
+    assert denied.post(delete_url,data={'access_csrf':csrf,'version':entry.version}).status_code==403
     reader.role.permissions.append(Permission.query.filter_by(name='defects.view').one());db.session.commit()
     assert denied.get('/quality/defect-catalog/').status_code==200
     assert denied.get(f'/quality/defect-catalog/photo/{photo.id}').status_code==200
     assert denied.get(f'/quality/defect-catalog/{entry.id}/edit').status_code==403
     assert denied.post('/quality/defect-catalog/create',data=data).status_code==403
+    reader.role.permissions.append(Permission.query.filter_by(name='defects.edit').one());db.session.commit()
+    assert denied.post(delete_url,data={'access_csrf':csrf,'version':entry.version}).status_code==403
+    assert client.post(delete_url,data={'access_csrf':csrf,'version':0}).status_code==409
+    assert saved.is_file()
+    assert client.post(delete_url,data={'access_csrf':csrf,'version':entry.version}).status_code==303
+    assert not saved.exists() and db.session.get(ArticleDefectPhoto,photo.id) is None
+    assert client.get(f'/quality/defect-catalog/photo/{photo.id}').status_code==404
+    assert db.session.get(ArticleDefect,entry.id) is not None
 print('PASS: reset preview and verified backup; all test revisions removed; other data preserved; reset once/new plans survive; camera upload, invalid image rejection, article binding, archive/stale edit, CSRF, private photo ACL, quality categories and article link.')

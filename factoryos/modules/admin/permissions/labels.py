@@ -25,6 +25,7 @@ def add(group, action, title, description):
 for action,title in [('view','Fehlerkatalog und Fotos ansehen'),('create','Artikelfehler mit Fotos erfassen'),('edit','Artikelfehler bearbeiten / archivieren')]:
     add('defects',action,title,title+'; keine Werkzeugfehlermeldung oder Maschinenfreigabe.')
 add('complaints','view','Reklamationen ansehen','Vorbereiteten Reklamationsbereich öffnen.')
+add('defects','delete_photos','Gespeicherte Fehlerfotos löschen','Einzelne Fotos aus dem Artikel-Fehlerkatalog entfernen; keine Löschung des Fehlereintrags.')
 
 for action,title in [('view','Lager ansehen'),('locations','Lagerplätze anlegen'),('production','Produktionsübergaben bestätigen'),('receive','Lagerannahme / Übergabeausschuss'),('release','Bestände sperren / freigeben'),('adjust','Erstbestände / Gegenbuchungen'),('move','Lagerbestände umlagern'),('scrap','Lagerausschuss buchen'),('dispatch','Reservieren, kommissionieren, versenden und zurücknehmen')]:
     add('inventory',action,title,title+'; bestätigte Mengen und nachvollziehbare Belege erforderlich.')
