@@ -19,7 +19,10 @@ def run_upgrade(check_only=False,backup=False):
     for name in ('orders','users','permissions','tools','time_bookings','sampling_orders','tool_errors'):
         if not inspector.has_table(name):raise RuntimeError('Voraussetzung fehlt: '+name)
     for model in MODELS:
-        if inspector.has_table(model.__tablename__) and not set(model.__table__.columns.keys()).issubset({c['name'] for c in inspector.get_columns(model.__tablename__)}):raise RuntimeError('Unvollständige Struktur: '+model.__tablename__)
+        if inspector.has_table(model.__tablename__):
+            missing=set(model.__table__.columns.keys())-{c['name'] for c in inspector.get_columns(model.__tablename__)}
+            # The previous workspace release lacks only the new purpose column.
+            if missing and not (model is Workspace and missing=={'project_kind'}):raise RuntimeError('Unvollständige Struktur: '+model.__tablename__)
     if check_only:print('Projektstruktur geprüft. Keine Datenänderung.');return
     if backup:
         database=db.engine.url.database
@@ -33,6 +36,8 @@ def run_upgrade(check_only=False,backup=False):
         finally:raw.close()
         target.chmod(0o600);print('Sicherung:',target)
     for model in MODELS:model.__table__.create(bind=db.engine,checkfirst=True)
+    if 'project_kind' not in {c['name'] for c in inspect(db.engine).get_columns('project_workspaces')}:
+        db.session.execute(text("ALTER TABLE project_workspaces ADD COLUMN project_kind VARCHAR(40) NOT NULL DEFAULT 'legacy'"))
     for item in Order.query.filter_by(is_project=True):
         if not db.session.get(Workspace,item.id):db.session.add(Workspace(order_id=item.id))
         if item.project_leader_id and not db.session.get(Member,(item.id,item.project_leader_id)):db.session.add(Member(project_id=item.id,user_id=item.project_leader_id))

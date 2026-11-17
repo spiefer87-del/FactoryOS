@@ -30,7 +30,7 @@ with app.app_context():
     c=client(admin)
     assert c.get('/projects/').status_code==200
     assert c.post('/projects/create',data={}).status_code==400
-    response=c.post('/projects/create',data={'access_csrf':'project-test','order_no':'P-TEST','description':'Werkzeug warten','tool_id':tool.id})
+    response=c.post('/projects/create',data={'access_csrf':'project-test','order_no':'P-TEST','description':'Werkzeug warten','tool_id':tool.id,'project_kind':'tool_repair','reference_kind':'tool'})
     assert response.status_code==303,response.get_data(as_text=True)
     item=Order.query.filter_by(order_no='P-TEST').one();pid=item.id
     assert c.get(f'/projects/{pid}').status_code==200

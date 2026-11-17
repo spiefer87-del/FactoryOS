@@ -1,1 +1,34 @@
-{% extends 'projects/workspace_base.html' %}{% block workspace %}<a href="{{ url_for('projects.dashboard') }}">← Meine Projekte</a><h1>Projekt anlegen</h1><section><form method="post"><input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}"><label>Projektnummer<input name="order_no" maxlength="50" required></label><label>Beschreibung / Ziel<textarea name="description" maxlength="255" required></textarea></label><label>Werkzeug (optional)<select name="tool_id"><option value="">Ohne festes Werkzeug</option>{% for t in tools %}<option value="{{ t.id }}">{{ t.tool_no }} · {{ t.name or '' }}</option>{% endfor %}</select></label><p>Du wirst als Projektleitung und Mitglied eingetragen. Weitere Mitarbeiter lassen sich mit Koordinationsrecht zuordnen.</p><button class="btn-primary">Projekt anlegen</button></form></section>{% endblock %}
+{% extends 'projects/workspace_base.html' %}
+{% block workspace %}
+<a href="{{ url_for('projects.dashboard') }}">← Meine Projekte</a>
+<h1>Projekt anlegen</h1>
+{% if error %}<p class="pw-warning" role="alert">{{ error }}</p>{% endif %}
+<form method="post" data-project-create>
+<input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}">
+<section><h2>1. Warum startet das Projekt?</h2>
+<label>Projektgrund<select name="project_kind" required data-project-kind>
+<option value="">Bitte auswählen</option>
+{% for key,config in project_types.items() %}<option value="{{ key }}" {% if values.get('project_kind')==key %}selected{% endif %}>{{ config.label }}</option>{% endfor %}
+</select></label><p data-project-hint role="status">Der Projektgrund bestimmt, welche Bereiche später angezeigt werden.</p>
+</section>
+<section><h2>2. Worauf bezieht sich das Projekt?</h2>
+<label>Projektbezug<select name="reference_kind" data-project-reference required>
+<option value="none" {% if values.get('reference_kind','none')=='none' %}selected{% endif %}>Allgemeine Anfrage / ohne festen Bezug</option>
+<option value="tool" {% if values.get('reference_kind')=='tool' %}selected{% endif %}>Werkzeug auswählen</option>
+{% if sampling_allowed %}<option value="sampling" {% if values.get('reference_kind')=='sampling' %}selected{% endif %}>Bestehende Musterung auswählen</option>{% endif %}
+</select></label>
+<label data-reference-panel="tool">Werkzeug<select name="tool_id"><option value="">Werkzeug auswählen</option>{% for t in tools %}<option value="{{ t.id }}" {% if values.get('tool_id')==t.id|string %}selected{% endif %}>{{ t.tool_no }} · {{ t.name or '' }}</option>{% endfor %}</select></label>
+{% if sampling_allowed %}<label data-reference-panel="sampling">Musterung<select name="sampling_id"><option value="">Musterung auswählen</option>{% for s in samplings %}<option value="{{ s.id }}" {% if values.get('sampling_id')==s.id|string %}selected{% endif %}>{{ s.order.order_no }} · {{ s.order.tool_no or (s.tool.tool_no if s.tool else 'Ohne Werkzeug') }} · {{ s.order.description or s.order.article or '' }}</option>{% endfor %}</select></label>
+<p>Bei einer Musterung wird das zugehörige Werkzeug übernommen und der Vorgang direkt mit dem Projekt verknüpft.</p>
+{% else %}<p>Für die Auswahl einer Musterung wird das Leserecht für Musterungen benötigt.</p>{% endif %}
+<noscript><p>Bitte das Feld zum gewählten Projektbezug ausfüllen. Der Projektgrund wird beim Speichern geprüft.</p></noscript>
+</section>
+<section><h2>3. Projekt beschreiben</h2>
+<label>Projektnummer<input name="order_no" maxlength="50" required value="{{ values.get('order_no','') }}"></label>
+<label>Anlass, Beschreibung und Ziel<textarea name="description" maxlength="255" required rows="4" placeholder="Was ist der konkrete Anlass und was soll erreicht werden?">{{ values.get('description','') }}</textarea></label>
+<p>Du wirst als Projektleitung und Mitglied eingetragen. Weitere Mitarbeiter lassen sich mit Koordinationsrecht zuordnen.</p>
+<button class="btn-primary">Projekt anlegen</button></section>
+</form>
+<script type="application/json" id="project-type-config">{{ project_types|tojson }}</script>
+<script src="{{ url_for('static',filename='js/project_create.js',v='20261117-types1') }}"></script>
+{% endblock %}

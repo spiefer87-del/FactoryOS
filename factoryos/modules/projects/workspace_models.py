@@ -7,6 +7,7 @@ class Workspace(db.Model):
     __tablename__='project_workspaces'
     order_id=db.Column(db.Integer,db.ForeignKey('orders.id'),primary_key=True)
     version=db.Column(db.Integer,nullable=False,default=1)
+    project_kind=db.Column(db.String(40),nullable=False,default='legacy',server_default='legacy')
 
 class Member(db.Model):
     __tablename__='project_members'

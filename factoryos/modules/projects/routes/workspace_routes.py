@@ -17,6 +17,7 @@ from factoryos.modules.tool_errors.models import ToolError
 from factoryos.modules.production.models import TimeBooking
 from factoryos.modules.article_defects.photos import prepare_photo
 from ..workspace_models import Workspace,Member,Task,Link,WorkTime,Report,ReportPhoto,ToolPartEvent,Audit
+from ..definitions import PROJECT_TYPES,LINK_LABELS,profile,validate_kind,validate_reference
 from ..services.workspace_service import (CLOSED,TASK_STATES,permitted,mine_clause,project,lock,version,audit,required,quantity,local_time,check_interval,berlin,input_time)
 from . import bp
 
@@ -54,7 +55,13 @@ def dashboard():
     active=WorkTime.query.filter_by(user_id=current_user.id,cancelled=False).filter(WorkTime.ended_at.is_(None)).all()
     legacy=TimeBooking.query.filter_by(user_id=current_user.id,process='PROJEKT',machine_id=None).filter(TimeBooking.end_time.is_(None)).all()
     tasks=Task.query.filter(Task.assignee_id==current_user.id,Task.status!='done',Task.project_id.in_(db.select(Order.id).where(Order.is_project.is_(True),mine_clause(),~Order.status.in_(CLOSED)))).order_by(Task.due_date.is_(None),Task.due_date).limit(30).all()
-    return render_template('projects/workspace_home.html',page=page,q=q,scope=scope,archive=archive,active=active,legacy=legacy,tasks=tasks,count=own.count(),today=datetime.now(ZoneInfo('Europe/Berlin')).date(),states=TASK_STATES,fmt=berlin,view_all=permitted('view_all'))
+    kinds={w.order_id:w.project_kind for w in Workspace.query.filter(Workspace.order_id.in_([p.id for p in page.items])).all()}
+    return render_template('projects/workspace_home.html',page=page,q=q,scope=scope,archive=archive,active=active,legacy=legacy,tasks=tasks,count=own.count(),today=datetime.now(ZoneInfo('Europe/Berlin')).date(),states={**TASK_STATES,'waiting':'Wartet'},fmt=berlin,view_all=permitted('view_all'),project_kinds=kinds,profile=profile)
+
+def create_form(error=None,status=200):
+    sampling_allowed=has_permission(current_user,'sampling.view')
+    samplings=SamplingOrder.query.join(Order).order_by(Order.order_no).all() if sampling_allowed else []
+    return render_template('projects/workspace_create.html',tools=Tool.query.order_by(Tool.tool_no).all(),samplings=samplings,sampling_allowed=sampling_allowed,project_types={key:value for key,value in PROJECT_TYPES.items() if key!='legacy'},values=request.form,error=error),status
 
 @bp.route('/create',methods=['GET','POST'])
 @login_required
@@ -65,14 +72,29 @@ def projects_create():
         csrf()
         try:
             lock();number=required(request.form,'order_no',50);description=required(request.form,'description',255)
-            tool=None
-            if request.form.get('tool_id'):tool=Tool.query.get_or_404(request.form.get('tool_id',type=int))
-            item=Order(order_no=number,description=description,tool_no=tool.tool_no if tool else None,is_project=True,status='offen',target_qty=0,project_leader_id=current_user.id)
-            db.session.add(item);db.session.flush();db.session.add(Workspace(order_id=item.id));db.session.add(Member(project_id=item.id,user_id=current_user.id));audit(item,'Projekt angelegt',{'description':description});db.session.commit()
+            kind=validate_kind(request.form.get('project_kind'))
+            reference=request.form.get('reference_kind');tool=None;sampling=None;tool_no=None
+            if reference=='tool':
+                tool=db.session.get(Tool,request.form.get('tool_id',type=int) or 0)
+                if not tool:raise ValueError('Bitte ein vorhandenes Werkzeug auswählen.')
+                tool_no=tool.tool_no
+            elif reference=='sampling':
+                if not has_permission(current_user,'sampling.view'):abort(403)
+                sampling=db.session.get(SamplingOrder,request.form.get('sampling_id',type=int) or 0)
+                if not sampling:raise ValueError('Bitte eine vorhandene Musterung auswählen.')
+                tool_no=sampling.order.tool_no or (sampling.tool.tool_no if sampling.tool else None)
+            elif reference!='none':raise ValueError('Bitte den Projektbezug auswählen.')
+            validate_reference(kind,tool_no,sampling is not None)
+            item=Order(order_no=number,description=description,tool_no=tool_no,is_project=True,status='offen',target_qty=0,project_leader_id=current_user.id)
+            db.session.add(item);db.session.flush();db.session.add(Workspace(order_id=item.id,project_kind=kind));db.session.add(Member(project_id=item.id,user_id=current_user.id))
+            if sampling:db.session.add(Link(project_id=item.id,sampling_id=sampling.id))
+            audit(item,'Projekt angelegt',{'description':description,'project_kind':kind,'reference':reference,'tool_no':tool_no,'sampling_id':sampling.id if sampling else None});db.session.commit()
             return redirect(url_for('projects.detail',project_id=item.id),303)
-        except ValueError as error:return failed(error)
-        except IntegrityError:return failed('Projektnummer bereits vorhanden.')
-    return render_template('projects/workspace_create.html',tools=Tool.query.order_by(Tool.tool_no).all())
+        except ValueError as error:
+            db.session.rollback();return create_form(str(error),422)
+        except IntegrityError:
+            db.session.rollback();return create_form('Projektnummer bereits vorhanden.',422)
+    return create_form()
 
 @bp.route('/<int:project_id>')
 @login_required
@@ -80,11 +102,15 @@ def projects_create():
 def detail(project_id):
     item=project(project_id);workspace=db.session.get(Workspace,item.id)
     if not workspace:abort(503,'Projektmigration zuerst ausführen.')
+    config=profile(workspace.project_kind)
+    states=dict(TASK_STATES)
+    if not config['parts']:states['waiting']='Wartet auf Klärung'
+    link_kinds={key:LINK_LABELS[key] for key in config['links'] if has_permission(current_user,'sampling.view' if key=='sampling' else 'tool_error.view')}
     reports=Report.query.filter_by(project_id=item.id).order_by(Report.id.desc()).limit(50).all()
     times=WorkTime.query.filter_by(project_id=item.id).order_by(WorkTime.started_at.desc()).limit(200).all()
     total=sum(((t.ended_at or datetime.utcnow())-t.started_at).total_seconds() for t in WorkTime.query.filter_by(project_id=item.id,cancelled=False))
     selected_tool=Tool.query.filter_by(tool_no=item.tool_no).first() if item.tool_no else None
-    return render_template('projects/workspace_detail.html',item=item,version=workspace.version,closed=item.status in CLOSED,states=TASK_STATES,fmt=berlin,input_time=input_time,permitted=permitted,
+    return render_template('projects/workspace_detail.html',item=item,version=workspace.version,closed=item.status in CLOSED,states=states,fmt=berlin,input_time=input_time,permitted=permitted,workspace=workspace,project_profile=config,project_types=PROJECT_TYPES,link_kinds=link_kinds,
         members=Member.query.filter_by(project_id=item.id).all(),users=User.query.filter_by(active=True).order_by(User.username).all() if permitted('manage') else [],
         tasks=Task.query.filter_by(project_id=item.id).order_by(Task.id).all(),links=Link.query.filter_by(project_id=item.id).all(),reports=reports,times=times,total=round(total/3600,2),
         legacy=TimeBooking.query.filter_by(order_id=item.id,process='PROJEKT',machine_id=None).order_by(TimeBooking.start_time.desc()).limit(100).all(),
@@ -96,8 +122,11 @@ def detail(project_id):
 @permission_required('projects.work')
 def sources():
     if not permitted('view'):abort(403)
-    project(request.args.get('project_id',type=int) or 0,write=True)
+    item=project(request.args.get('project_id',type=int) or 0,write=True)
     q=request.args.get('q','').strip()[:100];kind=request.args.get('kind');results=[]
+    workspace=db.session.get(Workspace,item.id)
+    if not workspace:abort(503,'Projektmigration zuerst ausführen.')
+    if kind not in profile(workspace.project_kind)['links']:abort(403)
     if len(q)<2:return jsonify(results=[])
     like='%'+q+'%'
     if kind=='sampling' and has_permission(current_user,'sampling.view'):
@@ -134,10 +163,20 @@ def action(project_id):
         elif op=='settings':
             leader=User.query.get_or_404(data.get('leader_id',type=int) or 0)
             if not leader.active:raise ValueError('Aktive Projektleitung erforderlich.')
-            before={'description':item.description,'leader':item.project_leader_id}
+            workspace=db.session.get(Workspace,item.id)
+            kind=validate_kind(data.get('project_kind'),allow_legacy=workspace.project_kind=='legacy')
+            tool_no=item.tool_no
+            if not tool_no and data.get('project_tool_id'):
+                tool=db.session.get(Tool,data.get('project_tool_id',type=int) or 0)
+                if not tool:raise ValueError('Bitte ein vorhandenes Werkzeug auswählen.')
+                tool_no=tool.tool_no
+            validate_reference(kind,tool_no,Link.query.filter_by(project_id=item.id).filter(Link.sampling_id.isnot(None)).first() is not None)
+            before={'description':item.description,'leader':item.project_leader_id,'project_kind':workspace.project_kind,'tool_no':item.tool_no}
+            workspace.project_kind=kind
+            item.tool_no=tool_no
             item.description=required(data,'description',255);item.project_leader_id=leader.id
             if not db.session.get(Member,(item.id,leader.id)):db.session.add(Member(project_id=item.id,user_id=leader.id))
-            audit(item,'Projekteinstellungen',{'before':before,'description':item.description,'leader':leader.id})
+            audit(item,'Projekteinstellungen',{'before':before,'description':item.description,'leader':leader.id,'project_kind':kind,'tool_no':item.tool_no})
         elif op=='task_add':
             assignee=data.get('assignee_id',type=int)
             if assignee not in members(item):raise ValueError('Aufgabe nur einem Projektmitglied zuweisen.')
@@ -152,6 +191,7 @@ def action(project_id):
             audit(item,'Aufgabenstatus',{'id':task.id,'before':task.status,'after':data['status']});task.status=data['status']
         elif op=='link':
             kind=data.get('kind');target=data.get('target_id',type=int)
+            if kind not in profile(db.session.get(Workspace,item.id).project_kind)['links']:raise ValueError('Dieser Vorgang passt nicht zum Projektgrund. Bei Bedarf zuerst den Projektgrund ändern.')
             if kind=='sampling' and has_permission(current_user,'sampling.view'):
                 source=SamplingOrder.query.get_or_404(target or 0);link=Link(project_id=item.id,sampling_id=source.id);tool_no=source.order.tool_no
             elif kind=='error' and has_permission(current_user,'tool_error.view'):
@@ -193,6 +233,7 @@ def action(project_id):
                 before['reason']=reason
             audit(item,op,{'before':before,'after':{'start':entry.started_at.isoformat(),'end':entry.ended_at.isoformat() if entry.ended_at else None,'cancelled':entry.cancelled,'description':entry.description}})
         elif op=='part':
+            if not profile(db.session.get(Workspace,item.id).project_kind)['parts']:raise ValueError('Teilewechsel werden nur bei Reparatur, Wartung oder Werkzeugänderung erfasst. Bitte zuerst den Projektgrund entsprechend einordnen.')
             tool=Tool.query.get_or_404(data.get('tool_id',type=int) or 0)
             if data.get('operation') not in ('install','remove'):raise ValueError('Einbau oder Ausbau auswählen.')
             if data.get('confirmed')!='yes':raise ValueError('Tatsächlich durchgeführten Ein-/Ausbau bestätigen.')
