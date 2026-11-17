@@ -16,7 +16,7 @@ from factoryos.modules.production.models import (ProductionPlanEntry,ProductionP
     MachinePlanningSettings,TimeBooking,MachineControlState,ProductionCalendarSettings)
 from factoryos.modules.production.models import MachineToolState
 from .tool_mount_service import tool_snapshot,tool_label
-from .machine_control_service import acquire_control_lock,ControlConflict,ControlDenied,TERMINAL
+from .machine_control_service import acquire_control_lock,ControlConflict,ControlDenied,TERMINAL,LABELS
 from .order_statistics import order_statistics,positive,count,local_label
 from .calendar_service import get_calendar_exceptions,calculate_production_finish
 
@@ -64,7 +64,7 @@ def _normalize(machine_id):
 
 def modify_plan(user_id,expected_version,action,machine_id,entry_id=None,*,order_id=None,
                 target_machine_id=None,setup_minutes=0,not_before=None,note="",available_from=None,
-                availability_note="",ordered_ids=None):
+                availability_note="",ordered_ids=None,now=None):
     user=db.session.get(User,user_id)
     if not has_permission(user,"production.plan"):raise ControlDenied("Keine Berechtigung zur Auftragsplanung.")
     acquire_control_lock()
@@ -74,6 +74,8 @@ def modify_plan(user_id,expected_version,action,machine_id,entry_id=None,*,order
     if len(note or "")>255 or len(availability_note or "")>255:raise ValueError("Notizen dürfen höchstens 255 Zeichen enthalten.")
     old=" → ".join(e.order.order_no for e in queue(machine_id)) or "Leere Reihenfolge"
     if action=="availability":
+        if available_from and available_from<=(now if now is not None else datetime.utcnow()):
+            raise ValueError("Die neue Verfügbarkeitsschätzung muss in der Zukunft liegen. Der angegebene Termin ist bereits erreicht oder überschritten.")
         if available_from and len((availability_note or "").strip())<5:
             raise ValueError("Manuelle Verfügbarkeit bitte begründen (mindestens 5 Zeichen).")
         settings=db.session.get(MachinePlanningSettings,machine_id)
@@ -90,6 +92,8 @@ def modify_plan(user_id,expected_version,action,machine_id,entry_id=None,*,order
         new="Reihenfolge geändert"
     else:
         if action in ("add","update"):
+            if not_before is not None:
+                raise ValueError("Der Planbeginn wird aus der Maschinenverfügbarkeit und dem Ende des Vorgängers übernommen. Bitte die Seite neu laden und nur die zusätzliche Rüstzeit festlegen.")
             try:setup_minutes=int(setup_minutes)
             except (ValueError,TypeError):raise ValueError("Rüstzeit in ganzen Minuten angeben.")
             if not 0<=setup_minutes<=10080:raise ValueError("Rüstzeit muss zwischen 0 und 10080 Minuten liegen.")
@@ -102,12 +106,12 @@ def modify_plan(user_id,expected_version,action,machine_id,entry_id=None,*,order
                 raise ControlConflict("Auftrag ist bereits eingeplant. Vorhandenen Eintrag verschieben statt doppelt anlegen.")
             entry=ProductionPlanEntry(machine_id=machine_id,order_id=order.id,position=len(queue(machine_id))+1,
                 state="queued",created_by_id=user_id,updated_by_id=user_id,setup_minutes=setup_minutes,
-                not_before=not_before,note=(note or "").strip() or None)
-            db.session.add(entry);new=f"{order.order_no} angehängt · Rüsten {setup_minutes} Min · nicht vor {local_label(not_before)} · {note}"
+                not_before=None,note=(note or "").strip() or None)
+            db.session.add(entry);new=f"{order.order_no} angehängt · Rüsten {setup_minutes} Min · Beginn automatisch aus der Maschinenreihenfolge · {note}"
         elif action=="update":
-            previous=f"Rüsten {entry.setup_minutes} Min · nicht vor {local_label(entry.not_before)} · {entry.note or ''}"
-            entry.setup_minutes=setup_minutes;entry.not_before=not_before;entry.note=(note or "").strip() or None
-            new=f"{entry.order.order_no}: {previous} → Rüsten {setup_minutes} Min · nicht vor {local_label(not_before)} · {note}"
+            previous=f"Rüsten {entry.setup_minutes} Min"+(f" · bisheriger separater Planbeginn {local_label(entry.not_before)}" if entry.not_before else "")+f" · {entry.note or ''}"
+            entry.setup_minutes=setup_minutes;entry.not_before=None;entry.note=(note or "").strip() or None
+            new=f"{entry.order.order_no}: {previous} → Rüsten {setup_minutes} Min · Beginn automatisch aus der Maschinenreihenfolge · {note}"
         elif action in ("up","down"):
             entries=queue(machine_id);index=next(i for i,e in enumerate(entries) if e.id==entry.id)
             target=index+(-1 if action=="up" else 1)
@@ -168,7 +172,7 @@ def build_schedule(now=None,settings=None,exceptions=None):
     mounted=MachineToolState.query.filter_by(status='mounted').all()
     for machine in machines:
         current=active_by.get(machine.id,[]);manual=availability.get(machine.id)
-        cursor=now;block=None;warnings=[]
+        cursor=now;block=None;warnings=[];start_source="Maschinenverfügbarkeit ab jetzt";availability_expired=False;availability_needs_update=False
         if machine.machine_status!="aktiv":block="Maschine ist nicht aktiv."
         elif len(current)>1:block="Mehrere aktive Altbuchungen. Zuerst fachlich klären."
         elif current:
@@ -177,21 +181,34 @@ def build_schedule(now=None,settings=None,exceptions=None):
             elif active.process in ("PROD","MUSTER") and active.order:
                 stats=order_statistics(active.order,now,settings,exceptions);stats_cache[active.order_id]=stats
                 if stats["eta"] and stats["forecast"]["remaining_seconds"]>0:
-                    cursor=stats["eta"];warnings.append("Laufender Auftrag: Belegung bis aktueller Endprognose, keine Abschlussbestätigung.")
+                    cursor=stats["eta"];start_source=f"Endprognose von Auftrag {active.order.order_no}";warnings.append("Laufender Auftrag: Belegung bis aktueller Endprognose, keine Abschlussbestätigung.")
                 else:block="Ende des laufenden Auftrags nicht belastbar. Verfügbarkeit mit Begründung schätzen."
             elif active.process!="FREI":block="Laufender Rüst-/Störungs-/Pausen-/Wartungsvorgang ohne bekanntes Ende."
         if manual and manual.available_from:
-            if block and len(current)<=1 and machine.machine_status=="aktiv" and (not current or current[0].start_time<=now) and manual.available_from>now:
-                block=None;cursor=manual.available_from
-            else:cursor=max(cursor,manual.available_from)
-            warnings.append(f"Manuelle Verfügbarkeitsannahme: {local_label(manual.available_from)} · {manual.availability_note or ''}")
+            availability_expired=manual.available_from<=now
+            can_estimate=block and len(current)<=1 and machine.machine_status=="aktiv" and (not current or current[0].start_time<=now)
+            if can_estimate:
+                if not availability_expired:
+                    block=None;cursor=manual.available_from;start_source="Verfügbarkeitsschätzung der Maschine"
+                else:
+                    availability_needs_update=True
+                    ongoing=(f"Auftrag {current[0].order.order_no} läuft weiterhin" if current and current[0].order else
+                        f"Der Vorgang {LABELS.get(current[0].process,current[0].process)} ist weiterhin aktiv" if current else "Das tatsächliche Ende ist noch unbekannt")
+                    block=(f"Der bisher geschätzte Verfügbarkeitstermin {local_label(manual.available_from)} wurde erreicht oder überschritten. "
+                        f"{ongoing}; es liegt kein belastbares Ende vor. Deshalb ist die Planung erneut rot markiert. Bitte einen neuen zukünftigen Termin mit Begründung schätzen.")
+            elif manual.available_from>cursor:
+                cursor=manual.available_from;start_source="Verfügbarkeitsschätzung der Maschine"
+            if availability_expired:
+                warnings.append(f"Frühere Verfügbarkeitsschätzung: {local_label(manual.available_from)} · {manual.availability_note or ''}. Dieser Termin ist überschritten und gilt nicht mehr als zukünftige Verfügbarkeit.")
+            else:
+                warnings.append(f"Manuelle Verfügbarkeitsannahme: {local_label(manual.available_from)} · {manual.availability_note or ''}")
         rows=[]
         for entry in by_machine.get(machine.id,[]):
             tool_no=entry.order.tool_no or (entry.order.sampling.tool.tool_no if entry.order.sampling and entry.order.sampling.tool else None)
             if not tool_no and entry.order.article:
                 article=Article.query.options(joinedload(Article.tools)).filter_by(article_no=entry.order.article).first()
                 if article and len(article.tools)==1:tool_no=article.tools[0].tool_no
-            row=dict(entry=entry,start=None,end=None,setup_start=None,setup_end=None,error=block,warnings=[],tool_no=tool_no)
+            row=dict(entry=entry,start=None,end=None,setup_start=None,setup_end=None,error=block,warnings=[],tool_no=tool_no,start_source=start_source,inherited_ready_at=cursor if not block else None)
             present=next((s for s in mounted if s.machine_id==machine.id),None)
             if present and tool_no and present.tool_no!=tool_no:
                 row['warnings'].append('Werkzeug '+present.tool_no+' noch montiert. Abrüsten und Werkzeugwechsel vor Start berücksichtigen; keine automatische Abrüstung.')
@@ -209,7 +226,9 @@ def build_schedule(now=None,settings=None,exceptions=None):
                     row.update(seconds=seconds,remaining=stats["remaining"],cavities=forecast["parts_per_cycle"],cycle=float(order.cycle_time_s))
                     if forecast["cavities_assumed"]:row["warnings"].append("Kavitäten fehlen: vorläufige Annahme 1 Teil/Zyklus.")
                     if not tool_no:row["warnings"].append("Kein eindeutiges Werkzeug: Werkzeugkonflikte können nicht vollständig geprüft werden.")
-                    cursor=max(cursor,entry.not_before or now)
+                    # One chain: availability / predecessor, setup, then production.
+                    # Legacy not_before values remain stored until the next edit,
+                    # but no longer delay queued orders independently.
                     row["setup_start"]=_working_start(cursor,settings,exceptions)
                     setup_seconds=entry.setup_minutes*60
                     if current and current[0].process=="RUEST" and current[0].order_id==order.id:
@@ -219,12 +238,14 @@ def build_schedule(now=None,settings=None,exceptions=None):
                     row["start"]=_working_start(row["setup_end"],settings,exceptions)
                     row["end"]=calculate_production_finish(row["start"],seconds,settings,exceptions)
                     if row["end"]>now+PREVIEW_LIMIT:raise ValueError("Planende liegt mehr als 366 Tage voraus. Mengen/Zyklus und Verfügbarkeit prüfen.")
-                    cursor=row["end"];scheduled.append(row)
+                    cursor=row["end"];start_source=f"Ende von Auftrag {order.order_no}";scheduled.append(row)
                 except (ValueError,RuntimeError,OverflowError) as exc:
                     block=str(exc);row.update(start=None,end=None,setup_start=None,setup_end=None,error=block)
             rows.append(row)
         result.append(dict(machine=machine,rows=rows,current=current[0] if len(current)==1 else None,
-            warnings=warnings,error=block,availability=manual,tool_mount_label=tool_label(tool_snapshot(machine.id))))
+            warnings=warnings,error=block,availability=manual,availability_expired=availability_expired,availability_needs_update=availability_needs_update,
+            queue_ready_at=cursor if not block else None,queue_start_source=start_source,
+            tool_mount_label=tool_label(tool_snapshot(machine.id))))
     # Cross-machine tool occupation is a warning, never silently auto-resolved.
     for i,row in enumerate(scheduled):
         if not row["tool_no"]:continue

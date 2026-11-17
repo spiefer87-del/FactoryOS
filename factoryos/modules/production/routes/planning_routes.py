@@ -1,4 +1,5 @@
 import json
+from datetime import timezone
 from flask import request,render_template,redirect,url_for,flash,abort
 from flask_login import login_required,current_user
 from sqlalchemy.exc import SQLAlchemyError
@@ -21,6 +22,13 @@ def optional_time(name):
     if not 1970<=result.year<=2100:raise ValueError("Zeitvorgaben zwischen 1970 und 2100 wählen.")
     return result
 
+def fold_choice(value):
+    if not value:return ''
+    wall=local_time(value)
+    first=wall.replace(fold=0).astimezone(timezone.utc)
+    second=wall.replace(fold=1).astimezone(timezone.utc)
+    return str(wall.fold) if first!=second else ''
+
 def ident(name,optional=False):
     value=request.form.get(name,"")
     if optional and not value:return None
@@ -41,7 +49,7 @@ def planning():
                 raise ValueError("Ungültige Reihenfolge.")
             modify_plan(current_user.id,request.form.get("version"),request.form.get("action"),ident("machine_id"),
                 ident("entry_id",True),order_id=ident("order_id",True),target_machine_id=ident("target_machine_id",True),
-                setup_minutes=request.form.get("setup_minutes","0"),not_before=optional_time("not_before"),
+                setup_minutes=request.form.get("setup_minutes","0"),not_before=request.form.get("not_before") or None,
                 note=request.form.get("note",""),available_from=optional_time("available_from"),
                 availability_note=request.form.get("availability_note",""),ordered_ids=ordered)
             flash("Auftragsplanung gespeichert. Es wurde keine Maschinenbuchung gestartet.","success")
@@ -61,7 +69,7 @@ def planning():
     return render_template("production/planning/board.html",schedule=schedule,orders=orders,
         can_plan=has_permission(current_user,"production.plan"),local_label=local_label,duration=duration,
         local_input=lambda value:local_time(value).strftime("%Y-%m-%dT%H:%M:%S") if value else "",
-        local_fold=lambda value:str(local_time(value).fold) if value else "",
+        local_fold=fold_choice,
         error=error,history=planning_history()),status,{"Cache-Control":"no-store"}
 
 def planning_history():

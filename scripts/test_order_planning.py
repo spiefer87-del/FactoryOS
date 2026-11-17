@@ -69,10 +69,12 @@ with app.app_context():
     db.session.add(report);db.session.commit()
     assert lane(build_schedule(now))["rows"][0]["seconds"]==3000
     # Shutdown + bridge day are skipped in both setup and production.
-    change("update",entry=e1,setup_minutes=0,not_before=datetime(2026,11,7,5,30))
+    change("update",entry=e1,setup_minutes=0)
+    change("availability",available_from=datetime(2026,11,7,5,30),availability_note="Verfügbarkeit vor geplanter Abschaltung",now=now)
     holiday=SimpleNamespace(start_at=datetime(2026,11,9),end_at=datetime(2026,11,10),title="Brückentag")
     rows=lane(build_schedule(now,exceptions=[holiday]))["rows"]
     assert rows[0]["end"]==datetime(2026,11,10,0,20)
+    change("availability",available_from=None,availability_note="")
     change("update",entry=e1,setup_minutes=10)
     # Conflict warnings across machines; no invented resource resolution.
     change("add",m=m2,order_id=o3.id)
@@ -91,8 +93,8 @@ with app.app_context():
     busy=TimeBooking(user_id=admin.id,machine_id=m1.id,process="STOERUNG",type="START",start_time=now-timedelta(hours=1))
     db.session.add(busy);db.session.commit()
     assert lane(build_schedule(now))["rows"][0]["start"] is None
-    rejected("availability",available_from=now+timedelta(hours=1),availability_note="x")
-    change("availability",available_from=now+timedelta(hours=1),availability_note="Instandhaltung erwartet Freigabe")
+    rejected("availability",available_from=now+timedelta(hours=1),availability_note="x",now=now)
+    change("availability",available_from=now+timedelta(hours=1),availability_note="Instandhaltung erwartet Freigabe",now=now)
     assert lane(build_schedule(now))["rows"][0]["setup_start"]==now+timedelta(hours=1)
     # An expired assumption must not silently free an ongoing fault.
     assert lane(build_schedule(now+timedelta(hours=2)))["rows"][0]["start"] is None
