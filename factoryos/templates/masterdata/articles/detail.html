@@ -1,6 +1,7 @@
 {% extends "layout/base.html" %}
 {% block styles %}<link rel="stylesheet" href="{{ url_for('static', filename='css/article_masterdata.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/article_sampling_history.css') }}">{% endblock %}
 {% block content %}
+{% if can_access('article_defects.overview') %}<div class="form-actions"><a class="btn-secondary" href="{{ url_for('article_defects.overview',article_id=article.id) }}">📷 Fehlerkatalog dieses Artikels</a>{% if can_access('article_defects.create') %}<a class="btn-primary" href="{{ url_for('article_defects.create',article_id=article.id) }}">Fehler erfassen</a>{% endif %}</div>{% endif %}
 <div class="article-page">
 <header class="article-heading">
 <div><p class="article-eyebrow">Stammdaten / Artikel</p><h1>{{ article.article_no }}</h1><p>{{ article.article_name }}</p></div>

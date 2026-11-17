@@ -1,5 +1,6 @@
 """German UI text only. Internal permission identifiers and grants are untouched."""
 GROUP_LABELS = {
+    'defects':'Artikel-Fehlerkatalog','complaints':'Reklamationen',
     'inventory':'Lagerverwaltung',
     "activity": "Aktivitätsprotokoll", "articles": "Artikel", "customers": "Kunden",
     "machines": "Maschinen", "materials": "Materialien und Farbbatches",
@@ -20,6 +21,10 @@ PERMISSION_TEXT = {}
 
 def add(group, action, title, description):
     PERMISSION_TEXT[group + "." + action] = {"title": title, "description": description}
+
+for action,title in [('view','Fehlerkatalog und Fotos ansehen'),('create','Artikelfehler mit Fotos erfassen'),('edit','Artikelfehler bearbeiten / archivieren')]:
+    add('defects',action,title,title+'; keine Werkzeugfehlermeldung oder Maschinenfreigabe.')
+add('complaints','view','Reklamationen ansehen','Vorbereiteten Reklamationsbereich öffnen.')
 
 for action,title in [('view','Lager ansehen'),('locations','Lagerplätze anlegen'),('production','Produktionsübergaben bestätigen'),('receive','Lagerannahme / Übergabeausschuss'),('release','Bestände sperren / freigeben'),('adjust','Erstbestände / Gegenbuchungen'),('move','Lagerbestände umlagern'),('scrap','Lagerausschuss buchen'),('dispatch','Reservieren, kommissionieren, versenden und zurücknehmen')]:
     add('inventory',action,title,title+'; bestätigte Mengen und nachvollziehbare Belege erforderlich.')

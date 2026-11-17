@@ -11,6 +11,12 @@ from ..services.article_service import delete_article
 def delete(article_id):
 
     article = get_article(article_id)
+    from sqlalchemy import inspect as defect_inspect
+    from factoryos.extensions import db as defect_db
+    from factoryos.modules.article_defects.models import ArticleDefect
+    if defect_inspect(defect_db.engine).has_table('article_defects') and ArticleDefect.query.filter_by(article_id=article.id).first():
+        flash('Artikel besitzt Fehlerkatalog-Historie und bleibt zur Nachverfolgung erhalten.','warning')
+        return redirect(url_for('articles.detail',article_id=article.id))
     from sqlalchemy import inspect
     from factoryos.extensions import db
     from factoryos.modules.inventory.models import WarehouseLot

@@ -8,7 +8,7 @@
 
 <!-- ================= PRÜFPLÄNE ================= -->
 
-<a href="{{ url_for('inspection.dashboard') }}"
+{% if can_access('inspection.dashboard') %}<a href="{{ url_for('inspection.dashboard') }}"
    class="dashboard-card">
 
     <div class="dashboard-card-icon">
@@ -23,7 +23,9 @@
         Prüfpläne erstellen, bearbeiten und Revisionen verwalten.
     </div>
 
-</a>
+</a>{% endif %}
+{% if can_access('complaints.overview') %}<a href="{{ url_for('complaints.overview') }}" class="dashboard-card"><div class="dashboard-card-icon">📨</div><div class="dashboard-card-title">Reklamationen</div><div class="dashboard-card-desc">Eigener Bereich für Reklamationen – Ablauf folgt</div></a>{% endif %}
+{% if can_access('article_defects.overview') %}<a href="{{ url_for('article_defects.overview') }}" class="dashboard-card"><div class="dashboard-card-icon">📷</div><div class="dashboard-card-title">Fehlerkatalog</div><div class="dashboard-card-desc">Fehlerbilder, Fotos und Erfahrungen je Artikel</div></a>{% endif %}
 
 
 <!-- ================= AUSWERTUNGEN ================= -->

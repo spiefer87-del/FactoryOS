@@ -6,6 +6,8 @@ from .access_control import allowed,policy
 
 # key, group, title, icon, endpoint, description
 CATALOG=(
+ ('defect_catalog','Qualität','Fehlerkatalog','📷','article_defects.overview','Produktionsfehler je Artikel mit Fotos'),
+ ('complaints','Qualität','Reklamationen','📨','complaints.overview','Eigener Reklamationsbereich'),
  ('production','Hauptbereiche','Produktion','🏭','production.dashboard','Produktionsübersicht'),
  ('orders','Hauptbereiche','Aufträge','📋','orders.dashboard','Aufträge und Fertigungsdaten'),
  ('inventory','Hauptbereiche','Lager','🏬','inventory.dashboard','Bestände, Übergaben und Warenausgang'),
