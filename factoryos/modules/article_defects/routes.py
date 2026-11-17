@@ -1,11 +1,9 @@
 from datetime import datetime
-from io import BytesIO
 from pathlib import Path
 from uuid import uuid4
 from flask import Blueprint,render_template,request,redirect,url_for,abort,flash,current_app,send_file
 from flask_login import login_required,current_user
 from sqlalchemy.orm.exc import StaleDataError
-from PIL import Image,ImageOps,UnidentifiedImageError
 from factoryos.extensions import db
 from factoryos.core.auth import permission_required
 from factoryos.core.access_control import valid_csrf
@@ -13,6 +11,7 @@ from factoryos.core.models.change_log import ChangeLog
 from factoryos.modules.masterdata.articles.models import Article
 from factoryos.modules.quality.inspection_plan.visual_presets import VISUAL_PRESETS
 from .models import ArticleDefect,ArticleDefectPhoto
+from .photos import prepare_photo
 
 bp=Blueprint('article_defects',__name__,url_prefix='/quality/defect-catalog')
 TYPES=[row[1] for row in VISUAL_PRESETS]+['Sonstiger Produktionsfehler']
@@ -62,15 +61,7 @@ def form(entry=None):
             if entry and str(entry.version)!=request.form.get('version'):raise StaleDataError()
             uploads=[f for f in request.files.getlist('photo')+request.files.getlist('camera') if f and f.filename]
             if len(uploads)+(len(entry.photos) if entry else 0)>5:raise ValueError('Fotos: maximal fünf Bilder pro Fehler.')
-            prepared=[]
-            for upload in uploads:
-                raw=upload.stream.read(10*1024*1024+1)
-                if len(raw)>10*1024*1024:raise ValueError('Foto: maximal 10 MB pro Bild.')
-                try:
-                    img=Image.open(BytesIO(raw))
-                    if img.format not in ('JPEG','PNG','WEBP') or img.width*img.height>24000000:raise ValueError('Foto: JPEG/PNG/WebP bis 24 Megapixel verwenden.')
-                    img.load();img=ImageOps.exif_transpose(img).convert('RGB');img.thumbnail((2000,2000));output=BytesIO();img.save(output,'JPEG',quality=90);prepared.append(output.getvalue())
-                except (UnidentifiedImageError,OSError,Image.DecompressionBombError):raise ValueError('Foto konnte nicht gelesen werden.')
+            prepared=[prepare_photo(upload.stream) for upload in uploads]
             is_new=entry is None
             if is_new:entry=ArticleDefect(article_id=article.id,created_by_id=current_user.id);db.session.add(entry)
             entry.title=values['title'];entry.defect_type=values['defect_type'];entry.description=values['description'];entry.remedy=values['remedy'];entry.archived=values['archived']=='yes';entry.updated_at=datetime.utcnow()

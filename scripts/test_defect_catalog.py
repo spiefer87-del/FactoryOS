@@ -16,6 +16,8 @@ from factoryos.modules.admin.roles.models import Role
 from factoryos.modules.admin.permissions.models import Permission
 from scripts.upgrade_defect_catalog import run_upgrade
 from scripts.reset_test_inspection_plans import run_reset
+from factoryos.modules.article_defects.routes import photo_root
+from factoryos.modules.article_defects.photos import MAX_EDGE,MAX_STORED_BYTES
 
 with app.app_context():
     user=db.session.merge(fixture['user']);article=db.session.merge(fixture['article']);tool=db.session.merge(fixture['tool'])
@@ -50,9 +52,15 @@ with app.app_context():
     assert 'capture="environment"' in page.get_data(as_text=True)
     assert '<option value="">Bitte Fehlerart auswählen</option>' in page.get_data(as_text=True)
     data=dict(access_csrf=csrf,article_id=str(article.id),title='Grat links',defect_type='Grat / Schwimmhaut',description='Grat an der linken Trennkante bei Produktion beobachtet.',remedy='Bisher keine bestätigte Abhilfe.')
-    image=BytesIO();Image.new('RGB',(100,100),'white').save(image,'PNG');image.seek(0)
+    existing_files=set(photo_root().glob('*'))
+    image=BytesIO();Image.new('RGB',(2400,1800),'white').save(image,'PNG');image.seek(0)
     response=client.post('/quality/defect-catalog/create',data={**data,'camera':(image,'photo.png')});assert response.status_code==303,response.get_data(as_text=True)[:1000]
     entry=ArticleDefect.query.one();photo=ArticleDefectPhoto.query.one();assert entry.article_id==article.id
+    saved=photo_root()/photo.filename
+    assert saved.stat().st_size<=MAX_STORED_BYTES
+    assert set(photo_root().glob('*'))-existing_files=={saved},'Original zusätzlich gespeichert'
+    with Image.open(saved) as stored:
+        assert stored.format=='JPEG' and max(stored.size)<=MAX_EDGE and not stored.getexif()
     assert client.get(f'/quality/defect-catalog/{entry.id}').status_code==200
     assert client.get(f'/quality/defect-catalog/photo/{photo.id}').mimetype=='image/jpeg'
     count=ArticleDefect.query.count();response=client.post('/quality/defect-catalog/create',data={**data,'photo':(BytesIO(b'bad'),'bad.png')});assert response.status_code==422 and ArticleDefect.query.count()==count
