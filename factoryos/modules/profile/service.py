@@ -7,28 +7,40 @@ TOOL_DEFAULTS = {key: key in ("tool_no", "external_tool_no", "name", "article_no
 DEFAULTS = {"articles.columns": {key: True for key in ARTICLE_COLUMNS},
             "tools.columns": TOOL_DEFAULTS,
             "appearance": {"density": "comfortable", "accent": "blue"}}
+from factoryos.core.dashboard_service import DEFAULT_TILES
+DEFAULTS['dashboard']={'tiles':DEFAULT_TILES}
 
 
 class PreferenceConflict(Exception):
     pass
 
 
-def packed(record, section):
+def packed(record, section, user_id=None):
     values = dict(DEFAULTS[section])
     if record:
         values.update({k: v for k, v in (record.values or {}).items() if k in values})
+    if section=='dashboard':
+        from factoryos.core.dashboard_service import permitted
+        choices={tile['key'] for tile in permitted(user_id if user_id is not None else record.user_id)}
+        values['tiles']=[key for key in values['tiles'] if key in choices]
     return {"values": values, "version": record.version if record else 0}
 
 
 def all_preferences(user_id):
     records = {r.section: r for r in UserPreference.query.filter_by(user_id=user_id).all()}
-    return {key: packed(records.get(key), key) for key in DEFAULTS}
+    return {key: packed(records.get(key), key,user_id) for key in DEFAULTS}
 
 
 def validate(section, values):
     if section not in DEFAULTS or not isinstance(values, dict) or not values or set(values) - set(DEFAULTS[section]):
         raise ValueError("Ungültiger Einstellungsbereich oder unbekannte Einstellung.")
-    if section == "appearance":
+    if section=='dashboard':
+        from factoryos.core.dashboard_service import CATALOG
+        tiles=values.get('tiles')
+        known={row[0] for row in CATALOG}
+        if not isinstance(tiles,list) or len(tiles)>len(known) or any(type(key) is not str or key not in known for key in tiles) or len(set(tiles))!=len(tiles):
+            raise ValueError('Ungültige oder doppelte Dashboard-Kacheln.')
+    elif section == "appearance":
         if "density" in values and values["density"] not in ("comfortable", "compact"):
             raise ValueError("Ungültige Tabellendichte.")
         if "accent" in values and values["accent"] not in ("blue", "teal", "violet"):
@@ -42,12 +54,16 @@ def validate(section, values):
 
 def save_preferences(user_id, section, values, version):
     validate(section, values)
+    if section=='dashboard':
+        from factoryos.core.dashboard_service import permitted
+        keys={tile['key'] for tile in permitted(user_id)}
+        if any(key not in keys for key in values['tiles']):raise ValueError('Eine Kachel ist nicht mehr berechtigt. Bitte neu laden.')
     if type(version) is not int or version < 0:
         raise ValueError("Ungültige Einstellungs-Version.")
     record = db.session.get(UserPreference, (user_id, section))
     if (record.version if record else 0) != version:
         raise PreferenceConflict()
-    merged = packed(record, section)["values"]
+    merged = packed(record, section,user_id)["values"]
     merged.update(values)
     if record is None:
         record = UserPreference(user_id=user_id, section=section, values=merged)
@@ -55,4 +71,4 @@ def save_preferences(user_id, section, values, version):
     else:
         record.values = merged
     db.session.commit()
-    return packed(record, section)
+    return packed(record, section,user_id)

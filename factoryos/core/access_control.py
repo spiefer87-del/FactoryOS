@@ -18,6 +18,7 @@ READ = {
     "inspection": {"dashboard", "quality_inspection_plan", "tools_by_article"},
 }
 EXPLICIT = {
+    'core.dashboard_customize':'LOGIN',
     "admin_users.list_users": "users.view", "admin_users.create_user": "users.create",
     "admin_users.edit_user": "users.edit", "admin_users.delete_user": "users.delete",
     "tools.image_primary": "tools.edit", "tools.upload_documents": "tools.documents", "tools.delete_document": "tools.documents",

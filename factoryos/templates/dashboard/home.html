@@ -1,41 +1,4 @@
-{% extends "layout/base.html" %}
-
-{% block content %}
-
-<h2>FactoryOS Dashboard</h2>
-
-<div class="dashboard-grid">
-
-{% if can_access('production.dashboard') %}<a href="{{ url_for('production.dashboard') }}" class="dashboard-card">
-    <div class="card-icon">🏭</div>
-    <div class="card-title">Produktion</div>
-</a>{% endif %}
-
-{% if can_access('orders.dashboard') %}<a href="{{ url_for('orders.dashboard') }}" class="dashboard-card">
-    <div class="card-icon">📋</div>
-    <div class="card-title">Aufträge</div>
-</a>{% endif %}
-
-{% if can_access('quality.dashboard') %}<a href="{{ url_for('quality.dashboard') }}" class="dashboard-card">
-    <div class="card-icon">📏</div>
-    <div class="card-title">Qualität</div>
-</a>{% endif %}
-
-{% if can_access('projects.dashboard') %}<a href="{{ url_for('projects.dashboard') }}" class="dashboard-card">
-    <div class="card-icon">📐</div>
-    <div class="card-title">Projekte</div>
-</a>{% endif %}
-
-{% if can_access('masterdata.dashboard') %}<a href="{{ url_for('masterdata.dashboard') }}" class="dashboard-card">
-    <div class="card-icon">🗂</div>
-    <div class="card-title">Stammdaten</div>
-</a>{% endif %}
-
-{% if can_access('admin.dashboard') %}<a href="{{ url_for('admin.dashboard') }}" class="dashboard-card">
-    <div class="card-icon">⚙️</div>
-    <div class="card-title">Administration</div>
-</a>{% endif %}
-
-</div>
-
-{% endblock %}
+{% extends 'layout/base.html' %}
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static',filename='css/personal_dashboard.css') }}">{% endblock %}
+{% block content %}<div class="personal-dashboard"><header><div><p class="dashboard-eyebrow">Dein Arbeitsbereich · {{ current_user.username }}</p><h1>FactoryOS Dashboard</h1><p>Deine ausgewählten Bereiche und Schnellzugriffe.</p></div><a class="btn-primary" href="{{ url_for('core.dashboard_customize') }}">⚙ Dashboard anpassen</a></header>
+<div class="personal-tile-grid">{% for tile in tiles %}<a href="{{ tile.url }}" class="personal-tile"><span class="personal-tile-icon" aria-hidden="true">{{ tile.icon }}</span><small>{{ tile.group }}</small><h2>{{ tile.title }}</h2><p>{{ tile.description }}</p><span class="personal-tile-open">Öffnen →</span></a>{% else %}<section class="dashboard-notice"><h2>Noch keine Kacheln ausgewählt</h2><p>Über „Dashboard anpassen“ kannst du deine berechtigten Bereiche hinzufügen. Die übrige Navigation bleibt verfügbar.</p></section>{% endfor %}</div></div>{% endblock %}

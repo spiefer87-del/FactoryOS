@@ -1,7 +1,6 @@
 <aside id="sidebar" class="sidebar">
 
     <ul class="sidebar-nav">
-        {% if can_access('inventory.dashboard') %}<li><a class="{{ 'active' if request.blueprint=='inventory' }}" href="{{ url_for('inventory.dashboard') }}"><span class="sidebar-icon">🏬</span> Lager</a></li>{% endif %}
 
         {% if can_access('core.home') %}<li>
             <a class="{% if request.blueprint == 'core' %}active{% endif %}"
@@ -32,6 +31,8 @@
             </a>
         </li>{% endif %}
 
+
+        {% if can_access('inventory.dashboard') %}<li><a class="{{ 'active' if request.blueprint=='inventory' }}" href="{{ url_for('inventory.dashboard') }}"><span class="sidebar-icon">🏬</span> Lager</a></li>{% endif %}
 
         {% if can_access('projects.dashboard') %}<li>
             <a class="{% if request.blueprint == 'projects' %}active{% endif %}"
