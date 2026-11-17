@@ -1,0 +1,11 @@
+{% extends 'layout/base.html' %}
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static',filename='css/inventory.css') }}">{% endblock %}
+{% block content %}<div class="warehouse"><a href="{{ url_for('inventory.dashboard') }}">← Lager</a><h1>{{ label }}</h1>
+<p>Nur tatsächlich bestätigte Mengen buchen. Lagerannahmen, Erstbestände und Rücknahmen gehen zunächst in den Sperrbestand. Freigabe separat bestätigen.</p>
+{% if error %}<div class="warehouse-error" role="alert">Nicht gespeichert: {{ error }}</div>{% endif %}
+<form method="post" class="warehouse-card"><input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}"><input type="hidden" name="command_id" value="{{ command_id }}"><input type="hidden" name="revision" value="{{ revision }}">
+{% for key in fields %}<label for="wh-{{ key }}">{{ names[key] }} *</label>{% if key in choices %}<select id="wh-{{ key }}" name="{{ key }}" required><option value="">Bitte auswählen</option>{% for value,text in choices[key] %}<option value="{{ value }}" {% if data.get(key)|string==value|string %}selected{% endif %}>{{ text }}</option>{% endfor %}</select>{% else %}<input id="wh-{{ key }}" name="{{ key }}" value="{{ data.get(key,'') }}" required {% if key=='quantity' %}inputmode="numeric" pattern="[0-9]+"{% endif %}>{% endif %}{% endfor %}
+<label for="wh-reason">Begründung / Beleg / Prüfnachweis *</label><textarea id="wh-reason" name="reason" maxlength="500" required>{{ data.get('reason','') }}</textarea>
+{% if action=='transfer' %}<p>Die Menge muss durch Gutmeldungen oder bestätigte Endmengen belegt sein. Artikelnummer muss exakt dem Auftrag entsprechen. Produktionsausschuss wird nicht eingebucht.</p>{% endif %}
+{% if action=='reverse' %}<p>Vollständige ursprüngliche Menge angeben. Gegenbuchungen müssen mit dem heutigen Bestand vereinbar sein. Versand wird durch eine Rücknahme korrigiert.</p>{% endif %}
+<label class="warehouse-check"><input type="checkbox" name="confirmed" value="yes" required> Menge, Zuordnung und tatsächlichen Vorgang geprüft – verbindlich buchen.</label><button class="btn-primary">{{ label }} bestätigen</button></form></div>{% endblock %}

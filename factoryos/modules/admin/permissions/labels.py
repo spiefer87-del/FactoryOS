@@ -1,5 +1,6 @@
 """German UI text only. Internal permission identifiers and grants are untouched."""
 GROUP_LABELS = {
+    'inventory':'Lagerverwaltung',
     "activity": "Aktivitätsprotokoll", "articles": "Artikel", "customers": "Kunden",
     "machines": "Maschinen", "materials": "Materialien und Farbbatches",
     "orders": "Aufträge", "production": "Produktion und Maschinenbuchung",
@@ -19,6 +20,9 @@ PERMISSION_TEXT = {}
 
 def add(group, action, title, description):
     PERMISSION_TEXT[group + "." + action] = {"title": title, "description": description}
+
+for action,title in [('view','Lager ansehen'),('locations','Lagerplätze anlegen'),('production','Produktionsübergaben bestätigen'),('receive','Lagerannahme / Übergabeausschuss'),('release','Bestände sperren / freigeben'),('adjust','Erstbestände / Gegenbuchungen'),('move','Lagerbestände umlagern'),('scrap','Lagerausschuss buchen'),('dispatch','Reservieren, kommissionieren, versenden und zurücknehmen')]:
+    add('inventory',action,title,title+'; bestätigte Mengen und nachvollziehbare Belege erforderlich.')
 
 
 add('orders','complete','Aufträge im Büro abschließen','Fertigungsaufträge auch ohne laufende Maschine mit bestätigten Endmengen abschließen. Keine Musterungsfreigabe und kein Wiederöffnen.')

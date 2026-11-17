@@ -11,6 +11,12 @@ from ..services.article_service import delete_article
 def delete(article_id):
 
     article = get_article(article_id)
+    from sqlalchemy import inspect
+    from factoryos.extensions import db
+    from factoryos.modules.inventory.models import WarehouseLot
+    if inspect(db.engine).has_table('warehouse_lots') and WarehouseLot.query.filter_by(article_id=article.id).first():
+        flash('Artikel besitzt Lagerhistorie und bleibt zur Rückverfolgung erhalten.','warning')
+        return redirect(url_for('articles.detail',article_id=article.id))
 
     from factoryos.modules.sampling.models import SamplingOrder
     if SamplingOrder.query.filter_by(article_id=article.id).first():

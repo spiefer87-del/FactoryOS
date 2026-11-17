@@ -73,6 +73,8 @@ def complete_order(order_id,user_id,command_id,revision,*,good_qty,scrap_qty,rea
     if not revision or context['revision']!=revision:raise ControlConflict("Auftrag, Mengen oder Maschinenstand wurden geändert. Bitte neu laden und Endmengen erneut prüfen.")
     if good<context['good'] or scrap<context['scrap']:
         raise ValueError("Endmengen dürfen bereits gebuchte Gut-/Ausschussmengen nicht unterschreiten. Bestehende Mengen fachlich korrigieren lassen.")
+    from factoryos.modules.inventory.service import protect_final_total
+    protect_final_total(order.id,good)
     target=order.target_qty or 0
     if target<=0 and len(reason)<5:raise ValueError('Sollstückzahl fehlt: manuellen Abschluss mit mindestens 5 Zeichen begründen.')
     if good<target and (not short_confirmed or len(reason)<5):
