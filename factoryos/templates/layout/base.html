@@ -27,6 +27,7 @@ href="/static/css/qm_builder.css">
     
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user_preferences.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/ui_consistency.css',v='20261117-ui1') }}">
 {% if ui_preferences_boot %}
 <script id="factoryos-preferences-data" type="application/json">{{ ui_preferences_boot|tojson }}</script>
 <script src="{{ url_for('static', filename='js/user_preferences.js') }}"></script>

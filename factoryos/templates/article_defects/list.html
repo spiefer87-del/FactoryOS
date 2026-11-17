@@ -1,4 +1,31 @@
-{% extends 'layout/base.html' %}{% block styles %}<link rel="stylesheet" href="{{ url_for('static',filename='css/article_defects.css') }}">{% endblock %}
-{% block content %}<div class="article-defects"><header><div><h1>Fehlerkatalog</h1><p>Produktionsfehler, Fotos und Erfahrungen je Artikel</p></div>{% if can_access('article_defects.create') %}<a class="btn-primary" href="{{ url_for('article_defects.create',article_id=article_id) if article_id else url_for('article_defects.create') }}">📷 Fehler erfassen</a>{% endif %}</header>
-{% if can_access('article_defects.export_catalog_pdf') %}<p><a class="btn-primary" href="{{ url_for('article_defects.export_catalog_pdf',article_id=article_id) if article_id else url_for('article_defects.export_catalog_pdf') }}">{{ 'Artikelkatalog als PDF' if article_id else 'Gesamten Fehlerkatalog als PDF' }}</a></p>{% endif %}<a href="{{ url_for('quality.dashboard') }}">← Qualität</a>{% if article_id %}<p>Nach Artikel gefiltert · <a href="{{ url_for('article_defects.overview') }}">Alle Artikel anzeigen</a></p>{% endif %}
-<div class="fos-table-wrapper"><input class="fos-search" type="search" placeholder="Artikel, Fehlerart, Beschreibung suchen …" aria-label="Fehler suchen"><div class="fos-table-container"><table class="fos-table" id="article-defects-table"><thead><tr><th>Artikel</th><th>Fehler</th><th>Werkzeugnummer</th><th>Fehlerart</th><th>Fotos</th><th>Status</th><th>Erfasst</th></tr></thead><tbody>{% for entry in entries %}<tr data-search-text="{{ entry.article.article_no }} {{ entry.article.article_name }} {{ entry.title }} {{ entry.defect_type }} {{ entry.description }} {{ entry.remedy }} {{ entry.tool_no or '' }}"><td>{{ entry.article.article_no }} · {{ entry.article.article_name }}</td><td><a href="{{ url_for('article_defects.detail',entry_id=entry.id) }}">{{ entry.title }}</a></td><td>{{ entry.tool_no or '—' }}</td><td>{{ entry.defect_type }}</td><td>{{ entry.photos|length }}</td><td>{{ 'Archiviert' if entry.archived else 'Aktiv' }}</td><td>{{ entry.created_at.strftime('%d.%m.%Y %H:%M') }} UTC</td></tr>{% endfor %}</tbody></table></div><div class="fos-pagination"></div>{% if not entries %}<p>Noch keine Fehler erfasst.</p>{% endif %}</div></div>{% endblock %}
+{% extends 'layout/base.html' %}
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static',filename='css/article_defects.css',v='20261117-ui1') }}">{% endblock %}
+{% block content %}
+<div class="article-defects">
+<header><div><h1>Fehlerkatalog</h1><p>Produktionsfehler, Fotos und Erfahrungen je Artikel</p></div>{% if can_access('article_defects.create') %}<a class="btn-primary" href="{{ url_for('article_defects.create',article_id=article_id) if article_id else url_for('article_defects.create') }}">📷 Fehler erfassen</a>{% endif %}</header>
+<nav class="ui-actions" aria-label="Fehlerkatalog-Navigation">
+<a class="btn-secondary" href="{{ url_for('quality.dashboard') }}">← Qualität</a>
+{% if can_access('article_defects.export_catalog_pdf') %}<a class="btn-secondary" href="{{ url_for('article_defects.export_catalog_pdf',article_id=article_id) if article_id else url_for('article_defects.export_catalog_pdf') }}">{{ 'Artikelkatalog als PDF' if article_id else 'Gesamten Fehlerkatalog als PDF' }}</a>{% endif %}
+{% if article_id %}<a class="btn-secondary" href="{{ url_for('article_defects.overview') }}">Alle Artikel anzeigen</a>{% endif %}
+</nav>
+{% if article_id %}<p>Nach Artikel gefiltert</p>{% endif %}
+<div class="fos-table-wrapper">
+<div class="defect-list-toolbar">
+<label for="defect-catalog-search">Fehler suchen<input id="defect-catalog-search" class="fos-search" type="search" placeholder="Artikel, Werkzeug, Fehlerart oder Beschreibung …"></label>
+<label for="defect-catalog-sort">Sortieren nach<select id="defect-catalog-sort"><option value="5:desc">Neueste zuerst</option><option value="5:asc">Älteste zuerst</option><option value="0:asc">Artikel / Fehler</option><option value="2:asc">Fehlerart</option><option value="4:asc">Status</option></select></label>
+</div>
+<p class="defect-list-hint">Artikel und Fehler öffnen direkt den zugehörigen Katalogeintrag.</p>
+<div class="fos-table-container" tabindex="0" role="region" aria-label="Fehlerkatalog">
+<table class="fos-table" id="article-defects-table">
+<thead><tr><th scope="col">Artikel / Fehler öffnen</th><th scope="col">Werkzeug</th><th scope="col">Fehlerart</th><th scope="col">Fotos</th><th scope="col">Status</th><th scope="col">Erfasst</th></tr></thead>
+<tbody>{% for entry in entries %}
+<tr data-search-text="{{ entry.article.article_no }} {{ entry.article.article_name }} {{ entry.title }} {{ entry.defect_type }} {{ entry.description }} {{ entry.remedy }} {{ entry.tool_no or '' }}">
+<td data-label="Artikel / Fehler"><a class="defect-entry-link" href="{{ url_for('article_defects.detail',entry_id=entry.id) }}" aria-label="{{ entry.title }} – Artikel {{ entry.article.article_no }}: Katalogeintrag öffnen"><strong>{{ entry.article.article_no }} <span aria-hidden="true">→</span></strong><span>{{ entry.title }}</span><small>{{ entry.article.article_name }}</small></a></td>
+<td data-label="Werkzeug">{{ entry.tool_no or '—' }}</td><td data-label="Fehlerart">{{ entry.defect_type }}</td><td data-label="Fotos">{{ entry.photos|length }}</td><td data-label="Status"><span class="defect-status {{ 'is-archived' if entry.archived else 'is-active' }}">{{ 'Archiviert' if entry.archived else 'Aktiv' }}</span></td><td data-label="Erfasst">{{ activity_time(entry.created_at) }}</td>
+</tr>{% endfor %}</tbody>
+</table></div>
+<div class="fos-pagination"></div>{% if not entries %}<p>Noch keine Fehler erfasst.</p>{% endif %}
+<noscript>Ohne JavaScript werden alle Einträge angezeigt. Die Detailseiten sind direkt über Artikel und Fehler erreichbar.</noscript>
+</div></div>
+<script src="{{ url_for('static',filename='js/defect_catalog_list.js',v='20261117-ui1') }}"></script>
+{% endblock %}

@@ -1,1 +1,30 @@
 .article-defects{max-width:1200px;min-width:0;margin:auto}.article-defects *{box-sizing:border-box}.article-defects header{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:24px}.defect-card{background:white;border:1px solid #e2e8f0;padding:24px;border-radius:16px;margin:20px 0;min-width:0}.article-defects label{display:block;margin-top:16px}.article-defects input:not([type=hidden]):not([type=checkbox]),.article-defects select,.article-defects textarea{display:block;width:100%;max-width:100%;min-width:0;font-size:16px;padding:12px;border:1px solid #cbd5e1;border-radius:9px;margin:8px 0}.defect-photo-inputs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.article-defects small{color:#64748b}.article-defects button{padding:12px 18px;min-height:44px;margin-top:20px}.defect-error{padding:16px;background:#fef2f2;border:1px solid #fca5a5;color:#991b1b}.defect-photo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}.defect-photo-grid img{max-width:100%;width:100%;height:260px;object-fit:contain;background:white;border-radius:12px}.defect-multiline{white-space:pre-wrap;overflow-wrap:anywhere}.article-defects .fos-table{width:max-content;min-width:100%}.article-defects td,.article-defects th{white-space:nowrap}.article-defects .fos-table-container{max-width:100%;overflow:auto}@media(max-width:600px){.defect-card{padding:16px}.defect-photo-inputs{grid-template-columns:1fr}.article-defects header>a,.article-defects button{width:100%;text-align:center}}
+.defect-list-toolbar{display:grid;grid-template-columns:minmax(0,2fr) minmax(200px,1fr);gap:16px;align-items:end}
+.article-defects .defect-list-toolbar label{margin:0;font-weight:600}
+.article-defects .defect-list-toolbar input,.article-defects .defect-list-toolbar select{margin:8px 0 0}
+.defect-list-hint{color:#64748b;font-size:.9rem;margin:14px 0}
+.article-defects #article-defects-table{width:100%;min-width:860px;table-layout:fixed}
+.article-defects #article-defects-table th,.article-defects #article-defects-table td{white-space:normal;text-align:left;vertical-align:top;overflow-wrap:anywhere;width:auto}
+.article-defects #article-defects-table th:first-child,.article-defects #article-defects-table td:first-child{width:270px;white-space:normal;text-align:left}
+.article-defects #article-defects-table th:nth-child(4),.article-defects #article-defects-table td:nth-child(4){width:70px}
+.article-defects .defect-entry-link{display:flex;flex-direction:column;gap:7px;min-height:44px;border:1px solid var(--personal-border,#bfdbfe);border-radius:12px;padding:12px;background:var(--personal-soft,#eff6ff);color:var(--personal-accent,#1d4ed8);text-decoration:none;white-space:normal;overflow-wrap:anywhere}
+.defect-entry-link strong{display:flex;justify-content:space-between;gap:10px}
+.defect-entry-link>span{font-weight:600;color:#1e293b}
+.defect-entry-link small{font-size:.82rem;line-height:1.45}
+.defect-entry-link:hover{border-color:var(--personal-accent,#2563eb);box-shadow:0 2px 8px #2563eb12}
+.defect-status{display:inline-flex;padding:5px 10px;border-radius:999px;font-size:.8rem;font-weight:600;background:#f1f5f9;color:#475569}
+.defect-status.is-active{background:#ecfdf5;color:#047857}
+@media(max-width:700px){
+ .defect-list-toolbar{grid-template-columns:minmax(0,1fr)}
+ .article-defects .fos-table-wrapper{padding:16px}
+ .article-defects .fos-table-container{overflow:visible}
+ .article-defects #article-defects-table{display:block;min-width:0;width:100%}
+ #article-defects-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+ #article-defects-table tbody{display:grid;gap:16px}
+ #article-defects-table tbody tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:14px;border:1px solid #e2e8f0;border-radius:14px;background:#fff;min-width:0}
+ .article-defects #article-defects-table tbody td{display:block;border:0;padding:0;width:auto;min-width:0}
+ .article-defects #article-defects-table tbody td:first-child{grid-column:1/-1;width:auto}
+ #article-defects-table td:not(:first-child)::before{content:attr(data-label);display:block;color:#64748b;font-size:.75rem;font-weight:600;margin-bottom:5px}
+ .article-defects #article-defects-table td:nth-child(3){grid-column:1/-1}
+ .article-defects #article-defects-table td:last-child{grid-column:1/-1}
+}

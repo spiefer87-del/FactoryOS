@@ -11,41 +11,40 @@
 {% if can_access('inspection.dashboard') %}<a href="{{ url_for('inspection.dashboard') }}"
    class="dashboard-card">
 
-    <div class="dashboard-card-icon">
+    <div class="card-icon">
         📋
     </div>
 
-    <div class="dashboard-card-title">
+    <div class="card-title">
         Prüfpläne
     </div>
 
-    <div class="dashboard-card-desc">
+    <div class="card-desc">
         Prüfpläne erstellen, bearbeiten und Revisionen verwalten.
     </div>
 
 </a>{% endif %}
-{% if can_access('complaints.overview') %}<a href="{{ url_for('complaints.overview') }}" class="dashboard-card"><div class="dashboard-card-icon">📨</div><div class="dashboard-card-title">Reklamationen</div><div class="dashboard-card-desc">Eigener Bereich für Reklamationen – Ablauf folgt</div></a>{% endif %}
-{% if can_access('article_defects.overview') %}<a href="{{ url_for('article_defects.overview') }}" class="dashboard-card"><div class="dashboard-card-icon">📷</div><div class="dashboard-card-title">Fehlerkatalog</div><div class="dashboard-card-desc">Fehlerbilder, Fotos und Erfahrungen je Artikel</div></a>{% endif %}
+{% if can_access('complaints.overview') %}<a href="{{ url_for('complaints.overview') }}" class="dashboard-card"><div class="card-icon">📨</div><div class="card-title">Reklamationen</div><div class="card-desc">Eigener Bereich für Reklamationen – Ablauf folgt</div></a>{% endif %}
+{% if can_access('article_defects.overview') %}<a href="{{ url_for('article_defects.overview') }}" class="dashboard-card"><div class="card-icon">📷</div><div class="card-title">Fehlerkatalog</div><div class="card-desc">Fehlerbilder, Fotos und Erfahrungen je Artikel</div></a>{% endif %}
 
 
 <!-- ================= AUSWERTUNGEN ================= -->
 
-<a href="#"
-   class="dashboard-card dashboard-card-disabled">
+<div class="dashboard-card dashboard-card-disabled" aria-disabled="true">
 
-    <div class="dashboard-card-icon">
+    <div class="card-icon">
         📊
     </div>
 
-    <div class="dashboard-card-title">
+    <div class="card-title">
         Auswertungen
     </div>
 
-    <div class="dashboard-card-desc">
+    <div class="card-desc">
         Qualitätskennzahlen und Statistiken (in Entwicklung).
     </div>
 
-</a>
+</div>
 
 </div>
 
