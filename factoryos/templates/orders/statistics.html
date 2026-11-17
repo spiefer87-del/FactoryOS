@@ -1,4 +1,5 @@
 <div class="order-statistics">
+{% include 'orders/deviation_panel.html' %}
 <section aria-labelledby="order-stats-heading"><h2 id="order-stats-heading">Auftragsübersicht und Kennzahlen</h2>
 <p class="stats-note">Stand {{ local_label(statistics.now) }}. Erfasste Mengen und Zeit-/Materialschätzungen sind getrennt.</p>
 {% if can_correct_time and statistics.active_booking %}<p><a class="btn-secondary" href="{{ url_for('production.edit_booking_time',booking_id=statistics.active_booking.id) }}">Startzeit der laufenden Buchung korrigieren</a></p>{% endif %}

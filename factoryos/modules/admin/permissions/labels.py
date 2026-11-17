@@ -35,6 +35,7 @@ add('orders','complete','Aufträge im Büro abschließen','Fertigungsaufträge a
 add('production','complete_order','Aufträge an der Maschine abschließen','Den aktuell zugeordneten Fertigungsauftrag mit Endmengen abschließen und die Produktion ausbuchen. Störungen/Wartungen werden nicht automatisch quittiert.')
 add('production','cancel_booking','Falsche Zeitbuchungen stornieren','Abgeschlossene, nicht fachlich gebundene Zeitbuchungen mit Vorschau und Begründung aus der Zeitwertung nehmen. Keine Löschung von Mengen, Rüstnachweisen oder Aufträgen.')
 add('production','edit_setup_time','Rüst- und Abrüstzeiten korrigieren','Abgeschlossene einfache Rüst-/Abrüstbuchungen und zugehörige Zeitnachweise mit Vorschau und Begründung korrigieren. Werkzeugbestand bleibt unverändert.')
+add('production','confirm_deviation','Laufzeitabweichungen begründen','Soll-/Laufzeitabweichungen am Auftrag mit Ursache und Maßnahmen bestätigen. Keine Änderung der Maschinenparameter oder bestätigten Mengen.')
 add('production','delete_booking','Zeitbuchungen vollständig löschen','Abgeschlossene Zeitbuchungen und gegebenenfalls den eindeutig zugehörigen einfachen Rüstnachweis nach Prüfung vollständig löschen. Originaldaten werden protokolliert. Keine Löschung von Aufträgen oder Mengen.')
 
 

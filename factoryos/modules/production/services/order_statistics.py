@@ -167,16 +167,20 @@ def order_statistics(order, now=None, settings=None, exceptions=None):
     if order.is_project: issues.append("Projektauftrag: stückbezogene Produktionskennzahlen sind nicht anwendbar.")
     pause = sum(max(0,(min(booking.end_time or now,now)-booking.start_time).total_seconds())
                 for booking in bookings if booking.process=="PAUSE")
-    return dict(now=now,first_start=production[0].start_time if production else None,
+    result = dict(now=now,first_start=production[0].start_time if production else None,
         bookings=production,active_booking=active[0] if len(active)==1 else None,
         good=good,scrap=scrap,report_count=reports,last_report=last_report,
         target=target,remaining=max(0,target-good),progress=min(100,100*good/target) if target else None,
         scrap_percent=100*scrap/(good+scrap) if good+scrap else None,
         gross_seconds=gross,working_seconds=net,pause_seconds=pause,
         planned_seconds=planned["remaining_seconds"] if planned else None,
-        forecast=forecast,eta=forecast["at"] if forecast and len(active)==1 and not complete else None,
+        forecast=forecast,eta=forecast["at"] if forecast and forecast['remaining_seconds']>0 and len(active)==1 and not complete else None,
         is_complete=complete,last_end=max((booking.end_time for booking in production if booking.end_time),default=None),
         forecast_basis="Solltempo seit letzter Mengenmeldung" if reports else "Solltempo seit erfasstem Produktionsstart – noch ohne Mengenmeldung",
         total_mass=total_mass,remaining_mass=remaining_mass,consumed_estimate=consumed_estimate,
         main_mass=main,batch_mass=batch,shot_weight=shot,shot_source=shot_source,
         material_label=material_label,issues=issues)
+    from factoryos.modules.production_deviations.service import evaluate
+    result['calendar_basis']=[(key,str(getattr(settings,key,None))) for key in ('week_start_day','week_start_time','week_end_day','week_end_time')]+[(str(e.start_at),str(e.end_at)) for e in exceptions]
+    result['deviation']=evaluate(order,result)
+    return result

@@ -16,6 +16,11 @@ def delete(order_id):
     from factoryos.modules.production.models import TimeBooking,QuantityReport,MachineControlState,ProductionPlanEntry
     from factoryos.modules.production.services.machine_control_service import acquire_control_lock
     acquire_control_lock()
+    from sqlalchemy import inspect
+    from factoryos.modules.production_deviations.models import ProductionDeviationConfirmation
+    if inspect(db.engine).has_table('production_deviation_confirmations') and ProductionDeviationConfirmation.query.filter_by(order_id=order.id).first():
+        db.session.rollback();flash('Auftrag besitzt bestätigte Laufzeitabweichungen und bleibt zur Nachverfolgung erhalten.','warning')
+        return redirect(url_for('orders.detail',order_id=order.id))
     if (order.completion or TimeBooking.query.filter_by(order_id=order.id).first() or QuantityReport.query.filter_by(order_id=order.id).first() or
         MachineControlState.query.filter_by(resume_order_id=order.id).first() or ProductionPlanEntry.query.filter_by(order_id=order.id).first()):
         db.session.rollback()

@@ -289,6 +289,16 @@ def get_machine_timeline(horizon_key="24h", now=None, range_start=None, range_en
                 (active_booking.process or "Buchung", "other"),
             )
 
+        for item in items:
+            booking=item['booking']
+            if booking.order and booking.process in ('PROD','MUSTER'):
+                if booking.order_id not in stats_cache:stats_cache[booking.order_id]=order_statistics(booking.order,now,calendar_settings,calendar_exceptions)
+                deviation=stats_cache[booking.order_id]['deviation']
+                if deviation['kind']:
+                    item['class']+=' '+deviation['css']
+                    item['label']='⚠ '+item['label']+(' · begründet' if deviation['confirmation'] else ' · prüfen')
+                    item['process_label']+=' · '+deviation['title']
+                    item['deviation']=deviation
         plan_lane=planned_by_machine.get(machine.id,{"rows":[],"warnings":[],"error":None})
         for row in plan_lane["rows"]:
             if not row["start"]:continue
@@ -317,6 +327,7 @@ def get_machine_timeline(horizon_key="24h", now=None, range_start=None, range_en
             "active_process_label": active_process_label,
             "active_class": active_class,
             "active_count": len(current),
+            "active_deviation":stats_cache.get(active_booking.order_id,{}).get('deviation') if active_booking else None,
             "plan_rows": plan_lane["rows"],
             "plan_error": plan_lane["error"],
         })
