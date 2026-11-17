@@ -18,6 +18,10 @@ from reportlab.platypus import SimpleDocTemplate,Paragraph,Spacer,Table,TableSty
 def timestamp(value):
     return value.replace(tzinfo=timezone.utc).astimezone(ZoneInfo('Europe/Berlin')).strftime('%d.%m.%Y %H:%M %Z') if value else '-'
 
+def category_heading(value):
+    # Wording for the report only; the stored category remains unchanged.
+    return {'Farbabweichungen / Farbschlieren':'Farbabweichung'}.get(value,value or 'Sonstiger Produktionsfehler')
+
 def build_pdf(entries,photo_directory,title='Artikel-Fehlerkatalog'):
     fonts=Path(reportlab.__file__).parent/'fonts'
     if 'FactoryDefect' not in pdfmetrics.getRegisteredFontNames():
@@ -29,15 +33,16 @@ def build_pdf(entries,photo_directory,title='Artikel-Fehlerkatalog'):
     headline=ParagraphStyle('DefectTitle',parent=heading,fontSize=19,leading=25,spaceBefore=0,spaceAfter=10)
     small=ParagraphStyle('DefectSmall',parent=body,fontSize=8,leading=11,textColor=colors.HexColor('#64748b'))
     def p(value,style=body):return Paragraph(escape(str(value or '-')).replace('\n','<br/>'),style)
-    result=BytesIO();doc=SimpleDocTemplate(result,pagesize=A4,rightMargin=18*mm,leftMargin=18*mm,topMargin=27*mm,bottomMargin=20*mm,title=title,author='FactoryOS')
+    result=BytesIO();doc=SimpleDocTemplate(result,pagesize=A4,rightMargin=18*mm,leftMargin=18*mm,topMargin=18*mm,bottomMargin=20*mm,title=title,author='FactoryOS')
     story=[];exported=timestamp(datetime.utcnow())
     for index,entry in enumerate(entries):
         if index:story.append(PageBreak())
-        story.extend([p('FEHLERBILD #'+str(entry.id),small),p(entry.title,headline)])
+        story.extend([p('FEHLERBILD #'+str(entry.id),small),p(category_heading(entry.defect_type),headline)])
         rows=[['Artikelnummer',entry.article.article_no],['Artikel',entry.article.article_name],['Werkzeugnummer',entry.tool_no or 'Nicht angegeben'],['Fehlerart',entry.defect_type],['Status / Version',('Archiviert' if entry.archived else 'Aktiv')+' / '+str(entry.version)],['Erfasst',timestamp(entry.created_at)+' / '+(entry.author.username if entry.author else '-')],['Zuletzt geändert',timestamp(entry.updated_at)]]
         table=Table([[p(k,small),p(v)] for k,v in rows],colWidths=[42*mm,132*mm],hAlign='LEFT')
         table.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,-1),colors.HexColor('#f1f5f9')),('VALIGN',(0,0),(-1,-1),'TOP'),('LEFTPADDING',(0,0),(-1,-1),9),('RIGHTPADDING',(0,0),(-1,-1),9),('TOPPADDING',(0,0),(-1,-1),5),('BOTTOMPADDING',(0,0),(-1,-1),3)]))
-        story.extend([table,p('Beobachteter Fehler',heading),p(entry.description),p('Erprobte Abhilfe / Hinweise',heading),p(entry.remedy or 'Noch keine Abhilfe dokumentiert.'),p('Fehlerfotos',heading)])
+        observed=p(entry.title,ParagraphStyle('DefectObserved',parent=body,fontName='FactoryDefectBold'))
+        story.extend([table,p('Beobachteter Fehler',heading),observed,p(entry.description),p('Erprobte Abhilfe / Hinweise',heading),p(entry.remedy or 'Noch keine Abhilfe dokumentiert.'),p('Fehlerfotos',heading)])
         if not entry.photos:story.append(p('Keine Fotos hinterlegt.',small))
         for number,photo in enumerate(entry.photos,1):
             path=Path(photo_directory)/photo.filename
@@ -55,9 +60,7 @@ def build_pdf(entries,photo_directory,title='Artikel-Fehlerkatalog'):
         story.append(p('Dokumentierte Beobachtung und Erfahrungen. Keine automatische Ursachenbewertung oder Maschinenfreigabe.',small))
     if not entries:story=[p(title,headline),p('Für diese Auswahl sind keine Einträge vorhanden.')]
     def frame(canvas,document):
-        canvas.saveState();canvas.setFillColor(colors.HexColor('#0f172a'));canvas.rect(0,A4[1]-18*mm,A4[0],18*mm,fill=1,stroke=0)
-        canvas.setFillColor(colors.white);canvas.setFont('FactoryDefectBold',13);canvas.drawString(18*mm,A4[1]-12*mm,'FactoryOS')
-        canvas.setFont('FactoryDefect',9);canvas.drawRightString(A4[0]-18*mm,A4[1]-12*mm,'Qualität | Fehlerkatalog')
+        canvas.saveState()
         canvas.setStrokeColor(colors.HexColor('#cbd5e1'));canvas.line(18*mm,15*mm,A4[0]-18*mm,15*mm)
         canvas.setFont('FactoryDefect',7);canvas.setFillColor(colors.HexColor('#64748b'));canvas.drawString(18*mm,10*mm,'Export: '+exported);canvas.drawRightString(A4[0]-18*mm,10*mm,'Seite '+str(document.page));canvas.restoreState()
     doc.build(story,onFirstPage=frame,onLaterPages=frame)
