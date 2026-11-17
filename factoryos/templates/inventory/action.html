@@ -1,6 +1,6 @@
 {% extends 'layout/base.html' %}
 {% block styles %}<link rel="stylesheet" href="{{ url_for('static',filename='css/inventory.css') }}">{% endblock %}
-{% block content %}<div class="warehouse"><a href="{{ url_for('inventory.dashboard') }}">← Lager</a><h1>{{ label }}</h1>
+{% block content %}<div class="warehouse"><a href="{{ url_for('inventory.dashboard',view=back_view) }}">← Zurück zur Übersicht</a><h1>{{ label }}</h1>
 <p>Nur tatsächlich bestätigte Mengen buchen. Lagerannahmen, Erstbestände und Rücknahmen gehen zunächst in den Sperrbestand. Freigabe separat bestätigen.</p>
 {% if error %}<div class="warehouse-error" role="alert">Nicht gespeichert: {{ error }}</div>{% endif %}
 <form method="post" class="warehouse-card"><input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}"><input type="hidden" name="command_id" value="{{ command_id }}"><input type="hidden" name="revision" value="{{ revision }}">

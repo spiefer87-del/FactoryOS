@@ -35,10 +35,10 @@ NAMES={'code':'Lagerplatz-Code','description':'Lagerplatzbeschreibung','order_id
 @permission_required('inventory.view')
 def dashboard():
     view=request.args.get('view','overview')
-    if view not in ('overview','incoming','stock','outbound','locations','journal'):abort(404)
+    if view not in ('overview','incoming','stock','outbound','manage','locations','journal'):abort(404)
     lots=Lot.query.order_by(Lot.id.desc()).all()
     candidates=[]
-    if view in ('overview','incoming'):
+    if view=='incoming':
         for order in Order.query.filter_by(is_project=False).order_by(Order.id.desc()):
             if order.sampling:continue
             good,scrap=confirmed(order);remaining=good-allocated(order.id)
@@ -59,7 +59,11 @@ def render_action(action,data=None,error=None,status=200):
       'event_id':[(e.id,f'#{e.id} · {LABELS.get(e.kind,e.kind)} · Los {e.lot_id} · {e.quantity} Stück') for e in Event.query.filter(Event.kind.in_(('ship',) if action=='return' else ('opening','receive','reject','move','block','release','scrap'))).order_by(Event.id.desc())]}
     choices['destination_id']=choices['location_id']
     return render_template('inventory/action.html',action=action,label=LABELS[action],fields=FIELDS[action],names=NAMES,choices=choices,data=data,error=error,
-        revision=revision(),command_id=str(uuid4())),status
+        revision=revision(),command_id=str(uuid4()),back_view={
+            'transfer':'incoming','receive':'incoming','reject':'incoming','cancel':'incoming',
+            'move':'stock','release':'stock','block':'stock','scrap':'stock','opening':'stock','reserve':'stock',
+            'pick':'outbound','ship':'outbound','unreserve':'outbound','return':'outbound',
+            'location':'locations','reverse':'journal'}.get(action,'overview')),status
 
 def action_view(action):
     @login_required

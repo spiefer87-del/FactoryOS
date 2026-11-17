@@ -1,0 +1,18 @@
+{% if view=='overview' %}
+<div class="dashboard-grid warehouse-home-grid">
+{% for key,title,icon,description in [('incoming','Wareneingang','📥','Produktion übergeben und tatsächlich angenommene Mengen buchen'),('stock','Lagerbestände','📦','Artikel, Lagerplätze, gesperrte und verfügbare Mengen'),('outbound','Warenausgang','🚚','Reservierungen, Kommissionierung und Versand'),('manage','Verwaltung & Historie','🗂','Lagerplätze pflegen und Buchungen nachvollziehen')] %}
+<a class="dashboard-card" href="{{ url_for('inventory.dashboard',view=key) }}"><div class="card-icon">{{ icon }}</div><div class="card-title">{{ title }}</div><div class="card-desc">{{ description }}</div></a>
+{% endfor %}</div>
+{% else %}
+<div class="warehouse-back"><a href="{{ url_for('inventory.dashboard',view='overview') }}">← Lagerübersicht</a>{% if view in ['locations','journal'] %}<a href="{{ url_for('inventory.dashboard',view='manage') }}">Verwaltung & Historie</a>{% endif %}</div>
+{% set titles={'incoming':'Wareneingang','stock':'Lagerbestände','outbound':'Warenausgang','manage':'Verwaltung & Historie','locations':'Lagerplätze','journal':'Buchungsjournal'} %}
+<h2 class="warehouse-view-title">{{ titles.get(view,'Lager') }}</h2>
+{% if view=='manage' %}<div class="dashboard-grid warehouse-home-grid">
+<a class="dashboard-card" href="{{ url_for('inventory.dashboard',view='locations') }}"><div class="card-icon">📍</div><div class="card-title">Lagerplätze</div><div class="card-desc">Hallen, Regale und Stellplätze verwalten</div></a>
+<a class="dashboard-card" href="{{ url_for('inventory.dashboard',view='journal') }}"><div class="card-icon">📖</div><div class="card-title">Buchungsjournal</div><div class="card-desc">Belege, Bewegungen und Gegenbuchungen nachverfolgen</div></a></div>{% endif %}
+{% set primary={'incoming':['transfer','receive'],'stock':['move','release','reserve'],'outbound':['pick','ship'],'locations':['location']} %}
+{% set extra={'incoming':['reject','cancel'],'stock':['block','scrap','opening'],'outbound':['unreserve','return'],'journal':['reverse']} %}
+<div class="warehouse-context-actions">{% for action in primary.get(view,[]) %}{% if can_access('inventory.' ~ action) %}<a class="btn-primary" href="{{ url_for('inventory.' ~ action) }}">{{ labels[action] }}</a>{% endif %}{% endfor %}</div>
+{% set permitted_extra=namespace(actions=[]) %}{% for action in extra.get(view,[]) %}{% if can_access('inventory.' ~ action) %}{% set _=permitted_extra.actions.append(action) %}{% endif %}{% endfor %}
+{% if permitted_extra.actions %}<details class="warehouse-more"><summary>Weitere Aktionen</summary><div class="warehouse-context-actions">{% for action in permitted_extra.actions %}<a class="btn-secondary" href="{{ url_for('inventory.' ~ action) }}">{{ labels[action] }}</a>{% endfor %}</div></details>{% endif %}
+{% endif %}
