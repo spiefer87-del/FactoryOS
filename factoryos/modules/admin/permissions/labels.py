@@ -26,6 +26,8 @@ for action,title in [('view','Fehlerkatalog und Fotos ansehen'),('create','Artik
     add('defects',action,title,title+'; keine Werkzeugfehlermeldung oder Maschinenfreigabe.')
 add('complaints','view','Reklamationen ansehen','Vorbereiteten Reklamationsbereich öffnen.')
 add('defects','delete_photos','Gespeicherte Fehlerfotos löschen','Einzelne Fotos aus dem Artikel-Fehlerkatalog entfernen; keine Löschung des Fehlereintrags.')
+add('defects','pdf_export','Fehlerkatalog als PDF drucken','Einzelne Fehlereinträge oder den Artikel-Fehlerkatalog mit Fotos als PDF exportieren.')
+add('defects','delete','Fehlereinträge vollständig löschen','Einen vollständigen Fehlereintrag einschließlich Fotos nach Bestätigung löschen; Löschgrund und Originaldaten werden protokolliert.')
 
 for action,title in [('view','Lager ansehen'),('locations','Lagerplätze anlegen'),('production','Produktionsübergaben bestätigen'),('receive','Lagerannahme / Übergabeausschuss'),('release','Bestände sperren / freigeben'),('adjust','Erstbestände / Gegenbuchungen'),('move','Lagerbestände umlagern'),('scrap','Lagerausschuss buchen'),('dispatch','Reservieren, kommissionieren, versenden und zurücknehmen')]:
     add('inventory',action,title,title+'; bestätigte Mengen und nachvollziehbare Belege erforderlich.')

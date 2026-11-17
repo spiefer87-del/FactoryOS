@@ -13,6 +13,7 @@ from factoryos.modules.quality.inspection_plan.visual_presets import VISUAL_PRES
 from .models import ArticleDefect,ArticleDefectPhoto
 from .photos import prepare_photo
 from factoryos.modules.masterdata.tools.models import Tool
+from werkzeug.utils import secure_filename
 
 bp=Blueprint('article_defects',__name__,url_prefix='/quality/defect-catalog')
 TYPES=[row[1] for row in VISUAL_PRESETS]+['Sonstiger Produktionsfehler']
@@ -122,4 +123,73 @@ def create():return form()
 @login_required
 @permission_required('defects.edit')
 def edit(entry_id):return form(ArticleDefect.query.get_or_404(entry_id))
+
+def pdf_response(entries,name):
+    from .pdf_export import build_pdf
+    response=send_file(build_pdf(entries,photo_root()),mimetype='application/pdf',as_attachment=True,download_name=secure_filename(name))
+    response.headers['Cache-Control']='private, no-store'
+    response.headers['X-Content-Type-Options']='nosniff'
+    return response
+
+@bp.get('/<int:entry_id>/pdf')
+@login_required
+@permission_required('defects.pdf_export')
+def export_pdf(entry_id):
+    if not has_permission(current_user,'defects.view'):abort(403)
+    entry=ArticleDefect.query.get_or_404(entry_id)
+    return pdf_response([entry],f'Fehlerkatalog_{entry.article.article_no}_{entry.id}.pdf')
+
+@bp.get('/pdf')
+@login_required
+@permission_required('defects.pdf_export')
+def export_catalog_pdf():
+    if not has_permission(current_user,'defects.view'):abort(403)
+    article_id=request.args.get('article_id',type=int)
+    query=ArticleDefect.query
+    if article_id:query=query.filter_by(article_id=article_id)
+    entries=query.order_by(ArticleDefect.article_id,ArticleDefect.id).all()
+    article=Article.query.get_or_404(article_id) if article_id else None
+    return pdf_response(entries,f'Fehlerkatalog_{article.article_no if article else "Gesamt"}.pdf')
+
+@bp.route('/<int:entry_id>/delete',methods=['GET','POST'])
+@login_required
+@permission_required('defects.delete')
+def delete_entry(entry_id):
+    if not has_permission(current_user,'defects.view') or not has_permission(current_user,'defects.edit'):abort(403)
+    entry=ArticleDefect.query.get_or_404(entry_id)
+    error=None;status=200
+    if request.method=='POST':
+        if not valid_csrf():abort(400)
+        if request.form.get('version')!=str(entry.version):abort(409,'Eintrag inzwischen geändert. Bitte neu laden.')
+        reason=request.form.get('reason','').strip()
+        if not 10<=len(reason)<=1000 or request.form.get('confirmed')!='yes':error='Bitte Löschgrund mit 10 bis 1000 Zeichen und ausdrückliche Bestätigung angeben.';status=422
+        else:
+            from sqlalchemy import inspect,text
+            quote=db.engine.dialect.identifier_preparer.quote
+            inspector=inspect(db.engine)
+            for table in inspector.get_table_names():
+                for fk in inspector.get_foreign_keys(table):
+                    if fk.get('referred_table')!='article_defects':continue
+                    for column,remote in zip(fk['constrained_columns'],fk['referred_columns']):
+                        if remote!='id' or (table,column)==('article_defect_photos','defect_id'):continue
+                        if db.session.execute(text('SELECT 1 FROM '+quote(table)+' WHERE '+quote(column)+'=:id LIMIT 1'),{'id':entry.id}).first():abort(409,'Eintrag ist mit einem weiteren Fachvorgang verknüpft. Bitte vor dem Löschen fachlich klären.')
+            photos=list(entry.photos)
+            paths=[]
+            for photo in photos:
+                if Path(photo.filename).name!=photo.filename:abort(400)
+                paths.append(photo_root()/photo.filename)
+            snapshot=dict(id=entry.id,article_id=entry.article_id,article_no=entry.article.article_no,article_name=entry.article.article_name,created_by_id=entry.created_by_id,created_at=str(entry.created_at),updated_at=str(entry.updated_at),tool_no=entry.tool_no,title=entry.title,defect_type=entry.defect_type,description=entry.description,remedy=entry.remedy,archived=entry.archived,version=entry.version,photos=[dict(id=p.id,filename=p.filename) for p in photos])
+            db.session.add(ChangeLog(entity_type='article',entity_id=entry.article_id,entity_name=entry.article.article_no,action='delete',category='article_defect',user_id=current_user.id,changes={'deleted_defect':{'reason':reason,'old':snapshot,'new':None}}))
+            try:
+                for photo in photos:db.session.delete(photo)
+                db.session.flush()
+                db.session.expire(entry,['photos'])
+                db.session.delete(entry);db.session.commit()
+            except StaleDataError:db.session.rollback();abort(409,'Eintrag inzwischen geändert. Keine Löschung gespeichert.')
+            for path in paths:
+                try:path.unlink(missing_ok=True)
+                except OSError:current_app.logger.exception('Nicht mehr zugängliche Fehlerfoto-Datei konnte nicht entfernt werden: %s',path.name)
+            flash('Fehlereintrag und zugehörige Fotos entfernt. Änderungsprotokoll und Sicherungskopien bleiben erhalten.','success')
+            return redirect(url_for('article_defects.overview'),code=303)
+    return render_template('article_defects/delete.html',entry=entry,error=error),status
 

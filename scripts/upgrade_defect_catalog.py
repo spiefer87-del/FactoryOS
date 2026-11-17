@@ -25,7 +25,7 @@ def run_upgrade(check_only=False):
     if 'tool_no' not in {c['name'] for c in inspect(db.engine).get_columns('article_defects')}:
         db.session.execute(text('ALTER TABLE article_defects ADD COLUMN tool_no VARCHAR(100)'))
     db.session.execute(text("CREATE TRIGGER IF NOT EXISTS preserve_defect_article BEFORE DELETE ON articles WHEN EXISTS (SELECT 1 FROM article_defects WHERE article_id=OLD.id) BEGIN SELECT RAISE(ABORT,'Artikel besitzt Fehlerkatalog-Historie'); END"))
-    for name in ('defects.view','defects.create','defects.edit','defects.delete_photos','complaints.view'):
+    for name in ('defects.view','defects.create','defects.edit','defects.delete_photos','defects.pdf_export','defects.delete','complaints.view'):
         if not Permission.query.filter_by(name=name).first():db.session.add(Permission(name=name,description=PERMISSION_TEXT[name]['description']))
     db.session.commit()
     if 'tool_no' not in {c['name'] for c in inspect(db.engine).get_columns('article_defects')}:raise RuntimeError('Werkzeugnummer-Spalte fehlt nach Upgrade.')
