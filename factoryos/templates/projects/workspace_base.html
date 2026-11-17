@@ -1,0 +1,3 @@
+{% extends 'layout/base.html' %}
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static',filename='css/project_workspace.css',v='20261117') }}">{% endblock %}
+{% block content %}<div class="pw">{% block workspace %}{% endblock %}</div>{% endblock %}

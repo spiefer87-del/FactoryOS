@@ -7,6 +7,4 @@ bp = Blueprint(
 )
 
 # Route Dateien importieren
-from . import dashboard_routes
-from . import booking_routes
-from . import project_routes
+from . import workspace_routes

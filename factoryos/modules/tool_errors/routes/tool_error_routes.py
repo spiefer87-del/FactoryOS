@@ -881,6 +881,12 @@ def set_tool_status_route(error_id):
 def delete(error_id):
 
     error = get_tool_error(error_id)
+    from factoryos.modules.projects.workspace_models import Link
+    from sqlalchemy import inspect
+    from factoryos.extensions import db
+    if inspect(db.engine).has_table('project_links') and Link.query.filter_by(error_id=error.id).first():
+        flash('Fehlermeldung ist in einem Projekt dokumentiert. Bitte schließen statt löschen.', 'warning')
+        return redirect(url_for('tool_error.detail',error_id=error.id))
 
     try:
 

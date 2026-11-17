@@ -11,6 +11,9 @@ from factoryos.extensions import db
 def delete(order_id):
 
     order = Order.query.get_or_404(order_id)
+    if order.is_project:
+        flash('Projekte bleiben mit ihrer Historie erhalten. Bitte in der Projektverwaltung archivieren.', 'warning')
+        return redirect(url_for('projects.detail',project_id=order.id))
     if order.sampling:
         return redirect(url_for("sampling.detail", sampling_id=order.sampling.id))
     from factoryos.modules.production.models import TimeBooking,QuantityReport,MachineControlState,ProductionPlanEntry

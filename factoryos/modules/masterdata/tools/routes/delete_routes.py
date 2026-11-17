@@ -12,6 +12,12 @@ from ..services.tool_service import delete_tool
 def delete(tool_id):
 
     tool = Tool.query.get_or_404(tool_id)
+    from factoryos.modules.projects.workspace_models import ToolPartEvent,Link
+    from sqlalchemy import inspect
+    from factoryos.modules.tool_errors.models import ToolError
+    if inspect(db.engine).has_table('project_tool_part_events') and (ToolPartEvent.query.filter_by(tool_id=tool.id).first() or Link.query.join(ToolError,Link.error_id==ToolError.id).filter(ToolError.tool_id==tool.id).first()):
+        flash('Werkzeug besitzt eine Projekt-/Reparaturhistorie. Bitte erhalten und Status ändern statt löschen.', 'warning')
+        return redirect(url_for('tools.detail',tool_id=tool.id))
 
     from factoryos.modules.setup_reports.models import SetupReport
     from sqlalchemy import inspect

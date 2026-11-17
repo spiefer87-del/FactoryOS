@@ -27,7 +27,7 @@ EXPLICIT = {
     "production.resume_from_pause_or_downtime": "production.start", "production.end_booking_route": "production.stop",
     "production.machine_downtime": "production.stop", "production.machine_setup": "production.setup", "production.machine_event": "production.events",
     "production.booking_calendar_setup": "ADMIN", "production.delete_booking_calendar_exception": "ADMIN",
-    "projects.projects_create": "projects.create", "projects.projects_start": "production.start", "projects.projects_stop": "production.stop",
+    "projects.projects_create": "projects.create", "projects.projects_start": "projects.work", "projects.projects_stop": "projects.work",
     "sampling.complete": "sampling.release", "sampling.external_followup": "sampling.release", "sampling.stop_booking": "production.stop",
     "sampling.export_pdf": "sampling.pdf_export", "sampling.print_order": "sampling.pdf_export",
     "quality_gauges.gauge_new": "quality.inspect", "quality_gauges.gauge_calibration_new": "quality.inspect", "quality_gauges.gauge_update_status": "quality.inspect",
