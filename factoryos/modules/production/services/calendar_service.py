@@ -1,3 +1,4 @@
+from factoryos.core.services.change_log_service import record_entity, snapshot, log_change
 from datetime import date, datetime, time, timedelta
 
 from factoryos.extensions import db
@@ -85,10 +86,12 @@ def update_calendar_settings(settings, form):
         form.get("week_end_day"),
         form.get("week_end_time"),
     )
+    before=snapshot(settings,("week_start_day","week_start_time","week_end_day","week_end_time"))
     settings.week_start_day = start_day
     settings.week_start_time = start_clock.strftime("%H:%M")
     settings.week_end_day = end_day
     settings.week_end_time = end_clock.strftime("%H:%M")
+    record_entity(settings,"calendar","update",tuple(before),before=before,category="calendar",entity_name="Regelmäßige Produktionszeiten")
     db.session.commit()
     return settings
 
@@ -128,6 +131,8 @@ def create_calendar_exception(form, user_id=None):
         created_by_id=user_id,
     )
     db.session.add(exception)
+    db.session.flush()
+    log_calendar_exception(exception,"create")
     db.session.commit()
     return exception
 
@@ -136,6 +141,7 @@ def delete_calendar_exception(exception_id):
     exception = db.session.get(ProductionCalendarException, exception_id)
     if exception is None:
         return False
+    log_calendar_exception(exception,"delete")
     db.session.delete(exception)
     db.session.commit()
     return True
@@ -288,3 +294,8 @@ def _merge_closures(closures):
         else:
             merged.append((start_at, end_at, label))
     return merged
+
+
+def log_calendar_exception(exception,action):
+    changes={"title":exception.title,"start_at_local":exception.start_at.isoformat(),"end_at_local":exception.end_at.isoformat(),"all_day":exception.all_day,"note":exception.note}
+    log_change("calendar",exception.id,action,changes=changes,category="calendar",entity_name=exception.title)

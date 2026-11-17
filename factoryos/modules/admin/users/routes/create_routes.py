@@ -1,3 +1,4 @@
+from factoryos.core.services.change_log_service import record_entity, snapshot
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_required
 
@@ -35,6 +36,7 @@ def create_user():
         user.set_password(password)
 
         db.session.add(user)
+        record_entity(user,"user","create",("username","role_id","active"))
         db.session.commit()
 
         flash("Benutzer erfolgreich angelegt", "success")

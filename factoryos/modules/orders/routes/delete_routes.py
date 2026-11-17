@@ -1,3 +1,4 @@
+from factoryos.core.services.change_log_service import record_entity, snapshot
 from flask import redirect, url_for, flash
 from flask_login import login_required
 
@@ -30,6 +31,7 @@ def delete(order_id):
         flash("Auftrag besitzt Buchungen oder ist an einer Maschine reserviert. Er bleibt zur Nachverfolgung erhalten.","warning")
         return redirect(url_for("orders.detail",order_id=order.id))
 
+    record_entity(order,"order","delete",("order_no","article","description","target_qty","tool_no"),category="orders")
     db.session.delete(order)
     db.session.commit()
 

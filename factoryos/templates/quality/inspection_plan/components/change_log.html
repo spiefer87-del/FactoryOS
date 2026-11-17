@@ -1,4 +1,4 @@
 
 <details class="qm-notice"><summary>Änderungsprotokoll dieser Revision</summary>
-<ol>{% for entry in version.plan.change_logs if entry.version_id==version.id or not entry.version_id %}<li>{{ entry.created_at.strftime('%d.%m.%Y %H:%M') }} UTC · {{ entry.user.username if entry.user else 'System / Alteintrag' }}<br>{{ entry.message }}{% if not entry.version_id %} <small>(Historischer Eintrag ohne Revisionszuordnung)</small>{% endif %}</li>{% else %}<li>Noch keine Änderungen protokolliert.</li>{% endfor %}</ol>
+<ol>{% for entry in version.plan.change_logs if entry.version_id==version.id or not entry.version_id %}<li>{{ activity_time(entry.created_at) }} · {{ entry.user.username if entry.user else 'System / Alteintrag' }}<br>{{ entry.message }}{% if not entry.version_id %} <small>(Historischer Eintrag ohne Revisionszuordnung)</small>{% endif %}</li>{% else %}<li>Noch keine Änderungen protokolliert.</li>{% endfor %}</ol>
 </details>

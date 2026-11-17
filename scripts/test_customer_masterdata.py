@@ -1,6 +1,8 @@
 """Isolated integration checks, never opens the operational database."""
 import sys
 import types
+import os, secrets
+os.environ.setdefault('FACTORYOS_SECRET_KEY',secrets.token_hex(48))
 from pathlib import Path
 from contextlib import redirect_stdout
 from io import StringIO
@@ -30,6 +32,8 @@ app.config.update(TESTING=True)
 def reset_test_login_cache():
     from flask import g
     g.pop("_login_user", None)
+app.before_request_funcs[None].remove(reset_test_login_cache)
+app.before_request_funcs[None].insert(0,reset_test_login_cache)
 
 with app.app_context():
     # Simulate an old database without the new customer column.
@@ -45,7 +49,8 @@ with app.app_context():
     # Rebuild only the disposable in-memory test database for application flows.
     db.drop_all()
     db.create_all()
-    user = User(username="test", password_hash="not-used", active=True)
+    from factoryos.modules.admin.roles.models import Role
+    user = User(username="test", password_hash="not-used", active=True,role=Role(name='admin',active=True))
     db.session.add(user)
     db.session.commit()
     client = app.test_client()
@@ -53,9 +58,10 @@ with app.app_context():
     with client.session_transaction() as session:
         session["_user_id"] = str(user.id)
         session["_fresh"] = True
-    assert client.post("/masterdata/customers/create", data={"customer_no":"K001","name":"Testkunde","active":"yes"}).status_code == 302
+        session['access_csrf']='customer-test'
+    assert client.post("/masterdata/customers/create", data={"access_csrf":"customer-test","customer_no":"K001","name":"Testkunde","active":"yes"}).status_code == 302
     customer = Customer.query.one()
-    assert client.post("/masterdata/customers/create", data={"customer_no":"K001","name":"Duplikat"}).status_code == 400
+    assert client.post("/masterdata/customers/create", data={"access_csrf":"customer-test","customer_no":"K001","name":"Duplikat"}).status_code == 400
     for path in ["/masterdata/customers/", f"/masterdata/customers/{customer.id}", f"/masterdata/customers/{customer.id}/edit", "/masterdata/articles/create"]:
         assert client.get(path).status_code == 200, path
     with app.test_request_context():
@@ -69,7 +75,7 @@ with app.app_context():
         form["customer_id"] = str(customer.id)
         update_article(article, form)
         assert article.customer_id == customer.id
-    assert client.post(f"/masterdata/customers/{customer.id}/delete").status_code == 302
+    assert client.post(f"/masterdata/customers/{customer.id}/delete",data={'access_csrf':'customer-test'}).status_code == 302
     assert db.session.get(Customer, customer.id) is not None
     for path in ["/masterdata/articles/list", f"/masterdata/articles/{article.id}", f"/masterdata/articles/edit/{article.id}"]:
         assert client.get(path).status_code == 200, path

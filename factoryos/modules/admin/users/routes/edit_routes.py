@@ -1,3 +1,5 @@
+from factoryos.core.services.change_log_service import record_entity, snapshot
+from factoryos.core.services.change_log_service import log_change
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_required
 from factoryos.extensions import db
@@ -16,6 +18,7 @@ def edit_user(user_id):
 
     if request.method == "POST":
 
+        before=snapshot(user,("username","role_id","active"))
         username = request.form.get("username")
         role_id = request.form.get("role_id")
         active = request.form.get("active")
@@ -29,6 +32,8 @@ def edit_user(user_id):
         if password:
             user.set_password(password)
 
+        record_entity(user,"user","update",("username","role_id","active"),before=before)
+        if password:log_change("user",user.id,"password_change",{"password_changed":True},category="account",entity_name=user.username)
         db.session.commit()
 
         flash("Benutzer aktualisiert", "success")

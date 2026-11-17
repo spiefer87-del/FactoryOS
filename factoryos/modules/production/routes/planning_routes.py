@@ -62,4 +62,10 @@ def planning():
         can_plan=has_permission(current_user,"production.plan"),local_label=local_label,duration=duration,
         local_input=lambda value:local_time(value).strftime("%Y-%m-%dT%H:%M:%S") if value else "",
         local_fold=lambda value:str(local_time(value).fold) if value else "",
-        error=error,history=ChangeLog.query.filter_by(category="planning").order_by(ChangeLog.id.desc()).limit(30).all()),status,{"Cache-Control":"no-store"}
+        error=error,history=planning_history()),status,{"Cache-Control":"no-store"}
+
+def planning_history():
+    limit=request.args.get('limit','5')
+    if limit not in ('5','15','25','50','all'):limit='5'
+    query=ChangeLog.query.filter_by(category='planning').order_by(ChangeLog.created_at.desc(),ChangeLog.id.desc())
+    return query.all() if limit=='all' else query.limit(int(limit)).all()

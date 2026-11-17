@@ -1,3 +1,5 @@
+from factoryos.extensions import db
+from factoryos.core.services.change_log_service import log_change
 from flask import abort, flash, redirect, request, send_file, url_for
 from flask_login import login_required
 
@@ -23,6 +25,9 @@ def upload_documents(material_id):
             request.files.getlist("documents"),
             request.form.get("document_category", "data_sheets"),
         )
+        if saved:
+            log_change("material",material.id,"document_add",{"documents":len(saved)},category="documents",entity_name=material.material_no)
+            db.session.commit()
         flash(
             f"{len(saved)} Datei(en) wurden gespeichert." if saved else "Keine Datei ausgewählt.",
             "success" if saved else "danger",
@@ -55,6 +60,9 @@ def delete_document(material_id, category, filename):
         deleted = delete_material_document(material.material_no, category, filename)
     except ValueError:
         abort(404)
+    if deleted:
+        log_change("material",material.id,"document_delete",{"document":filename},category="documents",entity_name=material.material_no)
+        db.session.commit()
     flash(
         "Dokument wurde ins Materialarchiv verschoben." if deleted else "Dokument wurde nicht gefunden.",
         "success" if deleted else "danger",

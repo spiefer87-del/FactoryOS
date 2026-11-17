@@ -10,12 +10,17 @@ from factoryos.modules.orders.models import Order
 from factoryos.modules.projects.workspace_models import Audit, Member
 from factoryos.modules.projects.services.workspace_service import permitted, mine_clause
 from factoryos.modules.projects.services.activity_service import present_audits
+from .supplemental_activity import supplemental_activity
+from factoryos.core.auth import has_permission
+from flask_login import current_user
 
 ENTITY_LABELS = {
     'project': 'Projekte', 'article': 'Artikel', 'tool': 'Werkzeuge',
     'machine': 'Maschinen', 'material': 'Materialien', 'tool_error': 'Fehlermeldungen',
     'order': 'Aufträge', 'sampling': 'Musterungen', 'customer': 'Kunden',
     'masterbatch': 'Masterbatches', 'qm_plan': 'Prüfpläne',
+    'inventory':'Lagerjournal','gauge':'Messmittel','role':'Rollen und Berechtigungen',
+    'user':'Benutzer','calendar':'Produktionskalender',
 }
 LIMITS = ('5', '15', '25', '50', 'all')
 
@@ -32,6 +37,10 @@ def activity_feed(entity_type=None, limit='50'):
     visible_ids = db.select(visible_projects.subquery().c.id) if visible_projects is not None else None
 
     ordinary = ChangeLog.query.options(joinedload(ChangeLog.user))
+    if not has_permission(current_user,'quality.view'):
+        ordinary=ordinary.filter(~ChangeLog.entity_type.in_(('gauge','qm_plan')))
+    if not has_permission(current_user,'inventory.view'):
+        ordinary=ordinary.filter(ChangeLog.entity_type!='inventory')
     # Respect project visibility if a previous extension wrote generic project logs.
     if visible_ids is None:
         ordinary = ordinary.filter(ChangeLog.entity_type != 'project')
@@ -49,7 +58,9 @@ def activity_feed(entity_type=None, limit='50'):
         project_query = Audit.query.filter(Audit.project_id.in_(visible_ids)).order_by(Audit.created_at.desc(), Audit.id.desc())
         project_rows = project_query.limit(count).all() if count else project_query.all()
         logs.extend(present_audits(project_rows))
-    logs.sort(key=lambda row: (row.created_at or datetime.min, row.entity_type, row.id), reverse=True)
+    extra,types=supplemental_activity(entity_type,count,inspector)
+    logs.extend(extra);available.extend(types)
+    logs.sort(key=lambda row: (row.created_at or datetime.min, row.entity_type, getattr(row,'source',''), row.id), reverse=True)
     if count:
         logs = logs[:count]
     types = {key: ENTITY_LABELS.get(key, key.replace('_', ' ').capitalize()) for key in sorted(set(available))}

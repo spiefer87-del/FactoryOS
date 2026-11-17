@@ -1,0 +1,11 @@
+.changelog-card,.changelog-list,.changelog-item{min-width:0;max-width:100%;box-sizing:border-box}
+.changelog-filter{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0 20px}
+.changelog-filter select{max-width:100%;min-height:42px}
+.changelog-item{padding:16px!important;overflow-wrap:anywhere}
+.activity-entity{font-weight:600;margin-bottom:5px}
+.activity-fields{margin:12px 0}
+.activity-fields>div{display:grid;grid-template-columns:minmax(130px,1fr) minmax(0,2fr);gap:10px;border-top:1px solid #e2e8f0;padding:9px 0}
+.activity-fields dt{font-weight:500;color:#475569;overflow-wrap:anywhere}
+.activity-fields dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;min-width:0;color:#1e293b}
+.activity-old{color:#64748b}
+@media(max-width:650px){.activity-fields>div{grid-template-columns:minmax(0,1fr);gap:4px}.changelog-card{padding:12px}.changelog-filter select{flex:1 1 130px}}

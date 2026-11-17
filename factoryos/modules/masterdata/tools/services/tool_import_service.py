@@ -1,3 +1,4 @@
+from factoryos.core.services.change_log_service import record_entity, snapshot
 from datetime import date, datetime
 
 from openpyxl import load_workbook
@@ -331,6 +332,7 @@ def import_tools_from_excel(file):
             with db.session.begin_nested():
                 tool = Tool.query.filter_by(tool_no=tool_no).first()
                 is_new = tool is None
+                before=snapshot(tool,tuple(FIELD_CONVERTERS)+("tool_status",)) if tool else None
 
                 if is_new:
                     tool = Tool(
@@ -351,6 +353,7 @@ def import_tools_from_excel(file):
 
                 db.session.flush()
 
+                record_entity(tool,"tool","import",tuple(FIELD_CONVERTERS)+("tool_status",),before=before,category="masterdata",entity_name=tool.tool_no)
                 if is_new:
                     create_tool_folders(tool.tool_no)
 

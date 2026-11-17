@@ -1,3 +1,4 @@
+from .change_log_service import log_change
 from factoryos.extensions import db
 
 from factoryos.modules.quality.inspection_plan.models.characteristic_models import (
@@ -27,6 +28,8 @@ def add_characteristic(section, form):
     )
 
     db.session.add(characteristic)
+    section.version.is_dirty=True
+    log_change(section.version,"ADD_CHARACTERISTIC",f"Prüfmerkmal {characteristic.name} in {section.title} ergänzt")
     db.session.commit()
 
     return characteristic

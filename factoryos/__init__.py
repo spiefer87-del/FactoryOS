@@ -22,6 +22,9 @@ def create_app():
         raise RuntimeError("Privater Sitzungsschlüssel fehlt. scripts/configure_session_secret.py ausführen oder FACTORYOS_SECRET_KEY konfigurieren.")
 
     app.jinja_env.globals["storage_url"] = storage_url
+    from .core.services.activity_presenter import present_change_logs, local_timestamp
+    app.jinja_env.globals["present_change_logs"] = present_change_logs
+    app.jinja_env.globals["activity_time"] = local_timestamp
 
     with app.app_context():
         ensure_storage_structure()

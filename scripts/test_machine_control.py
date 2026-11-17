@@ -148,7 +148,8 @@ with app.app_context():
     assert client.post(path,data=payload).status_code==303  # same command ID = no second booking
     assert current_booking(machine.id).process=="PROD"
     active=current_booking(machine.id)
-    assert client.post(f"/projects/stop/{active.id}",data={"comment":"Bypassversuch"}).status_code==303
+    # Project endpoints explicitly reject machine bookings; no control bypass.
+    assert client.post(f"/projects/stop/{active.id}",data={"comment":"Bypassversuch"}).status_code==403
     assert current_booking(machine.id).id==active.id
     for suffix in (f"/end/{active.id}",f"/resume/{active.id}",f"/machine/{machine.id}/downtime",f"/machine/{machine.id}/event",f"/machine/{machine.id}/setup"):
         assert client.post("/production"+suffix,data={}).status_code==303

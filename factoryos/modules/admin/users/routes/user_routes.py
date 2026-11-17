@@ -1,3 +1,4 @@
+from factoryos.core.services.change_log_service import record_entity, snapshot
 from flask import Blueprint, render_template, request, redirect, url_for
 from flask_login import login_required
 from factoryos.extensions import db
@@ -28,6 +29,7 @@ def list_users():
         user.set_password(password)
 
         db.session.add(user)
+        record_entity(user,"user","create",("username","role_id","active"))
         db.session.commit()
 
         return redirect(url_for("admin_users.list_users"))

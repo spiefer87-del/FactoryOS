@@ -1,3 +1,4 @@
+from factoryos.core.services.change_log_service import log_change
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_required
 from factoryos.extensions import db
@@ -18,12 +19,15 @@ def role_permissions(role_id):
 
     if request.method == "POST":
 
+        before=sorted(p.id for p in role.permissions)
         selected_permissions = request.form.getlist("permissions")
 
         role.permissions = Permission.query.filter(
             Permission.id.in_(selected_permissions)
         ).all()
 
+        after=sorted(p.id for p in role.permissions)
+        if before!=after:log_change("role",role.id,"permissions_update",{"permission_ids":{"old":before,"new":after}},category="admin",entity_name=role.name)
         db.session.commit()
 
         flash("Rechte aktualisiert", "success")

@@ -1,3 +1,4 @@
+from .change_log_service import log_change
 import os
 import uuid
 from werkzeug.utils import secure_filename
@@ -98,7 +99,7 @@ def upload_drawing(section, file):
         section.image_height = 1200
 
     section.version.is_dirty = True
-
+    log_change(section.version,"DRAWING",f"Zeichnung in Modul {section.title} aktualisiert")
     db.session.commit()
 
 
@@ -137,14 +138,15 @@ def upload_snippet(section, file, description):
     db.session.add(snippet)
 
     section.version.is_dirty = True
-
+    log_change(section.version,"ADD_SNIPPET",f"Zeichnungsausschnitt in {section.title} ergänzt: {description or 'Ohne Beschreibung'}")
     db.session.commit()
 
     return snippet
 
 
 def delete_snippet(snippet):
-
+    snippet.section.version.is_dirty=True
+    log_change(snippet.section.version,"DELETE_SNIPPET",f"Zeichnungsausschnitt aus {snippet.section.title} entfernt")
     db.session.delete(snippet)
 
 

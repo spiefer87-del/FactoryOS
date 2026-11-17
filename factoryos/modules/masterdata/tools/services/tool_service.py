@@ -75,8 +75,8 @@ def create_tool(
     db.session.flush()
 
     create_tool_folders(tool.tool_no)
-    save_tool_images(tool, image_files)
-    save_tool_documents(
+    saved_images=save_tool_images(tool, image_files)
+    saved_documents=save_tool_documents(
         tool,
         document_files,
         category=document_category
@@ -92,6 +92,7 @@ def create_tool(
         entity_name=tool.tool_no,
         action="create",
         changes={
+            "images_added":len(saved_images),"documents":len(saved_documents),
             "tool_no": {
                 "old": None,
                 "new": tool.tool_no
@@ -180,14 +181,18 @@ def update_tool(
         setattr(tool, key, value)
 
     rename_tool_folder(old_tool_no, tool.tool_no)
+    deleted_image_count=len({str(i.id) for i in tool.images}&{str(i) for i in delete_ids})
     delete_tool_images_by_ids(delete_ids)
-    save_tool_images(tool, image_files)
-    save_tool_documents(
+    saved_images=save_tool_images(tool, image_files)
+    saved_documents=save_tool_documents(
         tool,
         document_files,
         category=document_category
     )
 
+    if saved_images:changes["images_added"]=len(saved_images)
+    if deleted_image_count:changes["images_removed"]=deleted_image_count
+    if saved_documents:changes["documents"]=len(saved_documents)
     if changes:
         log_change(
             entity_type="tool",

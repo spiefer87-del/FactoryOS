@@ -1,3 +1,5 @@
+from factoryos.extensions import db
+from factoryos.core.services.change_log_service import log_change
 from flask import abort, flash, redirect, request, send_file, url_for
 from flask_login import login_required
 
@@ -29,6 +31,8 @@ def upload_documents(tool_id):
         flash(str(error), "danger")
     else:
         if saved:
+            log_change("tool",tool.id,"document_add",{"documents":len(saved)},category="documents",entity_name=tool.tool_no)
+            db.session.commit()
             flash(
                 f"{len(saved)} Datei(en) wurden gespeichert.",
                 "success"
@@ -83,6 +87,9 @@ def delete_document(tool_id, category, filename):
     except ValueError:
         abort(404)
 
+    if deleted:
+        log_change("tool",tool.id,"document_delete",{"document":filename},category="documents",entity_name=tool.tool_no)
+        db.session.commit()
     flash(
         "Dokument wurde aus der aktiven Ablage ins Archiv verschoben."
         if deleted

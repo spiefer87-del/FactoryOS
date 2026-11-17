@@ -1,3 +1,4 @@
+from factoryos.core.services.change_log_service import record_entity, snapshot
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 
@@ -83,6 +84,7 @@ def create_gauge(data):
     )
 
     db.session.add(gauge)
+    record_entity(gauge,"gauge","create",("gauge_no","name","gauge_type","status","next_calibration"),category="quality")
     db.session.commit()
 
     return gauge
@@ -124,6 +126,10 @@ def create_gauge_calibration(gauge_id, data):
     )
 
     db.session.add(calibration)
+    db.session.flush()
+    audit=record_entity(calibration,"gauge","calibration",("calibration_date","next_calibration","result","certificate_no","note"),category="quality",entity_name=gauge.gauge_no)
+    audit.entity_id=gauge.id
+    audit.changes={**audit.changes,"calibration_id":calibration.id}
 
     gauge.last_calibration = calibration_date
     gauge.next_calibration = next_calibration
@@ -149,7 +155,9 @@ def update_gauge_status(gauge_id, new_status):
     if not gauge:
         raise ValueError("Gauge not found")
 
+    before=snapshot(gauge,("status",))
     gauge.status = new_status
+    record_entity(gauge,"gauge","update",("status",),before=before,category="quality",entity_name=gauge.gauge_no)
 
     db.session.commit()
 

@@ -1,7 +1,11 @@
 from factoryos.core.models.change_log import ChangeLog
+from flask import has_request_context, request
 
 
 def get_logs(entity_type=None, entity_id=None, limit=None, action=None, search=None):
+
+    if has_request_context() and request.args.get('limit') in ('5','15','25','50','all'):
+        limit=request.args['limit']
 
     query = ChangeLog.query
 
@@ -21,7 +25,7 @@ def get_logs(entity_type=None, entity_id=None, limit=None, action=None, search=N
         query = query.filter(ChangeLog.entity_name.ilike(f"%{search}%"))
 
     # 🔹 Sortierung
-    query = query.order_by(ChangeLog.created_at.desc())
+    query = query.order_by(ChangeLog.created_at.desc(), ChangeLog.id.desc())
 
     # 🔹 Limit sauber behandeln
     if limit and limit != "all":

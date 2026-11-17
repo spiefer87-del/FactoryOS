@@ -3,7 +3,7 @@ import math
 from ..models import Article
 from factoryos.modules.masterdata.tools.models import Tool
 
-from factoryos.core.services.change_log_service import log_change
+from factoryos.core.services.change_log_service import log_change, same_value
 
 
 # =========================
@@ -51,7 +51,7 @@ def build_changes(old_obj, new_data):
     for field, new_value in new_data.items():
         old_value = getattr(old_obj, field)
 
-        if str(old_value) != str(new_value):
+        if not same_value(old_value,new_value):
             changes[field] = {
                 "old": old_value,
                 "new": new_value

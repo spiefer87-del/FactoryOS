@@ -58,7 +58,7 @@ def delete_photo(photo_id):
     if Path(row.filename).name!=row.filename:abort(400)
     path=photo_root()/row.filename
     entry.updated_at=datetime.utcnow()
-    db.session.add(ChangeLog(entity_type='article',entity_id=entry.article_id,entity_name=entry.article.article_no,action='delete',category='article_defect_photo',user_id=current_user.id,changes={'photo':{'old':{'id':row.id,'entry_id':entry.id},'new':None}}))
+    db.session.add(ChangeLog(entity_type='article',entity_id=entry.article_id,entity_name=entry.article.article_no,action='delete',category='article_defect_photo',user_id=current_user.id,changes={'photo':{'old':{'id':row.id,'entry_id':entry.id,'title':entry.title},'new':None}}))
     db.session.delete(row)
     try:db.session.commit()
     except StaleDataError:
@@ -90,6 +90,7 @@ def form(entry=None):
             uploads=[f for f in request.files.getlist('photo')+request.files.getlist('camera') if f and f.filename]
             if len(uploads)+(len(entry.photos) if entry else 0)>5:raise ValueError('Fotos: maximal fünf Bilder pro Fehler.')
             prepared=[prepare_photo(upload.stream) for upload in uploads]
+            before=None if entry is None else dict(entry_id=entry.id,title=entry.title,description=entry.description,remedy=entry.remedy,type=entry.defect_type,archived=entry.archived,tool_no=entry.tool_no)
             is_new=entry is None
             if is_new:entry=ArticleDefect(article_id=article.id,created_by_id=current_user.id);db.session.add(entry)
             entry.title=values['title'];entry.defect_type=values['defect_type'];entry.description=values['description'];entry.remedy=values['remedy'];entry.archived=values['archived']=='yes';entry.updated_at=datetime.utcnow()
@@ -100,7 +101,7 @@ def form(entry=None):
                 name=uuid4().hex+'.jpg';target=photo_root()/name
                 with target.open('xb') as stream:stream.write(raw)
                 written.append(target);db.session.add(ArticleDefectPhoto(defect_id=entry.id,filename=name))
-            db.session.add(ChangeLog(entity_type='article',entity_id=article.id,entity_name=article.article_no,action='create' if is_new else 'update',category='article_defect',user_id=current_user.id,changes={'defect_catalog':{'old':None,'new':{'entry_id':entry.id,'title':entry.title,'description':entry.description,'remedy':entry.remedy,'type':entry.defect_type,'archived':entry.archived,'new_photos':len(prepared)}}}))
+            db.session.add(ChangeLog(entity_type='article',entity_id=article.id,entity_name=article.article_no,action='create' if is_new else 'update',category='article_defect',user_id=current_user.id,changes={'defect_catalog':{'old':before,'new':{'entry_id':entry.id,'title':entry.title,'description':entry.description,'remedy':entry.remedy,'type':entry.defect_type,'archived':entry.archived,'tool_no':entry.tool_no}},'new_photos':len(prepared)}))
             db.session.commit();flash('Artikelfehler gespeichert.','success');return redirect(url_for('article_defects.detail',entry_id=entry.id),code=303)
         except (ValueError,StaleDataError) as exc:
             db.session.rollback()
