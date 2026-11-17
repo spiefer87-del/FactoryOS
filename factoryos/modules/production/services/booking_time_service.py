@@ -9,6 +9,11 @@ from factoryos.core.services.change_log_service import log_change
 from factoryos.modules.production.models import TimeBooking
 from .order_statistics import LOCAL_ZONE, local_label
 
+class BookingOverlapError(ValueError):
+    def __init__(self, booking_id, message):
+        super().__init__(message)
+        self.booking_id=booking_id
+
 def parse_local_start(value, fold=""):
     if not isinstance(value,str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?",value):
         raise ValueError("Bitte Datum UND Uhrzeit mit Stunden/Minuten angeben.")
@@ -69,7 +74,7 @@ def correction_plan(booking, new_start, reason, now=None):
         if (other.machine_id==booking.machine_id or
                 (other.order_id==booking.order_id and other.process in ("PROD","MUSTER"))):
             label = other.order.order_no if other.order else other.process
-            raise ValueError(f"Überschneidung mit Buchung #{other.id} ({label}, {local_label(other.start_time)}). Bitte diese Buchung zuerst fachlich klären.")
+            raise BookingOverlapError(other.id,f"Überschneidung mit Buchung #{other.id} ({label}, {local_label(other.start_time)}). Bitte diese Buchung zuerst fachlich klären.")
     return changes
 
 def apply_correction(booking, new_start, reason, expected_revision):

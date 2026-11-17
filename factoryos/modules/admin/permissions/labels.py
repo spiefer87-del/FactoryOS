@@ -33,6 +33,7 @@ for action,title in [('view','Lager ansehen'),('locations','Lagerplätze anlegen
 
 add('orders','complete','Aufträge im Büro abschließen','Fertigungsaufträge auch ohne laufende Maschine mit bestätigten Endmengen abschließen. Keine Musterungsfreigabe und kein Wiederöffnen.')
 add('production','complete_order','Aufträge an der Maschine abschließen','Den aktuell zugeordneten Fertigungsauftrag mit Endmengen abschließen und die Produktion ausbuchen. Störungen/Wartungen werden nicht automatisch quittiert.')
+add('production','cancel_booking','Falsche Zeitbuchungen stornieren','Abgeschlossene, nicht fachlich gebundene Zeitbuchungen mit Vorschau und Begründung aus der Zeitwertung nehmen. Keine Löschung von Mengen, Rüstnachweisen oder Aufträgen.')
 
 
 for group, noun in (("articles", "Artikel"), ("customers", "Kunden"),

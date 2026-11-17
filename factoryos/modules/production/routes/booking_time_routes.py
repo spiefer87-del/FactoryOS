@@ -10,6 +10,10 @@ from factoryos.modules.production.models import TimeBooking
 from ..services.booking_time_service import eligible, revision, parse_local_start, correction_plan, apply_correction
 from ..services.order_statistics import local_time, local_label
 from . import bp
+from markupsafe import Markup
+from flask_login import current_user
+from factoryos.core.auth import has_permission
+from ..services.booking_time_service import BookingOverlapError
 
 @bp.route("/booking/<int:booking_id>/start-time",methods=["GET","POST"])
 @login_required
@@ -43,7 +47,11 @@ def edit_booking_time(booking_id):
                 return redirect(url_for("orders.detail",order_id=saved.order_id))
             session["booking_time_preview"]=digest
         except ValueError as error:
-            db.session.rollback();flash(str(error),"danger");status=400;plan=None
+            db.session.rollback()
+            message=str(error)
+            if isinstance(error,BookingOverlapError) and has_permission(current_user,'production.view'):
+                message=Markup('{} <a href="{}">Buchung #{} prüfen / bearbeiten</a>').format(message,url_for('booking_review.detail',booking_id=error.booking_id),error.booking_id)
+            flash(message,"danger");status=400;plan=None
         except SQLAlchemyError:
             db.session.rollback();flash("Keine Änderung gespeichert. Buchungen wurden parallel geändert oder die Datenbank ist belegt.","danger");status=409;plan=None
     return render_template("production/booking/edit_start_time.html",booking=booking,values=values,
