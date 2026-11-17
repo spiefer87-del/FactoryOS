@@ -1,3 +1,5 @@
+{% from 'projects/activity_entry.html' import project_activity %}
+{% set entity_labels = {'machine':'Maschine','order':'Auftrag','sampling':'Musterung','project':'Projekt','customer':'Kunde','masterbatch':'Masterbatch','qm_plan':'Prüfplan'} %}
 {% set field_labels = {
 
 
@@ -111,19 +113,27 @@
 
     <!-- bestehende Parameter behalten -->
     {% for key, value in request.args.items() %}
-        {% if key != "limit" %}
+        {% if key != "limit" and not (activity_types is defined and key == "type") %}
             <input type="hidden" name="{{ key }}" value="{{ value }}">
         {% endif %}
     {% endfor %}
 
+    {% if activity_types is defined %}
+    <label for="activity-type">Bereich:</label>
+    <select name="type" id="activity-type" onchange="this.form.submit()">
+        <option value="">Alle Bereiche</option>
+        {% for key,label in activity_types.items() %}<option value="{{ key }}" {% if request.args.get('type')==key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+    {% endif %}
+    {% set selected_limit = activity_limit if activity_limit is defined else request.args.get('limit','5') %}
     <label>Anzeigen:</label>
 
     <select name="limit" onchange="this.form.submit()">
-        <option value="5" {% if request.args.get('limit', '5') == '5' %}selected{% endif %}>5</option>
-        <option value="15" {% if request.args.get('limit') == '15' %}selected{% endif %}>15</option>
-        <option value="25" {% if request.args.get('limit') == '25' %}selected{% endif %}>25</option>
-        <option value="50" {% if request.args.get('limit') == '50' %}selected{% endif %}>50</option>
-        <option value="all" {% if request.args.get('limit') == 'all' %}selected{% endif %}>Alle</option>
+        <option value="5" {% if selected_limit == '5' %}selected{% endif %}>5</option>
+        <option value="15" {% if selected_limit == '15' %}selected{% endif %}>15</option>
+        <option value="25" {% if selected_limit == '25' %}selected{% endif %}>25</option>
+        <option value="50" {% if selected_limit == '50' %}selected{% endif %}>50</option>
+        <option value="all" {% if selected_limit == 'all' %}selected{% endif %}>Alle</option>
     </select>
 
 </form>
@@ -133,7 +143,9 @@
 <div class="changelog-list">
 
 {% for log in logs %}
-
+{% if log.is_project_activity is defined and log.is_project_activity %}
+{{ project_activity(log,show_project=true) }}
+{% else %}
 <div class="changelog-item">
 
 <!-- 🔥 ENTITY HEADER -->
@@ -161,7 +173,7 @@
     
     {% else %}
         <div class="changelog-entity">
-            {{ log.entity_type }} {{ log.entity_id }}
+            {{ entity_labels.get(log.entity_type,log.entity_type) }} {{ log.entity_name or log.entity_id }}
         </div>
     {% endif %}
 
@@ -235,11 +247,12 @@
 
 <!-- 🔹 META -->
 <div class="changelog-meta">
-    {{ log.created_at.strftime("%d.%m.%Y %H:%M") }}
+    {{ activity_time(log.created_at) if activity_time is defined else log.created_at.strftime("%d.%m.%Y %H:%M") }}
     • {{ log.user.username if log.user else "System" }}
 </div>
 
 </div>
+{% endif %}
 
 {% endfor %}
 

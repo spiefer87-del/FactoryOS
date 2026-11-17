@@ -1,0 +1,12 @@
+{% macro project_activity(entry, show_project=false) %}
+<article class="project-activity" data-project-activity="{{ entry.id }}">
+{% if show_project %}<p class="project-activity-project"><a href="{{ url_for('projects.detail',project_id=entry.entity_id) }}">Projekt {{ entry.entity_name }}</a></p>{% endif %}
+<p class="project-activity-heading"><strong>{{ entry.action_label }}</strong></p>
+<p class="project-activity-meta">{{ entry.user.username if entry.user else 'System' }} · {{ entry.when }}</p>
+<dl class="project-activity-fields">
+{% for line in entry.lines %}
+<div><dt>{{ line.label }}</dt><dd>{% if line.changed %}<span class="project-activity-old">{{ line.old }}</span> <span aria-label="geändert zu">→</span> {% endif %}<span class="project-activity-value">{{ line.value }}</span></dd></div>
+{% endfor %}
+</dl>
+</article>
+{% endmacro %}

@@ -1,0 +1,12 @@
+.project-activity{padding:16px 0;border-top:1px solid #e2e8f0;min-width:0;overflow-wrap:anywhere}
+.project-activity:first-child{border-top:0}
+.project-activity p{margin:0 0 8px}
+.project-activity-meta{color:#64748b;font-size:.9rem}
+.project-activity-fields{margin:12px 0 0}
+.project-activity-fields>div{display:grid;grid-template-columns:minmax(140px,1fr) minmax(0,3fr);gap:8px;padding:8px 0;border-top:1px solid #f1f5f9}
+.project-activity-fields dt{font-weight:600;color:#475569}
+.project-activity-fields dd{margin:0;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.project-activity-old{color:#64748b}
+.project-activity-value{color:#1e293b}
+.project-activity-project a{font-weight:600}
+@media(max-width:650px){.project-activity-fields>div{grid-template-columns:minmax(0,1fr);gap:4px}}

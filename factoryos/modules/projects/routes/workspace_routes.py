@@ -18,6 +18,7 @@ from factoryos.modules.production.models import TimeBooking
 from factoryos.modules.article_defects.photos import prepare_photo
 from ..workspace_models import Workspace,Member,Task,Link,WorkTime,Report,ReportPhoto,ToolPartEvent,Audit
 from ..definitions import PROJECT_TYPES,LINK_LABELS,profile,validate_kind,validate_reference
+from ..services.activity_service import present_audits
 from ..services.workspace_service import (CLOSED,TASK_STATES,permitted,mine_clause,project,lock,version,audit,required,quantity,local_time,check_interval,berlin,input_time)
 from . import bp
 
@@ -115,7 +116,7 @@ def detail(project_id):
         tasks=Task.query.filter_by(project_id=item.id).order_by(Task.id).all(),links=Link.query.filter_by(project_id=item.id).all(),reports=reports,times=times,total=round(total/3600,2),
         legacy=TimeBooking.query.filter_by(order_id=item.id,process='PROJEKT',machine_id=None).order_by(TimeBooking.start_time.desc()).limit(100).all(),
         parts=ToolPartEvent.query.filter_by(project_id=item.id).order_by(ToolPartEvent.id.desc()).limit(100).all(),reversed_ids={x.reverses_id for x in ToolPartEvent.query.filter_by(project_id=item.id) if x.reverses_id},
-        selected_tool=selected_tool,tools=Tool.query.order_by(Tool.tool_no).all(),audits=Audit.query.filter_by(project_id=item.id).order_by(Audit.id.desc()).limit(50).all())
+        selected_tool=selected_tool,tools=Tool.query.order_by(Tool.tool_no).all(),audits=present_audits(Audit.query.filter_by(project_id=item.id).order_by(Audit.created_at.desc(),Audit.id.desc()).limit(50).all(),{item.id:item.order_no}))
 
 @bp.route('/sources')
 @login_required
