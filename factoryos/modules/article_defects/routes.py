@@ -5,7 +5,7 @@ from flask import Blueprint,render_template,request,redirect,url_for,abort,flash
 from flask_login import login_required,current_user
 from sqlalchemy.orm.exc import StaleDataError
 from factoryos.extensions import db
-from factoryos.core.auth import permission_required
+from factoryos.core.auth import permission_required,has_permission
 from factoryos.core.access_control import valid_csrf
 from factoryos.core.models.change_log import ChangeLog
 from factoryos.modules.masterdata.articles.models import Article
@@ -49,6 +49,7 @@ def photo(photo_id):
 @login_required
 @permission_required('defects.delete_photos')
 def delete_photo(photo_id):
+    if not has_permission(current_user,'defects.edit'):abort(403)
     if not valid_csrf():abort(400,'Formular abgelaufen. Bitte neu laden.')
     row=ArticleDefectPhoto.query.get_or_404(photo_id)
     entry=row.defect
@@ -64,7 +65,7 @@ def delete_photo(photo_id):
     try:path.unlink(missing_ok=True)
     except OSError:current_app.logger.exception('Nicht mehr zugängliche Fehlerfoto-Datei konnte nicht entfernt werden: %s',path.name)
     flash('Foto entfernt. Vorhandene Sicherungskopien bleiben unverändert.','success')
-    return redirect(url_for('article_defects.detail',entry_id=entry.id),code=303)
+    return redirect(url_for('article_defects.edit',entry_id=entry.id),code=303)
 
 def form(entry=None):
     values=dict(article_id=str(entry.article_id) if entry else request.args.get('article_id',''),title=entry.title if entry else '',defect_type=entry.defect_type if entry else '',description=entry.description if entry else '',remedy=entry.remedy if entry else '',archived='yes' if entry and entry.archived else '')

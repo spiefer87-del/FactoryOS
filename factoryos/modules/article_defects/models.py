@@ -6,6 +6,7 @@ class ArticleDefect(db.Model):
     id=db.Column(db.Integer,primary_key=True)
     article_id=db.Column(db.Integer,db.ForeignKey('articles.id'),nullable=False,index=True)
     title=db.Column(db.String(200),nullable=False)
+    tool_no=db.Column(db.String(100),nullable=True)
     defect_type=db.Column(db.String(100),nullable=False)
     description=db.Column(db.Text,nullable=False)
     remedy=db.Column(db.Text,nullable=False,default='')

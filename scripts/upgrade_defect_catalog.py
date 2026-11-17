@@ -11,6 +11,8 @@ from factoryos.modules.admin.permissions.labels import PERMISSION_TEXT
 MODELS=(ArticleDefect,ArticleDefectPhoto,InspectionResetRun)
 
 def run_upgrade(check_only=False):
+    if 'tool_no' not in ArticleDefect.__table__.columns or not hasattr(ArticleDefect,'tool_no'):
+        raise RuntimeError('Dateistand unvollständig: factoryos/modules/article_defects/models.py mit Werkzeugnummer-Feld installieren. Keine Datenbankänderung vorgenommen.')
     inspector=inspect(db.engine)
     if db.engine.dialect.name!='sqlite':raise RuntimeError('Installer erwartet die vorhandene SQLite-Datenbank.')
     for table in ('articles','users','permissions','qm_plans','qm_plan_versions','qm_sections'):
@@ -25,7 +27,13 @@ def run_upgrade(check_only=False):
     db.session.execute(text("CREATE TRIGGER IF NOT EXISTS preserve_defect_article BEFORE DELETE ON articles WHEN EXISTS (SELECT 1 FROM article_defects WHERE article_id=OLD.id) BEGIN SELECT RAISE(ABORT,'Artikel besitzt Fehlerkatalog-Historie'); END"))
     for name in ('defects.view','defects.create','defects.edit','defects.delete_photos','complaints.view'):
         if not Permission.query.filter_by(name=name).first():db.session.add(Permission(name=name,description=PERMISSION_TEXT[name]['description']))
-    db.session.commit();print('Fehlerkatalog und Reklamationskategorie eingerichtet. Keine Fachrollen automatisch berechtigt.')
+    db.session.commit()
+    if 'tool_no' not in {c['name'] for c in inspect(db.engine).get_columns('article_defects')}:raise RuntimeError('Werkzeugnummer-Spalte fehlt nach Upgrade.')
+    for entry in ArticleDefect.query.order_by(ArticleDefect.id).limit(5):
+        _=entry.tool_no;_=len(entry.photos)
+    from flask import current_app
+    for template in ('article_defects/form.html','article_defects/detail.html','article_defects/list.html'):current_app.jinja_env.get_template(template)
+    print('Fehlerkatalog geprüft: geladenes Datenmodell, Datenbankspalte, Beispiel-Abfragen und Vorlagen passen zusammen. Keine Fachrollen automatisch berechtigt.')
 
 if __name__=='__main__':
     app=create_app()
