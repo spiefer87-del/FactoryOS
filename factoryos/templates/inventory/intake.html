@@ -1,0 +1,1 @@
+{% extends 'layout/base.html' %}{% block styles %}<link rel="stylesheet" href="{{ url_for('static',filename='css/inventory.css') }}">{% endblock %}{% block content %}<div class="warehouse"><a href="{{ url_for('inventory.dashboard',view='incoming') }}">← Wareneingang</a><section class="warehouse-card">{% include 'inventory/intake_form.html' %}</section></div>{% endblock %}

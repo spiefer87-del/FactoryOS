@@ -1,0 +1,14 @@
+<h2 id="warehouse-intake-title">Auftrag {{ order.order_no }} zubuchen</h2>
+<p><strong>{{ order.article }}</strong> · {{ article.article_name if article else 'Stammdatenartikel fehlt' }}<br>Noch übergebbar: <strong>{{ remaining }} Stück</strong></p>
+{% if error %}<div class="warehouse-error" role="alert">Nicht gespeichert: {{ error }}</div>{% endif %}
+{% if not article %}<p role="alert">Bitte zuerst den passenden Artikel in den Stammdaten und im Auftrag zuordnen.</p>{% endif %}
+<form method="post" action="{{ url_for('inventory.intake',order_id=order.id) }}" data-intake-form>
+<input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}"><input type="hidden" name="command_id" value="{{ command_id }}"><input type="hidden" name="revision" value="{{ revision }}">
+<label for="intake-quantity">Tatsächlich übergebene Gutmenge (Stück) *</label><input id="intake-quantity" name="quantity" value="{{ data.quantity }}" inputmode="numeric" pattern="[0-9]+" required>
+<label for="intake-batch">Los / Charge / Behälterkennung *</label><input id="intake-batch" name="batch" value="{{ data.batch }}" maxlength="100" required>
+<label for="intake-mode">Buchung *</label><select id="intake-mode" name="mode" required><option value="transfer" {% if data.mode=='transfer' %}selected{% endif %}>Nur Produktionsübergabe – noch kein Lagerbestand</option>{% if can_receive %}<option value="receive" {% if data.mode=='receive' %}selected{% endif %}>Produktionsübergabe und tatsächliche Lagerannahme bestätigen</option>{% endif %}</select>
+{% if can_receive %}<label for="intake-place">Ziellagerplatz (für Lagerannahme erforderlich)</label><select id="intake-place" name="destination_id"><option value="">Bitte auswählen</option>{% for place in places %}<option value="{{ place.id }}" {% if data.destination_id|string==place.id|string %}selected{% endif %}>{{ place.code }} · {{ place.description }}</option>{% endfor %}</select>{% if not places %}<p>Es ist noch kein Lagerplatz angelegt. Eine Übergabe ohne Lagerannahme bleibt möglich.</p>{% endif %}{% endif %}
+<label for="intake-reason">Beleg / Begründung *</label><textarea id="intake-reason" name="reason" maxlength="500" required>{{ data.reason }}</textarea>
+<p>Teilmengen sind möglich. Ausschuss nicht als Gutmenge übernehmen. Bei Lagerannahme wird der Bestand zunächst gesperrt; die Qualitätsfreigabe bleibt ein eigener Schritt.</p>
+<label class="warehouse-check"><input type="checkbox" name="confirmed" value="yes" required> Tatsächliche Menge und Übergabe geprüft; bei Lagerannahme zusätzlich Empfang und Lagerplatz bestätigt.</label>
+<button class="btn-primary" type="submit" {% if not article %}disabled{% endif %}>Verbindlich buchen</button><span data-intake-message role="status" aria-live="polite"></span></form>

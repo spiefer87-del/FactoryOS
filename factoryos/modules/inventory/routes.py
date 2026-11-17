@@ -1,5 +1,5 @@
 from uuid import uuid4
-from flask import Blueprint,render_template,request,redirect,url_for,flash,abort
+from flask import Blueprint,render_template,request,redirect,url_for,flash,abort,jsonify
 from flask_login import current_user,login_required
 from factoryos.extensions import db
 from factoryos.core.auth import permission_required
@@ -10,6 +10,36 @@ from .models import WarehouseLocation as Location,WarehouseLot as Lot,WarehouseR
 from .service import LABELS,PERMISSIONS,execute,revision,confirmed,allocated,pending,stock_rows,Conflict
 
 bp=Blueprint('inventory',__name__,url_prefix='/warehouse')
+
+@bp.route('/intake/<int:order_id>',methods=['GET','POST'])
+@login_required
+@permission_required('inventory.production')
+def intake(order_id):
+    from factoryos.core.auth import has_permission
+    from .service import quick_intake
+    order=Order.query.get_or_404(order_id)
+    if order.is_project or order.sampling:abort(400,'Keine reguläre Fertigwarenquelle.')
+    article=Article.query.filter_by(article_no=order.article).first()
+    remaining=confirmed(order)[0]-allocated(order.id)
+    partial=request.args.get('partial')=='1'
+    can_receive=has_permission(current_user,'inventory.receive')
+    data=dict(quantity=str(max(0,remaining)),batch='',reason='',mode='receive' if can_receive else 'transfer',destination_id='')
+    error=None;status=200
+    if request.method=='POST':
+        if not valid_csrf():abort(400,'Formular abgelaufen. Bitte neu laden.')
+        data={key:request.form.get(key,'') for key in ('quantity','batch','reason','mode','destination_id','confirmed')}
+        try:
+            event,replayed=quick_intake(current_user.id,order.id,request.form.get('command_id'),request.form.get('revision'),data)
+            flash(('Bereits gebucht' if replayed else 'Gebucht')+f': Auftrag {order.order_no} · Journal #{event.id}','success')
+            target=url_for('inventory.dashboard',view='incoming')
+            if partial:return jsonify(redirect=target)
+            return redirect(target,code=303)
+        except PermissionError:db.session.rollback();abort(403)
+        except ValueError as exc:
+            db.session.rollback();error=str(exc);status=409 if isinstance(exc,Conflict) else 422
+            remaining=confirmed(order)[0]-allocated(order.id)
+    return render_template('inventory/intake_form.html' if partial else 'inventory/intake.html',order=order,article=article,remaining=remaining,
+        can_receive=can_receive,data=data,error=error,revision=revision(),command_id=str(uuid4()),places=Location.query.order_by(Location.code).all()),status
 
 @bp.get('/journal/<int:event_id>')
 @login_required

@@ -58,7 +58,7 @@ def execute(user_id,action,command_id,expected,data):
     with db.session.no_autoflush:
         return _execute(user_id,action,command_id,expected,data)
 
-def _execute(user_id,action,command_id,expected,data):
+def _execute(user_id,action,command_id,expected,data,*,commit=True):
     """Caller must rollback on every error; this function commits success only."""
     if action not in PERMISSIONS:raise ValueError('Unbekannte Lageraktion.')
     try:
@@ -74,7 +74,8 @@ def _execute(user_id,action,command_id,expected,data):
     previous=Event.query.filter_by(command_id=command_id).first()
     if previous:
         if previous.user_id!=user_id or previous.payload_hash!=digest:raise Conflict('Buchungskennung bereits anders verwendet.')
-        db.session.commit();return previous,True
+        if commit:db.session.commit()
+        return previous,True
     db.session.execute(insert(Lock).values(id=1,version=0).on_conflict_do_nothing(index_elements=['id']))
     lock=db.session.get(Lock,1,populate_existing=True)
     if str(lock.version)!=str(expected):raise Conflict('Lagerstand wurde geändert. Bitte neu laden und Buchung erneut prüfen.')
@@ -170,4 +171,28 @@ def _execute(user_id,action,command_id,expected,data):
     if event.lot_id:
         lot=db.session.get(Lot,event.lot_id)
         if lot.origin=='production' and not 0<=pending(lot)<=lot.quantity:raise Conflict('Übergabemenge ist widersprüchlich.')
-    lock.version+=1;db.session.commit();return event,False
+    lock.version+=1;db.session.flush()
+    if commit:db.session.commit()
+    return event,False
+
+def quick_intake(user_id,order_id,command_id,expected,data):
+    """One explicit confirmation, two journal entries, one transaction."""
+    from uuid import uuid5
+    order=db.session.get(Order,order_id)
+    if not order:raise ValueError('Auftrag nicht vorhanden.')
+    article=Article.query.filter_by(article_no=order.article).first()
+    if not article:raise ValueError('Zum Auftrag fehlt der passende Stammdatenartikel. Bitte zuerst die Zuordnung korrigieren.')
+    if data.get('mode') not in ('transfer','receive'):raise ValueError('Bitte Übergabe oder Übergabe mit Lagerannahme auswählen.')
+    combined=data['mode']=='receive'
+    if combined and not has_permission(db.session.get(User,user_id),'inventory.receive'):raise PermissionError('Keine Berechtigung zur Lagerannahme.')
+    try:second_id=str(uuid5(UUID(command_id),'warehouse-intake-receive'));second_revision=str(int(expected)+1)
+    except (ValueError,TypeError,AttributeError):raise ValueError('Buchungskennung oder Lagerstand ungültig. Bitte neu laden.')
+    transfer_data={key:data.get(key,'') for key in ('batch','quantity','reason','confirmed')}
+    transfer_data.update(order_id=str(order_id),article_id=str(article.id),quick_mode=data['mode'],quick_destination=data.get('destination_id','') if combined else '')
+    with db.session.no_autoflush:
+        first,replayed=_execute(user_id,'transfer',command_id,expected,transfer_data,commit=False)
+        if combined:
+            receipt_data={key:data.get(key,'') for key in ('quantity','reason','confirmed','destination_id')};receipt_data['lot_id']=str(first.lot_id)
+            _execute(user_id,'receive',second_id,second_revision,receipt_data,commit=False)
+        db.session.commit()
+    return first,replayed
