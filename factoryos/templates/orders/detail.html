@@ -16,7 +16,7 @@
 <a class="btn-secondary" href="{{ url_for('orders.overview') }}">Alle Aufträge</a>
 {% if can_delete_order %}<a class="btn-secondary" href="{{ url_for('orders.delete',order_id=order.id) }}">Löschen</a>{% endif %}
 </div></header></div>
-{% if order.completion %}<section class="order-erp-summary"><h2>Auftrag abgeschlossen</h2><p>{{ local_label(order.completion.closed_at) }} · {{ order.completion.user.username }} · {{ 'Maschinenbedienung' if order.completion.source=='machine' else 'Büro' }}</p><p>Bestätigte Endgutmenge: <strong>{{ order.completion.good_qty }}</strong> Stück · Ausschuss: <strong>{{ order.completion.scrap_qty }}</strong> Stück · Soll: {{ order.completion.target_qty }} Stück</p><p>{{ order.completion.reason }}</p></section>{% endif %}
+{% if order.completion %}<section class="order-erp-summary"><h2>Auftrag abgeschlossen</h2><p>Abschluss erfasst am {{ local_label(order.completion.closed_at) }} · {{ order.completion.user.username }} · {{ 'Maschinenbedienung' if order.completion.source=='machine' else 'Büro' }}</p><p>Bestätigte Endgutmenge: <strong>{{ order.completion.good_qty }}</strong> Stück · Ausschuss: <strong>{{ order.completion.scrap_qty }}</strong> Stück · Soll: {{ order.completion.target_qty }} Stück</p><p>{{ order.completion.reason }}</p></section>{% endif %}
 {% include "orders/statistics.html" %}
 {% if order.erp_import %}<details class="order-erp-summary"><summary>ERP-Auftragsdaten und ursprüngliche Angaben öffnen</summary>{% include "orders/erp_summary.html" %}</details>{% endif %}
 <details class="order-erp-summary"><summary>Aktivitäten und protokollierte Korrekturen</summary>{% include "components/changelog.html" %}</details>

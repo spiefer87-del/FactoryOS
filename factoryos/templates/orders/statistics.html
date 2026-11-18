@@ -3,6 +3,8 @@
 <section aria-labelledby="order-stats-heading"><h2 id="order-stats-heading">Auftragsübersicht und Kennzahlen</h2>
 <p class="stats-note">Stand {{ local_label(statistics.now) }}. Erfasste Mengen und Zeit-/Materialschätzungen sind getrennt.</p>
 {% if can_correct_time and statistics.active_booking %}<p><a class="btn-secondary" href="{{ url_for('production.edit_booking_time',booking_id=statistics.active_booking.id) }}">Startzeit der laufenden Buchung korrigieren</a></p>{% endif %}
+{% if can_correct_time %}{% set ended = statistics.bookings|selectattr('end_time')|selectattr('type','equalto','START')|sort(attribute='end_time',reverse=true)|list %}
+{% if ended %}<p><a class="btn-secondary" href="{{ url_for('production.edit_booking_end_time',booking_id=ended[0].id) }}">Endzeit der letzten Produktionsbuchung korrigieren</a></p>{% endif %}{% endif %}
 <div class="stats-grid">
 <div class="stats-kpi"><span>{{ 'Abschluss' if statistics.is_complete else 'Voraussichtlich fertig · Schätzung' }}</span><strong>{{ 'Auftrag abgeschlossen' if statistics.is_complete else local_label(statistics.eta) if statistics.eta else 'Noch kein verbindlicher Endtermin' }}</strong>
 {% if statistics.is_complete %}<small>Letzte beendete Produktionsbuchung: {{ local_label(statistics.last_end) }}</small>
@@ -41,7 +43,7 @@
 </div>
 <p class="stats-note">Material = aufgerundete Schusszahl × Schussgewicht. Zusatzschüsse durch künftigen Ausschuss, Anfahren und Reinigung sind nicht eingeplant. Farbbatch-% beziehen sich auf das Hauptrohstoffgewicht: Hauptrohstoff = Gesamtmischung / (1 + Prozent/100). Bei normalen Aufträgen ist die aktuelle Artikelrezeptur nur eine Schätzgrundlage, keine eingefrorene auftragsbezogene Rezeptur und keine Verbrauchsbuchung.</p>
 </section>
-{% if statistics.bookings %}<section><h2>Produktionsbuchungen und Startzeiten</h2><div class="stats-scroll"><table><thead><tr><th>Maschine</th><th>Start (Europe/Berlin)</th><th>Ende</th><th>Aktion</th></tr></thead><tbody>
-{% for booking in statistics.bookings %}<tr><td>{{ booking.machine.machine_no if booking.machine else 'Unbekannt' }}</td><td>{{ local_label(booking.start_time) }}</td><td>{{ local_label(booking.end_time) if booking.end_time else 'Läuft aktuell' }}</td><td>{% if can_correct_time and booking.type=='START' %}<a class="btn-secondary" href="{{ url_for('production.edit_booking_time',booking_id=booking.id) }}">Startzeit korrigieren</a>{% else %}Nur Ansicht{% endif %}</td></tr>{% endfor %}
+{% if statistics.bookings %}<section><h2>Produktionsbuchungen und Zeitkorrekturen</h2><div class="stats-scroll"><table><thead><tr><th>Maschine</th><th>Start (Europe/Berlin)</th><th>Ende</th><th>Aktion</th></tr></thead><tbody>
+{% for booking in statistics.bookings %}<tr><td>{{ booking.machine.machine_no if booking.machine else 'Unbekannt' }}</td><td>{{ local_label(booking.start_time) }}</td><td>{{ local_label(booking.end_time) if booking.end_time else 'Läuft aktuell' }}</td><td>{% if can_correct_time and booking.type=='START' %}<a class="btn-secondary" href="{{ url_for('production.edit_booking_time',booking_id=booking.id) }}">Startzeit korrigieren</a>{% if booking.end_time %} <a class="btn-secondary" href="{{ url_for('production.edit_booking_end_time',booking_id=booking.id) }}">Endzeit korrigieren</a>{% endif %}{% else %}Nur Ansicht{% endif %}</td></tr>{% endfor %}
 </tbody></table></div></section>{% endif %}
 </div>

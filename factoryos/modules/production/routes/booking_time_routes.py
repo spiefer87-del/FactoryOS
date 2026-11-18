@@ -14,16 +14,33 @@ from markupsafe import Markup
 from flask_login import current_user
 from factoryos.core.auth import has_permission
 from ..services.booking_time_service import BookingOverlapError
+from ..services.booking_time_service import eligible_end, end_correction_plan, apply_end_correction
 
 @bp.route("/booking/<int:booking_id>/start-time",methods=["GET","POST"])
 @login_required
 @permission_required("production.edit_booking_time")
 def edit_booking_time(booking_id):
+    return _edit_boundary(booking_id,'start')
+
+@bp.route("/booking/<int:booking_id>/end-time",methods=["GET","POST"])
+@login_required
+@permission_required("production.edit_booking_time")
+def edit_booking_end_time(booking_id):
+    return _edit_boundary(booking_id,'end')
+
+def _edit_boundary(booking_id,boundary):
+    is_end=boundary=='end'
+    field='end_time' if is_end else 'start_time'
+    label='Endzeit' if is_end else 'Startzeit'
+    preview_key='booking_end_time_preview' if is_end else 'booking_time_preview'
+    validate=eligible_end if is_end else eligible
+    make_plan=end_correction_plan if is_end else correction_plan
+    save=apply_end_correction if is_end else apply_correction
     booking=TimeBooking.query.get_or_404(booking_id)
-    try: eligible(booking)
+    try: validate(booking)
     except ValueError as error: abort(400,description=str(error))
     current=revision(booking)
-    values={"start_time":local_time(booking.start_time).strftime("%Y-%m-%dT%H:%M:%S"),
+    values={field:local_time(getattr(booking,field)).strftime("%Y-%m-%dT%H:%M:%S"),
             "reason":"","fold":"","revision":current}
     plan=None
     proposed=None
@@ -35,17 +52,17 @@ def edit_booking_time(booking_id):
         intent=request.form.get("intent")
         if intent not in ("preview","commit"): abort(400)
         try:
-            proposed=parse_local_start(values["start_time"],values["fold"])
-            plan=correction_plan(booking,proposed,values["reason"])
-            digest=sha256(json.dumps({"booking":booking.id,**values},sort_keys=True).encode()).hexdigest()
+            proposed=parse_local_start(values[field],values["fold"])
+            plan=make_plan(booking,proposed,values["reason"])
+            digest=sha256(json.dumps({"booking":booking.id,"boundary":boundary,**values},sort_keys=True).encode()).hexdigest()
             if intent=="commit":
-                if session.get("booking_time_preview")!=digest:
+                if session.get(preview_key)!=digest:
                     raise ValueError("Bitte diese Änderung zuerst als Vorschau prüfen.")
-                saved=apply_correction(booking,proposed,values["reason"],values["revision"])
-                session.pop("booking_time_preview",None)
-                flash("Startzeit korrigiert und mit Begründung protokolliert.","success")
+                saved=save(booking,proposed,values["reason"],values["revision"])
+                session.pop(preview_key,None)
+                flash(label+" korrigiert und mit Begründung protokolliert.","success")
                 return redirect(url_for("orders.detail",order_id=saved.order_id))
-            session["booking_time_preview"]=digest
+            session[preview_key]=digest
         except ValueError as error:
             db.session.rollback()
             message=str(error)
@@ -55,4 +72,5 @@ def edit_booking_time(booking_id):
         except SQLAlchemyError:
             db.session.rollback();flash("Keine Änderung gespeichert. Buchungen wurden parallel geändert oder die Datenbank ist belegt.","danger");status=409;plan=None
     return render_template("production/booking/edit_start_time.html",booking=booking,values=values,
-                           plan=plan,proposed=proposed,local_label=local_label),status
+                           plan=plan,proposed=proposed,local_label=local_label,
+                           is_end=is_end,field=field,boundary_label=label),status

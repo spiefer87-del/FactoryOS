@@ -1,4 +1,4 @@
-"""Audited start correction: UTC storage, Berlin input, optimistic revision and no real overlaps."""
+"""Audited booking boundaries: UTC storage, Berlin input and no real overlaps."""
 from datetime import datetime, timezone, timedelta
 from hashlib import sha256
 import json
@@ -38,6 +38,11 @@ def eligible(booking):
     if booking.order.sampling and booking.order.sampling.state=="completed":
         raise ValueError("Abgeschlossene Musterungen bleiben schreibgeschützt.")
 
+def eligible_end(booking):
+    eligible(booking)
+    if booking.end_time is None:
+        raise ValueError("Eine Endzeit kann erst nach dem regulären Beenden der Buchung korrigiert werden.")
+
 def related_bookings(booking):
     return TimeBooking.query.filter(or_(TimeBooking.machine_id==booking.machine_id,
                                        TimeBooking.order_id==booking.order_id)).order_by(TimeBooking.id).all()
@@ -45,7 +50,8 @@ def related_bookings(booking):
 def revision(booking):
     rows = related_bookings(booking)
     payload = [(row.id,row.order_id,row.machine_id,row.process,row.type,
-                row.start_time.isoformat(),row.end_time.isoformat() if row.end_time else None) for row in rows]
+                row.start_time.isoformat(),row.end_time.isoformat() if row.end_time else None,
+                row.prev_order_id) for row in rows]
     payload.append(("sampling",booking.order.sampling.state if booking.order.sampling else None))
     return sha256(json.dumps(payload,sort_keys=True).encode()).hexdigest()
 
@@ -106,5 +112,76 @@ def apply_correction(booking, new_start, reason, expected_revision):
     if booking.order.sampling:
         log_change("sampling",booking.order.sampling.id,"update",entity_name=booking.order.order_no,
                    category="production",changes={"booking_start_correction":entry})
+    db.session.commit()
+    return booking
+
+def end_correction_plan(booking, new_end, reason, now=None):
+    eligible_end(booking)
+    now = now or datetime.utcnow()
+    if not 5<=len(reason.strip())<=1000:
+        raise ValueError("Bitte eine Begründung mit 5 bis 1000 Zeichen angeben.")
+    if new_end>now:
+        raise ValueError("Eine tatsächliche Endzeit darf nicht in der Zukunft liegen.")
+    if new_end<=booking.start_time:
+        raise ValueError("Ende muss nach dem Start der Buchung liegen.")
+    if booking.end_time.replace(microsecond=0)==new_end.replace(microsecond=0):
+        raise ValueError("Die Endzeit ist unverändert.")
+    rows = related_bookings(booking)
+    following = [row for row in rows if row.id!=booking.id
+        and row.machine_id==booking.machine_id and row.process=='FREI' and row.type=='START'
+        and row.order_id is None and row.prev_order_id is None
+        and row.start_time==booking.end_time
+        and (row.end_time is None or row.end_time>row.start_time)]
+    if len(following)>1:
+        raise ValueError("Mehrere anschließende Frei-Buchungen. Bitte diese Buchungen zuerst fachlich klären.")
+    free = following[0] if following else None
+    new_free_start = min(new_end,free.end_time) if free and free.end_time else new_end
+    changes = ([dict(id=free.id,old_start=free.start_time,new_start=new_free_start)] if free else [])
+    for other in rows:
+        if other.id==booking.id or (other.end_time is not None and other.end_time<=other.start_time):
+            continue
+        other_start = new_free_start if free and other.id==free.id else other.start_time
+        other_end = other.end_time or datetime.max
+        overlaps = other_start<other_end and other_start<new_end and other_end>booking.start_time
+        if overlaps and (other.machine_id==booking.machine_id or other.process in ('PROD','MUSTER')):
+            name = other.order.order_no if other.order else other.process
+            raise BookingOverlapError(other.id,f"Überschneidung mit Buchung #{other.id} ({name}, {local_label(other.start_time)}). Bitte diese Buchung zuerst fachlich klären.")
+        # Extending FREE backwards must not cover another recorded machine activity.
+        if (free and other.id!=free.id and other.machine_id==booking.machine_id
+                and new_free_start<(free.end_time or datetime.max)
+                and other.start_time<(free.end_time or datetime.max) and other_end>new_free_start):
+            raise BookingOverlapError(other.id,f"Die angepasste Frei-Zeit würde Buchung #{other.id} überdecken. Bitte diese Buchung zuerst fachlich klären.")
+    return changes
+
+def apply_end_correction(booking, new_end, reason, expected_revision):
+    old_start, old_end, booking_id = booking.start_time, booking.end_time, booking.id
+    from .machine_control_service import acquire_control_lock
+    acquire_control_lock()
+    statement = TimeBooking.query.filter_by(id=booking_id,start_time=old_start,end_time=old_end)
+    if statement.update({TimeBooking.end_time:old_end},synchronize_session=False)!=1:
+        raise ValueError("Buchung wurde parallel geändert. Bitte neu laden.")
+    db.session.expire_all()
+    booking = db.session.get(TimeBooking,booking_id)
+    eligible_end(booking)
+    if revision(booking)!=expected_revision:
+        raise ValueError("Buchungen wurden seit der Vorschau geändert. Bitte neu laden und erneut prüfen.")
+    changes = end_correction_plan(booking,new_end,reason)
+    adjustments = []
+    for item in changes:
+        free = db.session.get(TimeBooking,item['id'])
+        free.start_time=item['new_start']
+        adjustments.append(dict(booking_id=free.id,start_time_utc={
+            'old':item['old_start'].isoformat(),'new':item['new_start'].isoformat()}))
+    booking.end_time=new_end
+    entry = dict(booking_id=booking.id,machine_id=booking.machine_id,reason=reason.strip(),
+                 end_time_utc={'old':old_end.isoformat(),'new':new_end.isoformat()},
+                 free_intervals=adjustments)
+    log_change('order',booking.order_id,'update',entity_name=booking.order.order_no,
+               category='production',changes={'booking_end_correction':entry})
+    log_change('machine',booking.machine_id,'update',entity_name=booking.machine.machine_no,
+               category='production',changes={'booking_end_correction':entry})
+    if booking.order.sampling:
+        log_change('sampling',booking.order.sampling.id,'update',entity_name=booking.order.order_no,
+                   category='production',changes={'booking_end_correction':entry})
     db.session.commit()
     return booking

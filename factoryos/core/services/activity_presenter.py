@@ -139,7 +139,8 @@ def present_change_logs(logs):
             try:
                 parsed=datetime.fromisoformat(raw.replace('Z','+00:00'))
                 if field.endswith('_local'):return parsed.strftime('%d.%m.%Y %H:%M')
-                return parsed.replace(tzinfo=parsed.tzinfo or timezone.utc).astimezone(ZoneInfo('Europe/Berlin')).strftime('%d.%m.%Y %H:%M %Z')
+                pattern='%d.%m.%Y %H:%M:%S %Z' if field in ('start_time_utc','end_time_utc') else '%d.%m.%Y %H:%M %Z'
+                return parsed.replace(tzinfo=parsed.tzinfo or timezone.utc).astimezone(ZoneInfo('Europe/Berlin')).strftime(pattern)
             except ValueError:pass
         return raw
 
@@ -209,6 +210,7 @@ def present_change_logs(logs):
             snap=data.get('old') or data.get('new') or {}
             lines=[dict(label='Fehlereintrag',value=f"#{snap.get('entry_id','—')}"+(f" · {snap['title']}" if snap.get('title') else ''),changed=False)]
         elif category=='production_deviation':title='Produktionsabweichung bestätigt'
+        elif isinstance(changes,dict) and 'booking_end_correction' in changes:title='Produktions-Endzeit korrigiert'
         elif category in ('booking_review','booking_admin_repair'):
             payload=(changes or {}).get('booking_review',(changes or {}).get('admin_repair',{}))
             title={'delete':'Zeitbuchung gelöscht','cancel':'Zeitbuchung storniert','edit':'Zeitbuchung korrigiert'}.get(payload.get('action'),'Zeitbuchung korrigiert')
