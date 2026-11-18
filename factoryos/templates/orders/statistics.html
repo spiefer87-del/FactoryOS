@@ -12,11 +12,21 @@
 {% if statistics.report_count and statistics.progress is not none %}<progress max="100" value="{{ statistics.progress }}" aria-label="Gemeldeter Gutfortschritt"></progress><small>{{ '%.1f'|format(statistics.progress) }} % gemeldet</small>{% endif %}</div>
 <div class="stats-kpi"><span>Restmenge laut Gutmeldungen</span><strong>{{ statistics.remaining }} Stück</strong><small>Sollmenge {{ statistics.target }} Stück. Zeitprognosen verändern keine Mengenbuchung.</small></div>
 <div class="stats-kpi"><span>Ausschuss · erfasst</span><strong>{{ statistics.scrap if statistics.report_count else 'Nicht gemeldet' }}{% if statistics.report_count %} Stück{% endif %}</strong><small>{% if statistics.scrap_percent is not none %}{{ '%.1f'|format(statistics.scrap_percent) }} % der gemeldeten Gesamtmenge{% endif %}</small></div>
-<div class="stats-kpi"><span>Reine Soll-Laufzeit für Gesamtmenge</span><strong>{{ duration(statistics.planned_seconds) }}</strong>
+</div>
+<h3 class="stats-runtime-heading">Laufzeiten</h3>
+<div class="stats-grid stats-runtime-grid">
+<div class="stats-kpi" data-runtime="nominal"><span>Reine Soll-Laufzeit für Gesamtmenge</span><strong>{{ duration(statistics.planned_seconds) }}</strong>
 {% if statistics.forecast %}<small>{{ '%g'|format(statistics.forecast.cycle_time_s) }} s/Zyklus · {{ statistics.forecast.parts_per_cycle }} Teil(e)/Zyklus · {{ statistics.forecast.cycle_source }}</small>{% endif %}</div>
-<div class="stats-kpi"><span>Gebuchte Produktionszeit · brutto</span><strong>{{ duration(statistics.gross_seconds) }}</strong><small>Aus Buchungsintervallen, kein Maschinensignal</small></div>
-<div class="stats-kpi"><span>Produktionszeit innerhalb Arbeitskalender</span><strong>{{ duration(statistics.working_seconds) }}</strong><small>Gebuchte Pause separat: {{ duration(statistics.pause_seconds) }}</small></div>
-{% if statistics.forecast %}<div class="stats-kpi"><span>Rechnerische Restlaufzeit · Solltempo</span><strong>{{ statistics.forecast.duration_label }}</strong><small>Rechnerische Restmenge {{ statistics.forecast.estimated_remaining_qty }} Stück. Noch nicht gemessener Fortschritt nach Solltempo.</small></div>{% endif %}
+{% set difference = statistics.runtime_difference %}
+{% if difference %}<div class="stats-kpi stats-runtime-{{ 'over' if difference.over else 'under' }}" data-runtime="difference">
+<span>{{ 'Soll-Laufzeit überschritten' if difference.over else 'Soll-Laufzeit unterschritten' }}{% if difference.provisional %} · vorläufig{% endif %}</span>
+<strong>{{ '+' if difference.over else '−' }}{{ duration(difference.seconds) }}</strong>
+<small>{{ '%.1f'|format(difference.percent) }} % {{ 'über' if difference.over else 'unter' }} Soll · {{ difference.basis }} ({{ duration(difference.expected_seconds) }}).</small>
+<small>Vergleich mit gebuchter Produktionszeit innerhalb des Arbeitskalenders. Kein gemessener Maschinenzyklus.{% if statistics.active_booking %} Auftrag läuft weiter.{% endif %}{% if difference.provisional %} Kavitäten fehlen; 1 Teil je Zyklus angenommen.{% endif %}</small>
+</div>{% endif %}
+<div class="stats-kpi" data-runtime="working"><span>Produktionszeit innerhalb Arbeitskalender</span><strong>{{ duration(statistics.working_seconds) }}</strong><small>Gebuchte Pause separat: {{ duration(statistics.pause_seconds) }}</small></div>
+{% if statistics.forecast %}<div class="stats-kpi" data-runtime="remaining"><span>Rechnerische Restlaufzeit · Solltempo</span><strong>{{ statistics.forecast.duration_label }}</strong><small>Rechnerische Restmenge {{ statistics.forecast.estimated_remaining_qty }} Stück. Noch nicht gemessener Fortschritt nach Solltempo.</small></div>{% endif %}
+<div class="stats-kpi" data-runtime="gross"><span>Gebuchte Produktionszeit · brutto</span><strong>{{ duration(statistics.gross_seconds) }}</strong><small>Aus Buchungsintervallen, einschließlich produktionsfreier Kalenderzeiten; kein Maschinensignal</small></div>
 </div>
 {% if statistics.issues %}<ul class="stats-warnings">{% for issue in statistics.issues %}<li>{{ issue }}</li>{% endfor %}</ul>{% endif %}
 <p class="stats-note">Die Endprognose nimmt Solltempo ohne zusätzlichen künftigen Ausschuss an. Sie berücksichtigt gebuchte Produktionsintervalle und Produktionskalender. Ungeplante Störungen, aktive Nesterabweichungen, Rüst-/QS-Arbeit und weitere Stopps können das Ende verschieben. Ein rechnerisch erreichtes Sollende schließt keinen Auftrag automatisch ab.</p>

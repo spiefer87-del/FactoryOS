@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 
-from .order_statistics import order_statistics, forecast_data, local_time
+from .order_statistics import order_statistics, forecast_data, local_time, duration
 from factoryos.models.machine import Machine
 from factoryos.modules.production.models import TimeBooking
 from factoryos.modules.production.services.calendar_service import (
@@ -299,6 +299,39 @@ def get_machine_timeline(horizon_key="24h", now=None, range_start=None, range_en
                     item['label']='⚠ '+item['label']+(' · begründet' if deviation['confirmation'] else ' · prüfen')
                     item['process_label']+=' · '+deviation['title']
                     item['deviation']=deviation
+        runtime = None
+        stats = stats_cache.get(active_booking.order_id, {}) if active_booking else {}
+        if (len(current) == 1 and active_booking.process in ('PROD', 'MUSTER')
+                and stats.get('active_booking') is not None
+                and stats['active_booking'].id == active_booking.id
+                and stats.get('overrun_seconds', 0) >= 1 and stats.get('nominal_limit_at')):
+            limit = stats['nominal_limit_at']
+            runtime = dict(limit_at=limit, duration_label=duration(stats['overrun_seconds']),
+                nominal_label=duration(stats['planned_seconds']),
+                provisional=stats['forecast']['cavities_assumed'],
+                position=_percent(limit,range_start,range_end) if range_start<=limit<=range_end else None,
+                before_range=limit<range_start, after_range=limit>range_end)
+            segments = []
+            for item in items:
+                if item['kind'] != 'actual' or item['booking'].order_id != active_booking.order_id or item['booking'].process not in ('PROD','MUSTER'):
+                    segments.append(item)
+                    continue
+                booking = item['booking']
+                start=max(booking.start_time,range_start)
+                end=min(booking.end_time or now,now,range_end)
+                for phase,first,last in (('nominal',start,min(end,limit)),('overrun',max(start,limit),end)):
+                    if last<=first:continue
+                    left=_percent(first,range_start,range_end)
+                    right=_percent(last,range_start,range_end)
+                    segment=dict(item)
+                    segment.update(left=left,width=right-left,runtime_phase=phase,
+                        label=_booking_label(booking,PROCESS_META[booking.process][0]) +
+                            (' · Soll' if phase=='nominal' else ' · +'+runtime['duration_label']))
+                    segment['class']+=' runtime-'+phase
+                    segment['process_label']+=(' · innerhalb der Soll-Laufzeit' if phase=='nominal' else
+                        ' · +'+runtime['duration_label']+' über Soll (Produktionszeit im Arbeitskalender)')
+                    segments.append(segment)
+            items=segments
         plan_lane=planned_by_machine.get(machine.id,{"rows":[],"warnings":[],"error":None})
         for row in plan_lane["rows"]:
             if not row["start"]:continue
@@ -327,6 +360,7 @@ def get_machine_timeline(horizon_key="24h", now=None, range_start=None, range_en
             "active_process_label": active_process_label,
             "active_class": active_class,
             "active_count": len(current),
+            "active_runtime": runtime,
             "active_deviation":stats_cache.get(active_booking.order_id,{}).get('deviation') if active_booking else None,
             "plan_rows": plan_lane["rows"],
             "plan_error": plan_lane["error"],

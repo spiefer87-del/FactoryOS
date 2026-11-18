@@ -57,6 +57,35 @@ def working_seconds(intervals, settings, exceptions):
             seconds -= (closure[1]-closure[0]).total_seconds()
     return max(0, seconds)
 
+def nominal_limit_at(intervals, budget, settings, exceptions):
+    """Locate the exhausted budget in recorded production, excluding gaps/closures."""
+    if not budget or budget <= 0:
+        return None
+    remaining = budget
+    for start, end in merged(intervals):
+        available = working_seconds([(start, end)], settings, exceptions)
+        if available >= remaining:
+            return calculate_production_finish(start, remaining, settings, exceptions)
+        remaining -= available
+    return None
+
+def runtime_difference(stats):
+    """Running orders have no underrun: their production has not finished yet."""
+    expected = stats['planned_seconds']
+    basis = 'Soll-Laufzeit für die gesamte Auftragsmenge'
+    deviation = stats['deviation']
+    if deviation['kind'] in ('slower', 'faster'):
+        expected = deviation['snapshot']['expected_seconds']
+        basis = 'Sollvergleich aus bestätigter Gut- und Ausschussmenge'
+    if not expected:
+        return None
+    difference = stats['working_seconds'] - expected
+    if abs(difference) < 1 or (difference < 0 and deviation['kind'] != 'faster'):
+        return None
+    return dict(seconds=abs(difference), over=difference > 0,
+                percent=abs(difference / expected * 100), expected_seconds=expected,
+                basis=basis, provisional=stats['forecast']['cavities_assumed'])
+
 def forecast_data(order, good, article, tool, now, settings, exceptions, elapsed=0):
     if order.is_project: return None
     target = count(order.target_qty)
@@ -183,4 +212,7 @@ def order_statistics(order, now=None, settings=None, exceptions=None):
     from factoryos.modules.production_deviations.service import evaluate
     result['calendar_basis']=[(key,str(getattr(settings,key,None))) for key in ('week_start_day','week_start_time','week_end_day','week_end_time')]+[(str(e.start_at),str(e.end_at)) for e in exceptions]
     result['deviation']=evaluate(order,result)
+    result['runtime_difference']=runtime_difference(result)
+    result['overrun_seconds']=max(0, net-result['planned_seconds']) if planned else 0
+    result['nominal_limit_at']=nominal_limit_at(intervals,result['planned_seconds'],settings,exceptions)
     return result
