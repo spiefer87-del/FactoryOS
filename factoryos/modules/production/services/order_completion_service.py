@@ -110,8 +110,12 @@ def complete_order(order_id,user_id,command_id,revision,*,good_qty,scrap_qty,rea
                 requires_confirmation=False,updated_at=now,updated_by_id=user_id))
         if not state:state=MachineControlState(machine_id=mid,version=0);db.session.add(state)
         state.resume_process=None;state.resume_order_id=None;state.resume_tool_no=None;state.version+=1
-        db.session.add(TimeBooking(user_id=user_id,machine_id=mid,order_id=None,process='FREI',type='START',
-            start_time=now,tool_no=active.tool_no,comment='Auftrag '+order.order_no+' abgeschlossen'))
+        idle=TimeBooking(user_id=user_id,machine_id=mid,order_id=None,process='FREI',type='START',
+            start_time=now,tool_no=active.tool_no,comment='Auftrag '+order.order_no+' abgeschlossen')
+        db.session.add(idle)
+        from .idle_context_service import record_idle
+        from .tool_mount_service import tool_snapshot
+        record_idle(idle,tool_snapshot(mid),source='transition')
     for plan in context['plans']:
         if plan.state in ('queued','started'):
             plan.state='completed';plan.updated_by_id=user_id;plan.updated_at=now

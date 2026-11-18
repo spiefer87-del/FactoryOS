@@ -1,7 +1,7 @@
 {% extends "layout/base.html" %}
 
 {% block styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/booking_timeline.css', v='20261117-runtime') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/booking_timeline.css', v='20261118-wait') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/machine_control.css') }}">
 <script src="{{ url_for('static',filename='js/machine_control.js') }}" defer></script>
 <script src="{{ url_for('static',filename='js/timeline_range.js') }}" defer></script>
@@ -107,6 +107,7 @@
             <span><i class="legend-swatch downtime"></i>Störung</span>
             <span><i class="legend-swatch pause"></i>Pause</span>
             <span><i class="legend-swatch free"></i>Ohne aktive Tätigkeit</span>
+            <span><i class="legend-swatch waiting"></i>Gerüstet · ohne Produktion</span>
             <span><i class="legend-swatch forecast"></i>Prognose</span>
             <span><i class="legend-swatch runtime-overrun"></i>Gebuchte Zeit über Soll</span>
             <span><i class="legend-nominal"></i>Soll-Grenze</span>
@@ -149,6 +150,7 @@
                     <div class="timeline-machine-cell">
                         <button type="button" class="machine-control-open" data-machine-control-url="{{ url_for('production.machine_control',machine_id=lane.machine.id,embedded='1') }}" aria-haspopup="dialog"><strong>{{ lane.machine.machine_no }}</strong><span>{{ lane.machine.name or 'Ohne Bezeichnung' }}</span><span>Maschine bedienen ›</span></button>
                         <small>Aktuell: {{ tool_mounts[lane.machine.id] }}</small>
+                        {% if lane.active_idle and lane.active_idle.waiting %}<a class="timeline-runtime-summary timeline-wait-summary" href="{{ url_for('production.machine_control',machine_id=lane.machine.id) }}"><strong>{{ lane.active_idle.label }}</strong><span>{{ lane.active_idle.reason }}</span>{% if lane.active_idle.hint %}<span>Seit über 5 Minuten ohne Produktion · Ablauf prüfen</span>{% endif %}</a>{% endif %}
                         {% if lane.active_runtime %}
                         <a class="timeline-runtime-summary" href="{{ url_for('orders.detail',order_id=lane.active_booking.order_id) }}">
                             <strong>+{{ lane.active_runtime.duration_label }} über Soll</strong>
@@ -241,7 +243,7 @@
                     <div>
                         <button type="button" class="machine-control-open" data-machine-control-url="{{ url_for('production.machine_control',machine_id=lane.machine.id,embedded='1') }}" aria-haspopup="dialog"><strong>{{ lane.machine.machine_no }}</strong><span>{{ lane.machine.name or 'Ohne Bezeichnung' }}</span><span>Bedienung öffnen ›</span></button>
                     </div>
-                    <span class="machine-status-badge">{{ lane.active_process_label }}</span>
+                    <span class="machine-status-badge">{{ lane.active_idle.label if lane.active_idle else lane.active_process_label }}</span>
                 </div>
                 <p><strong>{{ tool_mounts[lane.machine.id] }}</strong></p>
 

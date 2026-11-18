@@ -35,6 +35,8 @@ def detail(booking_id):
     can_end=False
     try:eligible_end(row);can_end=has_permission(current_user,'production.edit_booking_time')
     except ValueError:pass
+    from factoryos.modules.production.services.idle_context_service import idle_views
+    idle_info=idle_views([row]).get(row.id)
     values={'start':local_time(row.start_time).strftime('%Y-%m-%dT%H:%M:%S'),'end':local_time(row.end_time).strftime('%Y-%m-%dT%H:%M:%S') if row.end_time else '', 'fold_start':'','fold_end':'','reason':'','action':next((a for a in permissions if allowed[a]),'move'),'revision':revision(row)}
     preview=False;error=None;status=200
     if request.method=='POST':
@@ -65,6 +67,6 @@ def detail(booking_id):
             if isinstance(exc,BookingOverlapError):
                 error=Markup('{} <a href="{}">Buchung #{} prüfen</a>').format(error,url_for('booking_review.detail',booking_id=exc.booking_id),exc.booking_id)
         except SQLAlchemyError:db.session.rollback();error='Keine Änderung gespeichert. Daten parallel geändert oder Datenbank belegt.';status=409
-    return render_template('production/booking/review.html',booking=row,values=values,blocked=blocked,can_end=can_end,can_start=can_start and has_permission(current_user,'production.edit_booking_time'),preview=preview,error=error,local_label=local_label,can_move=allowed['move'],can_cancel=allowed['cancel'],can_delete=allowed['delete']),status
+    return render_template('production/booking/review.html',booking=row,values=values,blocked=blocked,idle_info=idle_info,can_end=can_end,can_start=can_start and has_permission(current_user,'production.edit_booking_time'),preview=preview,error=error,local_label=local_label,can_move=allowed['move'],can_cancel=allowed['cancel'],can_delete=allowed['delete']),status
 
 from . import repair_routes

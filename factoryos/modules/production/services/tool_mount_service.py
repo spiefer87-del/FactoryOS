@@ -138,6 +138,16 @@ def confirm_tool_state(machine_id,user_id,command_id,revision,*,status,tool_no='
     if not state:state=MachineToolState(machine_id=machine_id,updated_by_id=user_id);db.session.add(state)
     now=datetime.utcnow()
     state.status=status;state.tool_no=tool_no;state.requires_confirmation=False;state.updated_by_id=user_id;state.updated_at=now
+    from .idle_context_service import record_idle
+    # A new inventory finding starts a new idle interval; old evidence stays historical.
+    if active and active.process=='FREI' and (before['tool_mount']['status'],before['tool_mount']['tool_no'])!=(status,tool_no):
+        if active.start_time>now:raise ControlConflict('Buchung liegt in der Zukunft. Zeitbasis zuerst klären.')
+        active.end_time=now
+        replacement=TimeBooking(machine_id=machine_id,user_id=user_id,process='FREI',type='START',
+            start_time=now,tool_no=tool_no,order_id=active.order_id if status=='mounted' and active.tool_no==tool_no else None,
+            comment='Werkzeugbestand vor Ort korrigiert: '+reason)
+        db.session.add(replacement);db.session.flush()
+        record_idle(replacement,dict(status=status,tool_no=tool_no),source='inventory')
     from .idle_recording_service import start_idle_if_unbooked
     initial_idle=start_idle_if_unbooked(machine_id,user_id,now,tool_no=tool_no)
     control=db.session.get(MachineControlState,machine_id)

@@ -1122,3 +1122,6 @@
 .timeline-machine-cell .timeline-runtime-summary strong{display:block;font-size:.82rem;color:#991b1b;white-space:normal;overflow-wrap:anywhere}
 .timeline-machine-cell .timeline-runtime-summary span{display:block;font-size:.69rem;color:#7f1d1d;white-space:normal;overflow:visible;text-transform:none}
 .timeline-runtime-summary:focus-visible{outline:3px solid #2563eb;outline-offset:2px}
+
+.timeline-bar.waiting,.legend-swatch.waiting{background:#b45309;color:white}
+.timeline-wait-summary{background:#fffbeb;border-color:#fcd34d}.timeline-machine-cell .timeline-wait-summary strong,.timeline-machine-cell .timeline-wait-summary span{color:#92400e}

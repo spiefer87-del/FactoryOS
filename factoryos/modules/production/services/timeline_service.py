@@ -195,6 +195,8 @@ def get_machine_timeline(horizon_key="24h", now=None, range_start=None, range_en
         bookings_by_machine.setdefault(booking.machine_id, []).append(booking)
 
     stats_cache = {}
+    from .idle_context_service import idle_views
+    idle=idle_views(bookings,now)
     from .planning_service import build_schedule
     schedule=build_schedule(now,calendar_settings,calendar_exceptions)
     planned_by_machine={lane["machine"].id:lane for lane in schedule["machines"]}
@@ -220,6 +222,8 @@ def get_machine_timeline(horizon_key="24h", now=None, range_start=None, range_en
                 booking.process,
                 (booking.process or "Buchung", "other"),
             )
+            info=idle.get(booking.id)
+            if info:process_label=info['label'];color_class='waiting' if info['waiting'] else color_class
             visible_start = max(booking.start_time, range_start)
             actual_end = min(booking.end_time or now, now, range_end)
 
@@ -231,7 +235,7 @@ def get_machine_timeline(horizon_key="24h", now=None, range_start=None, range_en
                     "class": color_class,
                     "left": left,
                     "width": min(100-left,max(0.35, right - left)),
-                    "label": _booking_label(booking, process_label),
+                    "label": (process_label+(' · '+info['reason'] if info['waiting'] else '')) if info else _booking_label(booking, process_label),
                     "process_label": process_label,
                     "booking": booking,
                     "starts_before_range": booking.start_time < range_start,
@@ -361,6 +365,7 @@ def get_machine_timeline(horizon_key="24h", now=None, range_start=None, range_en
             "active_class": active_class,
             "active_count": len(current),
             "active_runtime": runtime,
+            "active_idle":idle.get(active_booking.id) if active_booking else None,
             "active_deviation":stats_cache.get(active_booking.order_id,{}).get('deviation') if active_booking else None,
             "plan_rows": plan_lane["rows"],
             "plan_error": plan_lane["error"],

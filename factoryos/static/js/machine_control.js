@@ -56,6 +56,8 @@
         document.getElementById('control-stale').hidden=false;return;
       }
       const data=await response.json();
+      const waitHint=document.getElementById('control-wait-hint');
+      if(waitHint){waitHint.textContent=data.wait_hint||'';waitHint.hidden=!data.wait_hint;}
       if(data.revision!==document.body.dataset.revision){
         if(parent!==window)parent.postMessage({type:'factoryos-machine-changed'},location.origin);
         document.getElementById('control-stale').hidden=false;

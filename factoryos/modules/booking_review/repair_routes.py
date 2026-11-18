@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime,timedelta
+from types import SimpleNamespace
 from hashlib import sha256
 import json
 from flask import request,render_template,abort,session,redirect,url_for,flash
@@ -12,7 +13,7 @@ from factoryos.modules.production.models import TimeBooking,SetupOperation
 from factoryos.modules.orders.models import Order
 from factoryos.models.machine import Machine
 from factoryos.modules.production.services.booking_time_service import parse_local_start
-from factoryos.modules.production.services.order_statistics import local_time,local_label
+from factoryos.modules.production.services.order_statistics import local_time,local_label,duration
 from .routes import bp
 from . import admin_repair
 
@@ -23,8 +24,26 @@ def journal():
     query=TimeBooking.query.outerjoin(Order,TimeBooking.order_id==Order.id).outerjoin(Machine,TimeBooking.machine_id==Machine.id)
     search=request.args.get('q','').strip()[:100]
     if search:query=query.filter(or_(cast(TimeBooking.id,String).contains(search),Order.order_no.contains(search),Machine.machine_no.contains(search),TimeBooking.tool_no.contains(search),TimeBooking.process.contains(search)))
+    start=end=None;error=None
+    try:
+        if request.args.get('von'):start=parse_local_start(request.args['von']+'T00:00')
+        if request.args.get('bis'):
+            last=datetime.strptime(request.args['bis'],'%Y-%m-%d')+timedelta(days=1)
+            end=parse_local_start(last.strftime('%Y-%m-%dT00:00'))
+        if start and end and start>=end:raise ValueError('Beginn liegt nach dem Ende.')
+    except (ValueError,OverflowError):error='Bitte einen gültigen Zeitraum eingeben.'
+    if start:query=query.filter(or_(TimeBooking.end_time.is_(None),TimeBooking.end_time>start))
+    if end:query=query.filter(TimeBooking.start_time<end)
     page=query.order_by(TimeBooking.start_time.desc(),TimeBooking.id.desc()).paginate(page=max(1,request.args.get('page',1,type=int)),per_page=50,error_out=False)
-    return render_template('production/booking/journal.html',page=page,search=search,local_label=local_label)
+    from factoryos.modules.production.services.idle_context_service import idle_views,time_summary
+    from factoryos.modules.production.models import ProductionCalendarSettings
+    from factoryos.modules.production.services.calendar_service import get_calendar_exceptions
+    rows=query.all() if not error else [];now=datetime.utcnow();views=idle_views(rows,now)
+    basis=request.args.get('basis','working');basis=basis if basis in ('working','calendar') else 'working'
+    calendar=(ProductionCalendarSettings.query.first() or SimpleNamespace(week_start_day=0,week_start_time='04:30',week_end_day=5,week_end_time='06:00')) if basis=='working' else None
+    summary=time_summary(rows,views,now=now,start=start,end=end,calendar=calendar,exceptions=get_calendar_exceptions())
+    return render_template('production/booking/journal.html',page=page,search=search,local_label=local_label,
+        views=views,summary=summary,duration=duration,error=error,basis=basis),400 if error else 200
 
 @bp.route('/<int:booking_id>/repair',methods=['GET','POST'])
 @login_required

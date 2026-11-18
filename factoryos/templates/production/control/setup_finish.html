@@ -1,0 +1,27 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ 'Wartegrund' if waiting else 'Rüstende' }} · {{ machine.machine_no }}</title>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/machine_control.css',v='20261118-wait') }}">
+<script src="{{ url_for('static',filename='js/machine_control.js',v='20261118-wait') }}" defer></script></head>
+<body class="machine-control-page" data-revision="{{ state.revision }}" data-state-url="{{ url_for('production.machine_control_state',machine_id=machine.id) }}"><main class="control-panel">
+<header class="control-heading"><div><h1>{{ machine.machine_no }} · {{ 'Gerüstet warten' if waiting else 'Rüsten abschließen' }}</h1>
+<p>Werkzeug {{ active.tool_no if active else '—' }}{% if active and active.order %} · Auftrag {{ active.order.order_no }}{% endif %}</p></div>
+<a class="control-link" href="{{ url_for('production.machine_control',machine_id=machine.id,embedded='1' if embedded else None) }}">Zur Maschinenbedienung</a></header>
+{% if error %}<p role="alert" class="control-error">{{ error }}</p>{% endif %}
+<p id="control-stale" class="control-error" role="alert" hidden>Maschinenstand geändert. Bitte neu laden.</p>
+{% if not blocked %}<form method="post" id="control-command-form">
+<input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}"><input type="hidden" name="command_id" value="{{ command_id }}"><input type="hidden" name="revision" value="{{ expected_revision }}">
+{% if not waiting %}<section class="control-fields"><h2>Produktion direkt starten</h2>
+<p>Das bestätigte Rüstende und der Produktionsbeginn werden zum selben Zeitpunkt gebucht. Es entsteht keine zusätzliche Frei-Zeit.</p>
+<label>Zugehöriger Fertigungs- oder Musterungsauftrag<select name="order_id"><option value="">Bitte auswählen</option>{% for order in orders %}<option value="{{ order.id }}" {% if values.get('order_id',active.order_id|string)==order.id|string %}selected{% endif %}>{{ order.order_no }} · {{ order.article or '' }}</option>{% endfor %}</select></label>
+<label class="completion-check"><input type="checkbox" name="production_confirmed" value="yes" {% if values.get('production_confirmed')=='yes' %}checked{% endif %}><span>Werkzeug ist vollständig gerüstet, erforderliche Voraussetzungen und Freigaben sind erfüllt und die Produktion beginnt jetzt tatsächlich.</span></label>
+<button type="submit" name="finish_mode" value="start" data-label="Rüsten abschließen und Produktion starten" class="command-button command-start" formnovalidate {% if not can_start %}disabled{% endif %}>Rüsten abschließen und Produktion starten</button>
+{% if not can_start %}<p class="control-note">Für den direkten Start fehlt das Produktionsstartrecht. Rüstende mit Wartegrund kann trotzdem erfasst werden.</p>{% endif %}
+</section>{% endif %}
+<section class="control-fields"><h2>{{ 'Wartegrund ab jetzt ändern' if waiting else 'Gerüstet warten' }}</h2>
+<p>Das Werkzeug bleibt montiert. Die Wartezeit wird getrennt von Rüst- und Produktionszeit erfasst.{% if waiting %} Die bisherige Wartezeit und ihr bisheriger Grund bleiben im Verlauf erhalten.{% endif %}</p>
+<label>Wartegrund (beim Warten Pflicht)<select name="wait_reason"><option value="">Bitte auswählen</option>{% for key,label in reasons.items() %}<option value="{{ key }}" {% if values.get('wait_reason')==key %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+<label>Erläuterung (bei „Sonstiger Wartegrund“ Pflicht)<textarea name="comment" maxlength="255" rows="3">{{ values.get('comment','') }}</textarea></label>
+<button type="submit" name="finish_mode" value="wait" data-label="Gerüstet warten mit Wartegrund" class="command-button command-setup">{{ 'Wartegrund ab jetzt speichern' if waiting else 'Rüsten abschließen und warten' }}</button>
+</section></form>{% endif %}
+<p class="control-note">Die Werkzeugbestätigung ersetzt keine Produktionsfreigabe. Diese Bedienung erfasst Zeiten in FactoryOS; sie betätigt keine Maschine.</p>
+</main></body></html>

@@ -215,4 +215,10 @@ def order_statistics(order, now=None, settings=None, exceptions=None):
     result['runtime_difference']=runtime_difference(result)
     result['overrun_seconds']=max(0, net-result['planned_seconds']) if planned else 0
     result['nominal_limit_at']=nominal_limit_at(intervals,result['planned_seconds'],settings,exceptions)
+    from .idle_context_service import idle_views
+    idle_rows=[b for b in bookings if b.process=='FREI']
+    idle=idle_views(idle_rows,now)
+    waiting=[b for b in idle_rows if idle[b.id]['waiting']]
+    result['waiting_seconds']=sum(working_seconds([(b.start_time,min(b.end_time or now,now))],settings,exceptions) for b in waiting if b.start_time<=now)
+    result['has_waiting']=bool(waiting)
     return result

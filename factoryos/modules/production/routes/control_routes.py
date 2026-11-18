@@ -30,6 +30,12 @@ def machine_control(machine_id):
         if not valid_csrf(): abort(400,"Formular abgelaufen. Bitte neu laden.")
         action=request.form.get('action')
         if action in PERMISSIONS and not has_permission(current_user,PERMISSIONS[action]):abort(403)
+        if action in ('record_wait','finish_setup'):
+            active=current_booking(machine_id)
+            if action=='record_wait' or (active and active.process=='RUEST'):
+                return redirect(url_for('production.setup_finish',machine_id=machine_id,
+                    wait='1' if action=='record_wait' else None,embedded='1' if embedded else None,
+                    revision=request.form.get('revision','')),303)
         if request.form.get("action")=="fault":
             if not has_permission(current_user,PERMISSIONS["fault"]): abort(403)
             # Old clients may still submit the former button. Navigation only:
@@ -57,9 +63,12 @@ def machine_control(machine_id):
         except SQLAlchemyError:
             db.session.rollback();error="Maschine wurde parallel geändert oder Datenbank ist belegt. Bitte neu laden und prüfen.";status=409
     state=snapshot(machine_id);active=current_booking(machine_id)
+    from factoryos.modules.production.services.idle_context_service import idle_views
+    idle=idle_views([active]).get(active.id) if active else None
     process=active.process if active else "FREI"
     conflict=len(state["active"])>1
     actions=available_actions(process)
+    if 'record_wait' in actions and state['tool_mount']['status']!='mounted':actions.remove('record_wait')
     permitted={action:has_permission(current_user,PERMISSIONS[action]) for action in ACTIONS}
     resume=state["resume_process"]
     if resume in ("RUEST","ABRUEST"): permitted["resume"] &= has_permission(current_user,"production.setup")
@@ -90,7 +99,7 @@ def machine_control(machine_id):
             ready=(sampling_ready(order,machine_id) and assignments.get(order.id) in (None,machine_id)) if sampling else True,
             note=note,
             prepare_url=url_for('production.prepare_sampling',machine_id=machine_id,sampling_id=sampling.id,embedded='1' if embedded else None) if sampling and has_permission(current_user,'sampling.edit') else None)
-    selected_order=request.form.get('order_id',request.args.get('order_id',str(planned_queue[0].order_id) if planned_queue else ''))
+    selected_order=request.form.get('order_id',request.args.get('order_id',str(active.order_id) if active and process=='FREI' and active.order_id else str(planned_queue[0].order_id) if planned_queue else ''))
     selected_info=catalog.get(str(selected_order),{})
     proposal=selected_info.get('proposal') or stock
     if request.form.get('action')=='preview_stock':proposal=stock
@@ -99,6 +108,7 @@ def machine_control(machine_id):
         process=process,actions=actions,action_labels=ACTIONS,labels=LABELS,permitted=permitted,
         tool_mount=state['tool_mount'],tool_mount_label=tool_label(state['tool_mount']),
         tool_mount_record=db.session.get(MachineToolState,machine_id),
+        idle=idle,
         setup_history=SetupOperation.query.filter_by(machine_id=machine_id).order_by(SetupOperation.id.desc()).limit(30).all(),
         operation_times=operation_times,
         conflict=conflict,error=error,orders=orders,
@@ -199,4 +209,6 @@ def machine_fault(machine_id):
 def machine_control_state(machine_id):
     Machine.query.get_or_404(machine_id)
     state=snapshot(machine_id)
-    return jsonify(revision=state["revision"]),200,{"Cache-Control":"no-store"}
+    from factoryos.modules.production.services.idle_context_service import idle_views
+    active=current_booking(machine_id);info=idle_views([active]).get(active.id) if active else None
+    return jsonify(revision=state["revision"],wait_hint=info['hint'] if info else ''),200,{"Cache-Control":"no-store"}

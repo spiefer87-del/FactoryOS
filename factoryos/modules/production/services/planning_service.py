@@ -184,6 +184,9 @@ def build_schedule(now=None,settings=None,exceptions=None):
                     cursor=stats["eta"];start_source=f"Endprognose von Auftrag {active.order.order_no}";warnings.append("Laufender Auftrag: Belegung bis aktueller Endprognose, keine Abschlussbestätigung.")
                 else:block="Ende des laufenden Auftrags nicht belastbar. Verfügbarkeit mit Begründung schätzen."
             elif active.process!="FREI":block="Laufender Rüst-/Störungs-/Pausen-/Wartungsvorgang ohne bekanntes Ende."
+            elif active.idle_context and active.idle_context.reason_code:
+                from .idle_context_service import WAIT_REASONS
+                block='Gerüstet, aber Produktionsstart wartet: '+WAIT_REASONS.get(active.idle_context.reason_code,'Grund prüfen')+'. Verfügbarkeit bei Bedarf mit Begründung schätzen.'
         if manual and manual.available_from:
             availability_expired=manual.available_from<=now
             can_estimate=block and len(current)<=1 and machine.machine_status=="aktiv" and (not current or current[0].start_time<=now)
@@ -233,6 +236,8 @@ def build_schedule(now=None,settings=None,exceptions=None):
                     setup_seconds=entry.setup_minutes*60
                     if current and current[0].process=="RUEST" and current[0].order_id==order.id:
                         setup_seconds=0;row["warnings"].append("Rüsten bereits aktiv: angenommene Verfügbarkeit enthält das restliche Rüsten.")
+                    elif current and current[0].process=='FREI' and current[0].order_id==order.id and present and present.tool_no==tool_no:
+                        setup_seconds=0;row['warnings'].append('Werkzeug für diesen Auftrag bereits gerüstet. Keine zweite Rüstzeit angesetzt; Wartegrund und Startvoraussetzungen prüfen.')
                     elif not setup_seconds:row["warnings"].append("Keine zusätzliche Rüstzeit eingeplant (0 Minuten).")
                     row["setup_end"]=calculate_production_finish(row["setup_start"],setup_seconds,settings,exceptions)
                     row["start"]=_working_start(row["setup_end"],settings,exceptions)

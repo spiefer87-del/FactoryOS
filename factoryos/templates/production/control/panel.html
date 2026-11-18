@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ machine.machine_no }} · Maschinenbedienung · FactoryOS</title>
-<link rel="stylesheet" href="{{ url_for('static',filename='css/machine_control.css',v='20261116-selection') }}">
-<script src="{{ url_for('static',filename='js/machine_control_selection.js',v='20261116-selection') }}" defer></script>
-<script src="{{ url_for('static',filename='js/machine_control.js',v='20261116-selection') }}" defer></script></head>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/machine_control.css',v='20261118-wait') }}">
+<script src="{{ url_for('static',filename='js/machine_control_selection.js',v='20261118-wait') }}" defer></script>
+<script src="{{ url_for('static',filename='js/machine_control.js',v='20261118-wait') }}" defer></script></head>
 <body class="machine-control-page" data-revision="{{ state.revision }}" data-state-url="{{ url_for('production.machine_control_state',machine_id=machine.id) }}" data-changed="{{ '1' if request.args.get('changed')=='1' else '0' }}">
 <main class="control-panel">
 <header class="control-heading"><div><p>FactoryOS · {{ current_user.username }} · Manuelle Maschinenbedienung</p><h1>{{ machine.machine_no }}</h1><p>{{ machine.name or 'Maschine' }}</p></div>
@@ -14,7 +14,9 @@
 {% if error %}<p role="alert" class="control-error">{{ error }} Bitte Angaben prüfen und den Befehl erneut bewusst auslösen.</p>{% endif %}
 <p role="alert" class="control-error" id="control-stale" hidden>Der Maschinenstand wurde inzwischen geändert. Bitte neu laden, bevor du einen weiteren Befehl auslöst.</p>
 <section class="control-current process-{{ process|lower }}"><span>Aktueller Zustand · Version {{ state.version }}</span>
-<h2>{{ labels.get(process,process) }}</h2>
+<h2>{{ idle.label if idle else labels.get(process,process) }}</h2>
+{% if idle and idle.waiting %}<p>Wartegrund: {{ idle.reason }}{% if idle.note %} · {{ idle.note }}{% endif %}</p>{% endif %}
+<p id="control-wait-hint" class="control-error" role="status" {% if not idle or not idle.hint %}hidden{% endif %}>{{ idle.hint if idle else '' }}</p>
 {% if active %}<p>Seit {{ local_label(active.start_time) }} · {{ active.user.username if active.user else 'Unbekannt' }}</p>
 {% if active.order %}<p><strong>Auftrag {{ active.order.order_no }}</strong> · {{ active.order.article or '' }}</p>{% endif %}
 {% if active.tool_no and process!='FREI' %}<p>Werkzeugbezug des Vorgangs <strong>{{ active.tool_no }}</strong></p>{% endif %}
@@ -51,13 +53,15 @@
 {% if stock_proposal %}<p class="control-note">Zum Abrüsten aus dem aktuellen/letzten Bestand: <strong>{{ stock_proposal.number }}</strong> · {{ stock_proposal.source }}. Auftrag kann leer bleiben.</p><button type="submit" name="action" value="preview_stock" id="control-use-stock" formnovalidate class="control-link">Werkzeug {{ stock_proposal.number }} zum Abrüsten vorausfüllen</button>{% endif %}
 <p class="control-note">Bei einer abweichenden Werkzeugnummer die Eingabe ändern und erneut bestätigen. Für einen Rüstvorgang ohne Auftragsbezug „Ohne Auftrag“ wählen. Unbekannte Nummern werden nicht angelegt.</p>
 <script type="application/json" id="control-selection-data">{{ selection_data|tojson }}</script>
-<p class="control-note">Rüsten beenden bestätigt das montierte Werkzeug, nicht eine leere Maschine. Bei Abrüsten zählt das tatsächlich montierte Werkzeug, nicht der ausgewählte Folgeauftrag. Produktion anschließend separat starten.</p></section>{% endif %}
+<p class="control-note">Rüsten beenden bestätigt das montierte Werkzeug, nicht eine leere Maschine. Bei Abrüsten zählt das tatsächlich montierte Werkzeug, nicht der ausgewählte Folgeauftrag. Am Rüstende bewusst zwischen direktem Produktionsstart und gerüstetem Warten wählen.</p></section>{% endif %}
 <label>Beschreibung / Begründung<textarea name="comment" maxlength="255" rows="2" placeholder="Tätigkeit, Behebung oder Grund für das Stoppen">{{ comment }}</textarea></label>
 <p class="control-note">Bei Entstören, Stoppen, Wartung und Sonstiges mindestens 5 Zeichen. Störungen erfasst du im nächsten Schritt separat.</p>
 <div class="control-buttons" aria-label="Maschinenbefehle">
 {% for action in actions %}
 {% set button_label = 'Abrüstende bestätigen' if action=='finish_setup' and process=='ABRUEST' else 'Rüstende bestätigen' if action=='finish_setup' else 'Rüstvorgang pausieren' if action=='pause' and process in ['RUEST','ABRUEST'] else action_labels[action] %}
-{% if action=='fault' and not conflict and permitted[action] %}
+{% if action in ['record_wait','finish_setup'] and (action=='record_wait' or process=='RUEST') and not conflict and permitted[action] %}
+<a class="command-button command-setup" data-control-navigation href="{{ url_for('production.setup_finish',machine_id=machine.id,wait='1' if action=='record_wait' else None,embedded='1' if embedded else None,revision=state.revision) }}">{{ 'Wartegrund erfassen / ändern' if action=='record_wait' else 'Rüsten abschließen' }}<span class="command-hint">{{ 'Grund ab jetzt dokumentieren' if action=='record_wait' else 'Produktion direkt starten oder warten ›' }}</span></a>
+{% elif action=='fault' and not conflict and permitted[action] %}
 <a class="command-button command-fault" data-control-navigation href="{{ url_for('production.machine_fault',machine_id=machine.id,embedded='1' if embedded else None,revision=state.revision) }}">Störung melden<span class="command-hint">Störgrund auswählen ›</span></a>
 {% elif action=='stop' and not conflict and (permitted[action] or permitted['complete_order']) %}<a class="command-button command-stop" data-control-navigation href="{{ url_for('production.machine_stop',machine_id=machine.id,embedded='1' if embedded else None,revision=state.revision) }}">Vorgang stoppen<span class="command-hint">Stoppen oder Auftrag abschließen ›</span></a>
 {% else %}<button type="submit" name="action" value="{{ action }}" data-label="{{ button_label }}" class="command-button command-{{ action }}" {% if conflict or not permitted[action] or (machine.machine_status!='aktiv' and action in ['start','setup','unsetup','maintenance','other','resume']) %}disabled{% endif %}>{{ button_label }}{% if not permitted[action] %}<small>Keine Berechtigung</small>{% endif %}</button>{% endif %}{% endfor %}

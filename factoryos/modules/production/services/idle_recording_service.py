@@ -17,6 +17,9 @@ def start_idle_if_unbooked(machine_id,user_id,start_at,*,tool_no=None,note=None)
     booking=TimeBooking(machine_id=machine_id,user_id=user_id,order_id=None,process='FREI',type='START',
         start_time=start_at,tool_no=tool_no,comment=note or 'Erstaufzeichnung: keine aktive Tätigkeit ab bestätigtem Werkzeugbestand')
     db.session.add(booking)
+    from .idle_context_service import record_idle
+    stock=db.session.get(MachineToolState,machine_id)
+    record_idle(booking,dict(status=stock.status if stock else 'unknown',tool_no=tool_no),source='inventory')
     return booking
 
 

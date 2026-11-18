@@ -39,6 +39,8 @@ ENUMS = {'open':'Offen','offen':'Offen','active':'Aktiv','inactive':'Inaktiv','i
 ENUMS.update({'slower':'Langsamer als Sollvergleich','faster':'Schneller als Sollvergleich',
     'overdue':'Soll-Laufzeit überschritten','nominal_reached':'Rechnerisches Sollende erreicht',
     'closure_missing':'Auftragsabschluss fehlt','raw_material':'Rohstoff','masterbatch':'Farbbatch / Masterbatch'})
+ENUMS.update({'transition':'Zustandswechsel','inventory':'Bestandsmeldung',
+    'setup_wait':'Rüstende mit Wartegrund','wait_reason':'Wartegrund geändert'})
 META = {'id','version','command_id','payload_hash','signature','filename','image_path','drawing_path',
         'created_by_id','updated_by_id','reverses_id','recorded_at_utc','is_dirty','bookings','calendar'}
 SENSITIVE = {'password','password_hash','old_password','new_password','token','secret','session_secret','csrf_token'}
@@ -132,6 +134,10 @@ def present_change_logs(logs):
             from factoryos.modules.production_deviations.service import REASONS
             return REASONS.get(raw,raw) if isinstance(REASONS,dict) else raw
         if field == 'password_changed':return 'Ja' if value else 'Nein'
+        if field=='tool_status':return {'mounted':'Gerüstet','empty':'Abgerüstet','unknown':'Ungeklärt'}.get(raw,raw)
+        if field=='reason_code':
+            from factoryos.modules.production.services.idle_context_service import WAIT_REASONS
+            return WAIT_REASONS.get(raw,raw)
         if field in DATE_FIELDS or field in ('date','last_calibration','next_calibration','calibration_date'):
             try:return datetime.fromisoformat(raw).strftime('%d.%m.%Y')
             except ValueError:pass

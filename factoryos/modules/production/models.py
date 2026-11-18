@@ -38,10 +38,21 @@ class TimeBooking(db.Model):
     order = db.relationship("Order", backref="bookings")
     machine = db.relationship("Machine", backref="bookings")
     downtime_reason = db.relationship("DowntimeReason", backref="bookings")
+    idle_context = db.relationship("BookingIdleContext", uselist=False, cascade="all, delete-orphan")
 
     @property
     def is_active(self):
         return self.end_time is None
+
+class BookingIdleContext(db.Model):
+    """Contemporaneous evidence for an idle interval; never current-stock inference."""
+    __tablename__ = 'booking_idle_contexts'
+    booking_id = db.Column(db.Integer, db.ForeignKey('time_bookings.id'), primary_key=True)
+    tool_status = db.Column(db.String(20), nullable=False)
+    tool_no = db.Column(db.String(50))
+    reason_code = db.Column(db.String(40))
+    reason_note = db.Column(db.String(255))
+    source = db.Column(db.String(40), nullable=False)
 
 class QuantityReport(db.Model):
     __tablename__ = "quantity_reports"

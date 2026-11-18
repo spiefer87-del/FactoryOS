@@ -30,6 +30,7 @@ ACTIONS = {
     "finish_setup":"Rüsten beenden", "fault":"Störung melden", "clear_fault":"Entstören",
     "maintenance":"Wartung starten", "finish_maintenance":"Wartung beenden",
     "other":"Sonstigen Vorgang starten", "finish_other":"Sonstigen Vorgang beenden",
+    "record_wait":"Wartegrund erfassen / ändern",
 }
 PERMISSIONS = {"start":"production.start", "pause":"production.stop", "resume":"production.view",
     "confirm_tool":"production.setup",
@@ -37,7 +38,7 @@ PERMISSIONS = {"start":"production.start", "pause":"production.stop", "resume":"
     "stop":"production.stop", "setup":"production.setup", "unsetup":"production.setup",
     "finish_setup":"production.setup", "fault":"production.stop", "clear_fault":"production.clear_fault",
     "maintenance":"production.maintenance", "finish_maintenance":"production.maintenance",
-    "other":"production.events", "finish_other":"production.events"}
+    "other":"production.events", "finish_other":"production.events", "record_wait":"production.setup"}
 TERMINAL = {"fertig", "finished", "gesperrt", "locked", "cancelled", "canceled", "storniert", "abgeschlossen"}
 
 
@@ -88,7 +89,7 @@ def current_booking(machine_id):
 
 
 def available_actions(process, state=None):
-    if process == "FREI": return ["start","setup","unsetup","maintenance","other","fault"]
+    if process == "FREI": return ["start","setup","unsetup","record_wait","maintenance","other","fault"]
     if process in ("PROD","MUSTER"): return ["pause","fault","stop"]
     if process == "STOERUNG": return ["clear_fault"]
     if process == "PAUSE": return ["resume","fault","stop"]
@@ -128,7 +129,7 @@ def _order(order_id, machine_id, ignore_booking_id=None):
 
 
 def execute(machine_id, user_id, action, command_id, expected_revision, *, order_id=None,
-            tool_no=None, reason_id=None, comment="", commit=True):
+            tool_no=None, reason_id=None, comment="", commit=True, finish_mode=None, wait_reason=None):
     """Execute once. Caller rolls back on ALL exceptions; optional outer transaction.
 
     expected_revision + UUID are required even for future device adapters.
@@ -137,6 +138,7 @@ def execute(machine_id, user_id, action, command_id, expected_revision, *, order
     user = db.session.get(User,user_id)
     if action not in ACTIONS: raise ValueError("Unbekannter Maschinenbefehl.")
     if not has_permission(user,PERMISSIONS[action]): raise ControlDenied("Keine Berechtigung für diese Aktion.")
+    if finish_mode=='start' and not has_permission(user,'production.start'):raise ControlDenied('Keine Berechtigung zum Produktionsstart.')
     try:
         if str(UUID(command_id))!=command_id: raise ValueError()
     except (ValueError,TypeError,AttributeError): raise ValueError("Ungültige Befehlskennung. Bitte neu laden.")
@@ -151,10 +153,12 @@ def execute(machine_id, user_id, action, command_id, expected_revision, *, order
     tool_no=(tool_no or "").strip() or None
     payload=dict(action=action,order_id=order_id,tool_no=tool_no,reason_id=reason_id,
                  comment=comment,revision=expected_revision)
+    if finish_mode is not None or wait_reason is not None:payload.update(finish_mode=finish_mode,wait_reason=wait_reason)
     digest=hashlib.sha256(json.dumps(payload,sort_keys=True).encode()).hexdigest()
     acquire_control_lock()
     user=db.session.get(User,user_id)
     if not has_permission(user,PERMISSIONS[action]): raise ControlDenied("Berechtigung wurde inzwischen geändert.")
+    if finish_mode=='start' and not has_permission(user,'production.start'):raise ControlDenied('Produktionsstartrecht wurde geändert.')
     machine=db.session.get(Machine,machine_id)
     if not machine: raise ValueError("Maschine nicht gefunden.")
     receipt=MachineControlCommand.query.filter_by(command_id=command_id).first()
@@ -170,6 +174,8 @@ def execute(machine_id, user_id, action, command_id, expected_revision, *, order
         raise ControlConflict("Mehrere aktive Altbuchungen: keine automatische Bereinigung. Bitte Administration informieren.")
     active=current_booking(machine_id)
     process=active.process if active else "FREI"
+    if finish_mode is not None and (action!='finish_setup' or process!='RUEST' or finish_mode not in ('start','wait')):
+        raise ValueError('Bitte beim Rüstende ausdrücklich Produktionsstart oder Warten wählen.')
     if action not in available_actions(process):
         raise ControlConflict("Dieser Befehl passt nicht zum aktuellen Maschinenzustand.")
     if machine.machine_status!="aktiv" and action in ("start","setup","unsetup","maintenance","other","resume"):
@@ -183,7 +189,7 @@ def execute(machine_id, user_id, action, command_id, expected_revision, *, order
     def forget(): remember(None,None,None)
     if action in ("start","setup","unsetup"):
         # Dismounting concerns the physically mounted tool, not the next plan order.
-        order=_order(order_id,machine_id) if order_id and action!='unsetup' else None
+        order=_order(order_id,machine_id,active.id if active and process=='FREI' else None) if order_id and action!='unsetup' else None
         if action=="start" and not order: raise ValueError("Bitte Auftrag auswählen.")
         if action=="start":
             from .planning_service import assert_start_allowed
@@ -203,6 +209,31 @@ def execute(machine_id, user_id, action, command_id, expected_revision, *, order
         forget()
         if order and action=="start" and (order.status or "").lower() in ("open","offen"):
             order.status="in_arbeit"
+    elif action=='finish_setup' and finish_mode:
+        from .idle_context_service import validate_reason
+        next_tool=active.tool_no
+        if finish_mode=='wait':
+            validate_reason(wait_reason,comment)
+            next_order=active.order_id
+        else:
+            selected=order_id or active.order_id
+            if active.order_id and selected!=active.order_id:raise ValueError('Beim direkten Start den zugehörigen Rüstauftrag verwenden.')
+            order=_order(selected,machine_id,active.id)
+            if order.tool_no and order.tool_no!=next_tool:raise ValueError('Gerüstetes Werkzeug passt nicht zum Auftrag.')
+            if order.sampling and order.sampling.tool and order.sampling.tool.tool_no!=next_tool:raise ValueError('Gerüstetes Werkzeug passt nicht zur Musterung.')
+            from .planning_service import assert_start_allowed
+            assert_start_allowed(machine_id,order)
+            if machine.machine_status!='aktiv':raise ControlConflict('Maschine ist nicht aktiv.')
+            next_process='MUSTER' if order.sampling else 'PROD';next_order=order.id
+            if (order.status or '').lower() in ('open','offen'):order.status='in_arbeit'
+        forget()
+    elif action=='record_wait':
+        from .idle_context_service import validate_reason
+        validate_reason(wait_reason,comment)
+        mount=before['tool_mount']
+        if mount['status']!='mounted' or mount['requires_confirmation'] or mount['operation']:
+            raise ControlConflict('Wartegrund nur bei bestätigtem montiertem Werkzeug erfassen. Bestand zuerst prüfen.')
+        next_order=active.order_id if active else None;next_tool=mount['tool_no'];forget()
     elif action=="pause":
         remember(process,active.order_id,active.tool_no)
         next_process="PAUSE";next_order=active.order_id;next_tool=active.tool_no
@@ -243,7 +274,7 @@ def execute(machine_id, user_id, action, command_id, expected_revision, *, order
         next_process="WARTUNG" if action=="maintenance" else "SONSTIG";forget()
     else:
         if action=="stop" and len(comment)<5: raise ValueError("Bitte Grund für das Stoppen angeben (mindestens 5 Zeichen).")
-        # Ending setup just frees the machine. Production always needs its own start.
+        # Teardown and legacy callers return to idle; explicit setup decisions are above.
         forget()
     now=datetime.utcnow()
     if active:
@@ -256,8 +287,14 @@ def execute(machine_id, user_id, action, command_id, expected_revision, *, order
     db.session.add(booking);state.version+=1;db.session.flush()
     from .tool_mount_service import apply_transition
     apply_transition(machine_id,user_id,action,active,next_process,next_tool,next_order,booking,command_id,comment,now)
+    if action=='finish_setup' and finish_mode=='start':
+        apply_transition(machine_id,user_id,'start',active,next_process,next_tool,next_order,booking,command_id,comment,now)
+    from .idle_context_service import record_idle, WAIT_REASONS
+    from .tool_mount_service import tool_snapshot
+    record_idle(booking,tool_snapshot(machine_id),reason=wait_reason if action=='record_wait' or finish_mode=='wait' else None,
+                note=comment,source='setup_wait' if finish_mode=='wait' else 'wait_reason' if action=='record_wait' else 'transition')
     db.session.flush()
-    if action=="start":
+    if action=="start" or (action=='finish_setup' and finish_mode=='start'):
         from .planning_service import consume_on_start
         consume_on_start(machine_id,next_order,booking,user_id)
     after=snapshot(machine_id)
@@ -269,6 +306,9 @@ def execute(machine_id, user_id, action, command_id, expected_revision, *, order
     changes={"machine_state":{"old":LABELS.get(process,process),"new":LABELS.get(next_process,next_process)},
              "reason":{"old":None,"new":comment or (reason.name if reason else ACTIONS[action])}}
     if before['tool_mount']!=after['tool_mount']:changes['tool_mount']={'old':before['tool_mount'],'new':after['tool_mount']}
+    if finish_mode or action=='record_wait':changes['setup_decision']={'new':{
+        'decision':'Produktion direkt gestartet' if finish_mode=='start' else 'Gerüstet warten',
+        'wait_reason':WAIT_REASONS.get(wait_reason), 'order_id':next_order,'tool_no':booking.tool_no,'note':comment}}
     def audit(entity_type,entity_id,entity_name):
         db.session.add(ChangeLog(entity_type=entity_type,entity_id=entity_id,entity_name=entity_name,
             action="update",category="production",changes=changes,user_id=user_id))

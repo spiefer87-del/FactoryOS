@@ -9,7 +9,9 @@ from factoryos.core.services.change_log_service import log_change
 from factoryos.modules.production.services.booking_time_service import BookingOverlapError
 
 def snapshot(row):
-    return {c.name:(getattr(row,c.name).isoformat() if isinstance(getattr(row,c.name),datetime) else getattr(row,c.name)) for c in TimeBooking.__table__.columns}
+    result={c.name:(getattr(row,c.name).isoformat() if isinstance(getattr(row,c.name),datetime) else getattr(row,c.name)) for c in TimeBooking.__table__.columns}
+    if row.idle_context:result['idle_context']={c.name:getattr(row.idle_context,c.name) for c in row.idle_context.__table__.columns}
+    return result
 
 def related(row):
     conditions=[TimeBooking.machine_id==row.machine_id]
@@ -47,7 +49,7 @@ def assert_no_references(target,record_id,allowed=None):
         for foreign in inspector.get_foreign_keys(table):
             if foreign.get('referred_table')!=target:continue
             for col,remote in zip(foreign['constrained_columns'],foreign['referred_columns']):
-                if remote!='id' or (table,col)==allowed:continue
+                if remote!='id' or (table,col)==allowed or (target=='time_bookings' and (table,col)==('booking_idle_contexts','booking_id')):continue
                 query=text('SELECT 1 FROM '+quote(table)+' WHERE '+quote(col)+'=:record_id LIMIT 1')
                 if db.session.execute(query,{'record_id':record_id}).first():
                     raise ValueError('Verknüpfter Fachvorgang ('+table+'): zuerst gemeinsam fachlich klären.')

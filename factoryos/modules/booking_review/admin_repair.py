@@ -20,6 +20,7 @@ def revision(row):
     # Include dependent records, without loading unrelated factory history.
     clauses={'time_bookings':'machine_id=:machine OR order_id=:order','setup_operations':'machine_id=:machine','production_plan_entries':'machine_id=:machine OR order_id=:order','machine_control_states':'machine_id=:machine','machine_tool_states':'machine_id=:machine','quantity_reports':'order_id=:order','order_completions':'order_id=:order','orders':'id=:order'}
     def rows(table,clause):return [list(r) for r in db.session.execute(text('SELECT * FROM '+db.engine.dialect.identifier_preparer.quote(table)+' WHERE '+clause+' ORDER BY 1'),{'machine':row.machine_id,'order':row.order_id})]
+    clauses['booking_idle_contexts']='booking_id IN (SELECT id FROM time_bookings WHERE machine_id=:machine OR order_id=:order)'
     payload={t:rows(t,clause) for t,clause in clauses.items() if inspect(db.engine).has_table(t)}
     return sha256(json.dumps(payload,default=str,sort_keys=True).encode()).hexdigest()
 
@@ -69,7 +70,7 @@ def plan(row,action,start,end,reason):
             for fk in inspector.get_foreign_keys(table):
                 if fk.get('referred_table')!='time_bookings':continue
                 for col,remote in zip(fk['constrained_columns'],fk['referred_columns']):
-                    if remote!='id' or (table,col) in (('setup_operations','start_booking_id'),('production_plan_entries','started_booking_id')):continue
+                    if remote!='id' or (table,col) in (('setup_operations','start_booking_id'),('production_plan_entries','started_booking_id'),('booking_idle_contexts','booking_id')):continue
                     if db.session.execute(text('SELECT 1 FROM '+quote(table)+' WHERE '+quote(col)+'=:id LIMIT 1'),{'id':row.id}).first():raise ValueError('Unbekannter abhängiger Fachvorgang '+table+'. Keine Löschung; diese Verknüpfung muss fachlich geklärt werden.')
         warnings.append('Vollständiges Löschen ohne Papierkorb. Originaldaten bleiben im Änderungsprotokoll und in vorherigen Sicherungen.')
     return dict(operations=ops,warnings=warnings)

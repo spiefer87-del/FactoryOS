@@ -33,6 +33,7 @@
 {% if statistics.issues %}<ul class="stats-warnings">{% for issue in statistics.issues %}<li>{{ issue }}</li>{% endfor %}</ul>{% endif %}
 <p class="stats-note">Die Endprognose nimmt Solltempo ohne zusätzlichen künftigen Ausschuss an. Sie berücksichtigt gebuchte Produktionsintervalle und Produktionskalender. Ungeplante Störungen, aktive Nesterabweichungen, Rüst-/QS-Arbeit und weitere Stopps können das Ende verschieben. Ein rechnerisch erreichtes Sollende schließt keinen Auftrag automatisch ab.</p>
 </section>
+{% if statistics.has_waiting %}<section><h2>Gerüstete Wartezeit zum Auftrag</h2><div class="stats-kpi"><span>Warten ohne Produktion · innerhalb Arbeitskalender</span><strong>{{ duration(statistics.waiting_seconds) }}</strong><small>Getrennt von Rüstzeit, Produktionszeit und Sollabweichung. Enthält nur eindeutig diesem Auftrag zugeordnete Wartebuchungen. Historische Zeiten ohne Auftragsbezug bleiben in der Maschinenübersicht.</small></div></section>{% endif %}
 <section><h2>Materialbedarf und Verbrauchsschätzung</h2>
 <p><strong>Rohstoff:</strong> {{ statistics.material_label }}</p>
 <p class="stats-note">Quelle: {{ statistics.shot_source }}. Schussgewicht umfasst den gesamten Schuss einschließlich Anguss. Kein gemessener Ist-Verbrauch vorhanden.</p>
