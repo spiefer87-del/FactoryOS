@@ -1,0 +1,13 @@
+{% macro order_quantity_hint(lane, compact=false) %}
+{% set booking=lane.active_booking %}
+{% set order=booking.order if booking else none %}
+{% if order and booking.process=='PROD' and lane.active_count==1 and not order.is_project and not order.sampling and not order.completion and order.status|lower not in ['finished','fertig','abgeschlossen','locked','gesperrt','cancelled','canceled','storniert'] and lane.active_deviation and lane.active_deviation.kind in ['overdue','nominal_reached','closure_missing'] %}
+<div class="timeline-order-hint{% if compact %} timeline-order-hint-compact{% endif %}" data-quantity-hint-order="{{ order.id }}" role="note">
+<strong>Auftragsmenge noch aktuell?</strong>
+<p>{% if compact %}Mehrmenge beauftragt? Sollmenge prüfen.{% else %}Bei zusätzlicher Beauftragung die Sollmenge im Auftrag anpassen. Endprognose und Folgeplanung werden danach neu berechnet.{% endif %}</p>
+{% if can_access('orders.edit') %}
+<a class="timeline-order-edit" href="{{ url_for('orders.edit',order_id=order.id,focus='quantity',_anchor='order-quantity-section') }}" aria-label="Auftrag {{ order.order_no }} bearbeiten und Sollmenge prüfen">Auftrag bearbeiten</a>
+{% else %}<p>Änderung nur durch berechtigte Personen.</p>{% endif %}
+</div>
+{% endif %}
+{% endmacro %}

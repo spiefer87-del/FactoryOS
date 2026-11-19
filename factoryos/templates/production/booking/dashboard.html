@@ -1,7 +1,8 @@
 {% extends "layout/base.html" %}
+{% from 'production/booking/order_quantity_hint.html' import order_quantity_hint with context %}
 
 {% block styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/booking_timeline.css', v='20261118-wait') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/booking_timeline.css', v='20261118-quantity-hint') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/machine_control.css') }}">
 <script src="{{ url_for('static',filename='js/machine_control.js') }}" defer></script>
 <script src="{{ url_for('static',filename='js/timeline_range.js') }}" defer></script>
@@ -160,6 +161,7 @@
                         </a>
                         {% endif %}
                         {% if lane.active_deviation and lane.active_deviation.kind %}<small style="color:#b91c1c;font-weight:bold"><a href="{{ url_for('orders.detail',order_id=lane.active_booking.order_id) }}">⚠ {{ lane.active_deviation.title }} · {{ 'begründet' if lane.active_deviation.confirmation else 'Begründung offen' }}</a></small>{% endif %}
+                        {{ order_quantity_hint(lane,compact=true) }}
                         {% if lane.machine.machine_status != 'aktiv' %}
                         <small>{{ lane.machine.machine_status }}</small>
                         {% endif %}
@@ -248,6 +250,7 @@
                 <p><strong>{{ tool_mounts[lane.machine.id] }}</strong></p>
 
                 {% if lane.active_count>1 %}<p class="timeline-range-error">Mehrere aktive Altbuchungen. Bitte in der Maschinenbedienung prüfen; automatische Änderungen sind gesperrt.</p>{% endif %}
+                {{ order_quantity_hint(lane) }}
                 {% if lane.active_booking %}
                 <dl>
                     <div>
