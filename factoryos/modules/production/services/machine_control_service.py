@@ -174,8 +174,9 @@ def execute(machine_id, user_id, action, command_id, expected_revision, *, order
         raise ControlConflict("Mehrere aktive Altbuchungen: keine automatische Bereinigung. Bitte Administration informieren.")
     active=current_booking(machine_id)
     process=active.process if active else "FREI"
-    if finish_mode is not None and (action!='finish_setup' or process!='RUEST' or finish_mode not in ('start','wait')):
-        raise ValueError('Bitte beim Rüstende ausdrücklich Produktionsstart oder Warten wählen.')
+    finish_modes={'RUEST':('start','wait'),'ABRUEST':('setup','free')}
+    if finish_mode is not None and (action!='finish_setup' or finish_mode not in finish_modes.get(process,())):
+        raise ValueError('Bitte einen zum aktuellen Rüst-/Abrüstvorgang passenden Folgeschritt wählen.')
     if action not in available_actions(process):
         raise ControlConflict("Dieser Befehl passt nicht zum aktuellen Maschinenzustand.")
     if machine.machine_status!="aktiv" and action in ("start","setup","unsetup","maintenance","other","resume"):
@@ -209,6 +210,22 @@ def execute(machine_id, user_id, action, command_id, expected_revision, *, order
         forget()
         if order and action=="start" and (order.status or "").lower() in ("open","offen"):
             order.status="in_arbeit"
+    elif action=='finish_setup' and process=='ABRUEST' and finish_mode:
+        operation=before['tool_mount']['operation']
+        if operation and (operation['kind']!='ABRUEST' or operation['tool_no']!=active.tool_no):
+            raise ControlConflict('Abrüstbuchung und Rüstnachweis passen nicht zusammen. Bitte zuerst fachlich klären.')
+        if finish_mode=='setup':
+            if machine.machine_status!='aktiv':raise ControlConflict('Maschine ist nicht aktiv. Kein neuer Rüstbeginn möglich.')
+            order=_order(order_id,machine_id,active.id) if order_id else None
+            next_tool=tool_no or (order.tool_no if order else None)
+            if not next_tool or not Tool.query.filter_by(tool_no=next_tool).first():
+                raise ValueError('Bitte das nächste Werkzeug aus den Stammdaten auswählen.')
+            if order and order.tool_no and order.tool_no!=next_tool:
+                raise ValueError('Nächstes Werkzeug widerspricht dem ausgewählten Auftrag.')
+            if order and order.sampling and order.sampling.tool and order.sampling.tool.tool_no!=next_tool:
+                raise ValueError('Nächstes Werkzeug widerspricht der Werkzeugzuordnung der Musterung.')
+            next_process='RUEST';next_order=order.id if order else None
+        forget()
     elif action=='finish_setup' and finish_mode:
         from .idle_context_service import validate_reason
         next_tool=active.tool_no
@@ -287,6 +304,11 @@ def execute(machine_id, user_id, action, command_id, expected_revision, *, order
     db.session.add(booking);state.version+=1;db.session.flush()
     from .tool_mount_service import apply_transition
     apply_transition(machine_id,user_id,action,active,next_process,next_tool,next_order,booking,command_id,comment,now)
+    if action=='finish_setup' and finish_mode=='setup':
+        # Complete/flush the old operation before creating the new active one.
+        # Both transitions still belong to this command's single transaction.
+        db.session.flush()
+        apply_transition(machine_id,user_id,'setup',active,next_process,next_tool,next_order,booking,command_id,comment,now)
     if action=='finish_setup' and finish_mode=='start':
         apply_transition(machine_id,user_id,'start',active,next_process,next_tool,next_order,booking,command_id,comment,now)
     from .idle_context_service import record_idle, WAIT_REASONS
@@ -307,8 +329,9 @@ def execute(machine_id, user_id, action, command_id, expected_revision, *, order
              "reason":{"old":None,"new":comment or (reason.name if reason else ACTIONS[action])}}
     if before['tool_mount']!=after['tool_mount']:changes['tool_mount']={'old':before['tool_mount'],'new':after['tool_mount']}
     if finish_mode or action=='record_wait':changes['setup_decision']={'new':{
-        'decision':'Produktion direkt gestartet' if finish_mode=='start' else 'Gerüstet warten',
-        'wait_reason':WAIT_REASONS.get(wait_reason), 'order_id':next_order,'tool_no':booking.tool_no,'note':comment}}
+        'decision':{'start':'Produktion direkt gestartet','wait':'Gerüstet warten','setup':'Direkt nächstes Werkzeug rüsten','free':'Ohne Werkzeug frei stehen lassen'}.get(finish_mode,'Gerüstet warten'),
+        'wait_reason':WAIT_REASONS.get(wait_reason), 'order_id':next_order,'tool_no':booking.tool_no,
+        'previous_tool_no':active.tool_no if process=='ABRUEST' else None,'note':comment}}
     def audit(entity_type,entity_id,entity_name):
         db.session.add(ChangeLog(entity_type=entity_type,entity_id=entity_id,entity_name=entity_name,
             action="update",category="production",changes=changes,user_id=user_id))

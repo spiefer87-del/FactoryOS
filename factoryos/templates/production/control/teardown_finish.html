@@ -1,0 +1,38 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Abrüsten abschließen · {{ machine.machine_no }}</title>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/machine_control.css',v='20261119-teardown') }}">
+<script src="{{ url_for('static',filename='js/machine_control_selection.js',v='20261119-teardown') }}" defer></script>
+<script src="{{ url_for('static',filename='js/machine_control.js',v='20261119-teardown') }}" defer></script></head>
+<body class="machine-control-page" data-revision="{{ state.revision }}" data-state-url="{{ url_for('production.machine_control_state',machine_id=machine.id) }}"><main class="control-panel">
+<header class="control-heading"><div><h1>{{ machine.machine_no }} · Abrüsten abschließen</h1><p>Abgerüstetes Werkzeug: <strong>{{ active.tool_no if active else '—' }}</strong></p></div>
+<a class="control-link" href="{{ url_for('production.machine_control',machine_id=machine.id,embedded='1' if embedded else None) }}">Zur Maschinenbedienung</a></header>
+{% if error %}<p role="alert" class="control-error">{{ error }}</p>{% endif %}
+<p id="control-stale" class="control-error" role="alert" hidden>Maschinenstand geändert. Bitte neu laden.</p>
+{% if not blocked %}<form method="post" id="control-command-form">
+<input type="hidden" name="access_csrf" value="{{ security_csrf_token() }}"><input type="hidden" name="command_id" value="{{ command_id }}"><input type="hidden" name="revision" value="{{ expected_revision }}">
+<section class="control-fields"><h2>Direkt nächstes Werkzeug rüsten</h2>
+<p>Das alte Werkzeug ist ausgebaut und das nächste Rüsten beginnt jetzt. Abrüstende und neuer Rüstbeginn erhalten denselben Zeitpunkt, ohne Frei-Buchung dazwischen.</p>
+<label>Folgeauftrag suchen<input type="search" id="control-order-search" placeholder="Auftragsnummer, Artikel …" autocomplete="off"></label>
+<label>Folgeauftrag (optional)<select id="control-order" name="order_id"><option value="">Ohne Auftrag – nächstes Werkzeug manuell auswählen</option>
+{% for order in orders %}<option value="{{ order.id }}" {% if selected_order|string==order.id|string %}selected{% endif %}>{{ order.order_no }} · {{ order.article or '' }} · {{ order.article_name or '' }}</option>{% endfor %}</select></label>
+<button class="control-link" type="submit" name="action" value="preview_selection" formnovalidate>Auswahl / Werkzeugvorschlag laden</button>
+<p id="control-sampling-note" class="control-note">{{ selected_info.note or 'Ohne Auftrag: vorhandenes Werkzeug für den neuen Rüstvorgang wählen.' }}</p>
+<a id="control-sampling-prepare" class="control-link" hidden>Musterung vorbereiten</a>
+<p id="control-proposal" class="control-note">{% if proposal %}Werkzeugvorschlag: {{ proposal.number }} · {{ proposal.name }} · {{ proposal.source }}{% else %}Nächstes Werkzeug aus den Stammdaten auswählen oder eingeben.{% endif %}</p>
+<label>Nächste Werkzeugnummer<input id="control-tool" name="tool_no" list="teardown-next-tools" maxlength="50" value="{{ selected_tool }}" autocomplete="off"></label>
+<datalist id="teardown-next-tools">{% for tool in tools %}<option value="{{ tool.tool_no }}">{{ tool.name or '' }}</option>{% endfor %}</datalist>
+<noscript><button class="control-link" type="submit" name="action" value="preview_tool" formnovalidate>Eigene Werkzeugwahl laden, dann bestätigen</button></noscript>
+<label class="completion-check"><input type="checkbox" id="control-tool-confirmed" name="tool_confirmed" value="yes"><span id="control-tool-confirm-label">Nächstes Werkzeug {{ selected_tool or 'auswählen' }} vor Ort geprüft – diese Nummer zum Rüsten übernehmen.</span></label>
+<input type="hidden" id="control-tool-confirmation-no" name="tool_confirmation_no" value="{{ selected_tool }}">
+<p id="control-selection-error" class="control-error" role="alert" hidden></p>
+<button class="command-button command-setup" type="submit" name="finish_mode" value="setup" data-label="Abrüsten abschließen und direkt nächstes Werkzeug rüsten" {% if machine.machine_status!='aktiv' %}disabled{% endif %}>Abrüsten abschließen und direkt rüsten</button>
+{% if machine.machine_status!='aktiv' %}<p class="control-note">Maschine ist nicht aktiv. Ein neuer Rüstvorgang ist gesperrt; das Abrüstende kann als leerer Maschinenzustand bestätigt werden.</p>{% endif %}
+<p class="control-note">Das neue Werkzeug ist damit noch nicht fertig gerüstet. Produktion beginnt erst nach dem später bestätigten Rüstende und dem bewussten Produktionsstart.</p></section>
+<section class="control-fields"><h2>Ohne Werkzeug frei stehen lassen</h2>
+<p>Das alte Werkzeug ist ausgebaut. Es beginnt jetzt kein neuer Rüstvorgang. Die freie Zeit ohne Werkzeug wird getrennt erfasst.</p>
+<button class="command-button" type="submit" name="finish_mode" value="free" data-label="Abrüstende bestätigen und Maschine ohne Werkzeug frei stehen lassen" formnovalidate>Ohne Werkzeug frei stehen lassen</button></section>
+<label>Notiz (optional)<textarea name="comment" rows="2" maxlength="255">{{ values.get('comment','') }}</textarea></label>
+<script type="application/json" id="control-selection-data">{{ selection_data|tojson }}</script>
+</form>{% endif %}
+<p class="control-note">Diese Bedienung bucht Zustände und Zeiten in FactoryOS. Sie betätigt keine Maschine.</p>
+</main></body></html>

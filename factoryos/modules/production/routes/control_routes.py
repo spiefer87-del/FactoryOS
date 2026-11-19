@@ -32,8 +32,9 @@ def machine_control(machine_id):
         if action in PERMISSIONS and not has_permission(current_user,PERMISSIONS[action]):abort(403)
         if action in ('record_wait','finish_setup'):
             active=current_booking(machine_id)
-            if action=='record_wait' or (active and active.process=='RUEST'):
-                return redirect(url_for('production.setup_finish',machine_id=machine_id,
+            if action=='record_wait' or (active and active.process in ('RUEST','ABRUEST')):
+                endpoint='production.teardown_finish' if action=='finish_setup' and active.process=='ABRUEST' else 'production.setup_finish'
+                return redirect(url_for(endpoint,machine_id=machine_id,
                     wait='1' if action=='record_wait' else None,embedded='1' if embedded else None,
                     revision=request.form.get('revision','')),303)
         if request.form.get("action")=="fault":
